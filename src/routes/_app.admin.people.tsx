@@ -1,0 +1,112 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { PageHeader, EmptyState } from "@/components/page-header";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useAuth } from "@/lib/auth";
+import { Plus } from "lucide-react";
+import { createUserAndEmployee, setEmployeeRole } from "@/server/admin.functions";
+
+export const Route = createFileRoute("/_app/admin/people")({ component: AdminPeople });
+
+function AdminPeople() {
+  const { isRH } = useAuth();
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const { data: people = [] } = useQuery({
+    queryKey: ["admin-people"], enabled: isRH,
+    queryFn: async () => (await supabase.from("employees").select("id, user_id, hire_date, profile:profiles(full_name, email), role:roles_catalog(title), department:departments(name)")).data ?? [],
+  });
+  const { data: roles = [] } = useQuery({ queryKey: ["roles-cat"], queryFn: async () => (await supabase.from("roles_catalog").select("id, title")).data ?? [] });
+  const { data: depts = [] } = useQuery({ queryKey: ["depts"], queryFn: async () => (await supabase.from("departments").select("id, name")).data ?? [] });
+  const { data: managers = [] } = useQuery({ queryKey: ["managers"], queryFn: async () => (await supabase.from("employees").select("id, profile:profiles(full_name, email)")).data ?? [] });
+
+  if (!isRH) return <EmptyState title="Acesso restrito" description="Apenas o RH pode acessar esta área." />;
+
+  return (
+    <>
+      <PageHeader title="Colaboradores" description="Cadastre, vincule a cargos e gestores" action={
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild><Button><Plus className="mr-2 h-4 w-4" />Novo colaborador</Button></DialogTrigger>
+          <NewPersonDialog roles={roles} depts={depts} managers={managers as any} onCreated={() => { setOpen(false); qc.invalidateQueries(); }} />
+        </Dialog>
+      } />
+      {people.length === 0 ? <EmptyState title="Nenhum colaborador" description="Comece criando seu primeiro colaborador." /> : (
+        <div className="grid gap-3 md:grid-cols-2">
+          {people.map((p: any) => (
+            <Card key={p.id}><CardContent className="pt-6 space-y-2">
+              <div className="flex justify-between"><p className="font-medium">{p.profile?.full_name || p.profile?.email}</p>
+                <Badge variant="secondary">{p.role?.title ?? "Sem cargo"}</Badge></div>
+              <p className="text-sm text-muted-foreground">{p.department?.name ?? "Sem setor"}</p>
+              <RoleSwitcher userId={p.user_id} />
+            </CardContent></Card>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
+function RoleSwitcher({ userId }: { userId: string }) {
+  const qc = useQueryClient();
+  const { data: roles = [] } = useQuery({
+    queryKey: ["uroles", userId],
+    queryFn: async () => (await supabase.from("user_roles").select("role").eq("user_id", userId)).data ?? [],
+  });
+  const current = (roles[0] as any)?.role ?? "colaborador";
+  const set = async (r: string) => {
+    try { await setEmployeeRole({ data: { userId, role: r as any } }); toast.success("Papel atualizado"); qc.invalidateQueries({ queryKey: ["uroles", userId] }); }
+    catch (e: any) { toast.error(e.message); }
+  };
+  return (
+    <div className="flex items-center gap-2"><Label className="text-xs">Papel:</Label>
+      <Select value={current} onValueChange={set}>
+        <SelectTrigger className="h-8 w-40"><SelectValue/></SelectTrigger>
+        <SelectContent><SelectItem value="colaborador">Colaborador</SelectItem><SelectItem value="gestor">Gestor</SelectItem><SelectItem value="rh">RH/Admin</SelectItem></SelectContent>
+      </Select>
+    </div>
+  );
+}
+
+function NewPersonDialog({ roles, depts, managers, onCreated }: any) {
+  const [email, setEmail] = useState(""); const [name, setName] = useState(""); const [pwd, setPwd] = useState("");
+  const [roleId, setRoleId] = useState(""); const [deptId, setDeptId] = useState(""); const [managerId, setManagerId] = useState("");
+  const [busy, setBusy] = useState(false);
+  const submit = async () => {
+    if (!email || !pwd || !name) return toast.error("Preencha nome, e-mail e senha");
+    setBusy(true);
+    try {
+      await createUserAndEmployee({ data: { email, password: pwd, fullName: name, roleId: roleId || null, departmentId: deptId || null, managerId: managerId || null } });
+      toast.success("Colaborador criado");
+      onCreated();
+    } catch (e: any) { toast.error(e.message); } finally { setBusy(false); }
+  };
+  return (
+    <DialogContent>
+      <DialogHeader><DialogTitle>Novo colaborador</DialogTitle></DialogHeader>
+      <div className="space-y-3">
+        <div className="space-y-1"><Label>Nome completo</Label><Input value={name} onChange={(e)=>setName(e.target.value)} /></div>
+        <div className="space-y-1"><Label>E-mail</Label><Input type="email" value={email} onChange={(e)=>setEmail(e.target.value)} /></div>
+        <div className="space-y-1"><Label>Senha provisória</Label><Input type="text" value={pwd} onChange={(e)=>setPwd(e.target.value)} /></div>
+        <div className="space-y-1"><Label>Cargo</Label>
+          <Select value={roleId} onValueChange={setRoleId}><SelectTrigger><SelectValue placeholder="Selecione"/></SelectTrigger>
+            <SelectContent>{roles.map((r: any)=><SelectItem key={r.id} value={r.id}>{r.title}</SelectItem>)}</SelectContent></Select></div>
+        <div className="space-y-1"><Label>Setor</Label>
+          <Select value={deptId} onValueChange={setDeptId}><SelectTrigger><SelectValue placeholder="Selecione"/></SelectTrigger>
+            <SelectContent>{depts.map((d: any)=><SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent></Select></div>
+        <div className="space-y-1"><Label>Gestor direto</Label>
+          <Select value={managerId} onValueChange={setManagerId}><SelectTrigger><SelectValue placeholder="Sem gestor"/></SelectTrigger>
+            <SelectContent>{managers.map((m: any)=><SelectItem key={m.id} value={m.id}>{m.profile?.full_name || m.profile?.email}</SelectItem>)}</SelectContent></Select></div>
+      </div>
+      <DialogFooter><Button onClick={submit} disabled={busy}>{busy?"Criando...":"Criar"}</Button></DialogFooter>
+    </DialogContent>
+  );
+}
