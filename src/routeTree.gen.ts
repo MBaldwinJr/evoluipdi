@@ -12,8 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppTeamIndexRouteImport } from './routes/_app.team.index'
 import { Route as AppMeIndexRouteImport } from './routes/_app.me.index'
 import { Route as AppMePdiRouteImport } from './routes/_app.me.pdi'
+import { Route as AppMeFeedbacksRouteImport } from './routes/_app.me.feedbacks'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -29,6 +31,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppTeamIndexRoute = AppTeamIndexRouteImport.update({
+  id: '/team/',
+  path: '/team/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppMeIndexRoute = AppMeIndexRouteImport.update({
   id: '/me/',
   path: '/me/',
@@ -39,33 +46,52 @@ const AppMePdiRoute = AppMePdiRouteImport.update({
   path: '/me/pdi',
   getParentRoute: () => AppRoute,
 } as any)
+const AppMeFeedbacksRoute = AppMeFeedbacksRouteImport.update({
+  id: '/me/feedbacks',
+  path: '/me/feedbacks',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/me/feedbacks': typeof AppMeFeedbacksRoute
   '/me/pdi': typeof AppMePdiRoute
   '/me/': typeof AppMeIndexRoute
+  '/team/': typeof AppTeamIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/me/feedbacks': typeof AppMeFeedbacksRoute
   '/me/pdi': typeof AppMePdiRoute
   '/me': typeof AppMeIndexRoute
+  '/team': typeof AppTeamIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
+  '/_app/me/feedbacks': typeof AppMeFeedbacksRoute
   '/_app/me/pdi': typeof AppMePdiRoute
   '/_app/me/': typeof AppMeIndexRoute
+  '/_app/team/': typeof AppTeamIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/me/pdi' | '/me/'
+  fullPaths: '/' | '/login' | '/me/feedbacks' | '/me/pdi' | '/me/' | '/team/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/me/pdi' | '/me'
-  id: '__root__' | '/' | '/_app' | '/login' | '/_app/me/pdi' | '/_app/me/'
+  to: '/' | '/login' | '/me/feedbacks' | '/me/pdi' | '/me' | '/team'
+  id:
+    | '__root__'
+    | '/'
+    | '/_app'
+    | '/login'
+    | '/_app/me/feedbacks'
+    | '/_app/me/pdi'
+    | '/_app/me/'
+    | '/_app/team/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -97,6 +123,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/team/': {
+      id: '/_app/team/'
+      path: '/team'
+      fullPath: '/team/'
+      preLoaderRoute: typeof AppTeamIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/me/': {
       id: '/_app/me/'
       path: '/me'
@@ -111,17 +144,28 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMePdiRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/me/feedbacks': {
+      id: '/_app/me/feedbacks'
+      path: '/me/feedbacks'
+      fullPath: '/me/feedbacks'
+      preLoaderRoute: typeof AppMeFeedbacksRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppMeFeedbacksRoute: typeof AppMeFeedbacksRoute
   AppMePdiRoute: typeof AppMePdiRoute
   AppMeIndexRoute: typeof AppMeIndexRoute
+  AppTeamIndexRoute: typeof AppTeamIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppMeFeedbacksRoute: AppMeFeedbacksRoute,
   AppMePdiRoute: AppMePdiRoute,
   AppMeIndexRoute: AppMeIndexRoute,
+  AppTeamIndexRoute: AppTeamIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -134,3 +178,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
