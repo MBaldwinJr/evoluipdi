@@ -146,7 +146,7 @@ function PdiCard({ pdi, employeeId }: { pdi: any; employeeId: string }) {
     setBusyAi(pointId);
     try {
       const result = await suggestPdiActions({ data: { developmentPoint: pointDesc } });
-      const rows = result.actions.map((a) => ({ development_point_id: pointId, category: a.category, description: a.description }));
+      const rows = result.actions.map((a: any) => ({ development_point_id: pointId, category: a.category, description: a.description }));
       const { error } = await supabase.from("pdi_actions").insert(rows);
       if (error) throw error;
       toast.success("Ações sugeridas pela IA adicionadas");
