@@ -14,8 +14,14 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppTeamIndexRouteImport } from './routes/_app.team.index'
 import { Route as AppMeIndexRouteImport } from './routes/_app.me.index'
+import { Route as AppTeamIdRouteImport } from './routes/_app.team.$id'
 import { Route as AppMePdiRouteImport } from './routes/_app.me.pdi'
 import { Route as AppMeFeedbacksRouteImport } from './routes/_app.me.feedbacks'
+import { Route as AppAdminSettingsRouteImport } from './routes/_app.admin.settings'
+import { Route as AppAdminRolesRouteImport } from './routes/_app.admin.roles'
+import { Route as AppAdminReportsRouteImport } from './routes/_app.admin.reports'
+import { Route as AppAdminPeopleRouteImport } from './routes/_app.admin.people'
+import { Route as AppAdminInterviewsRouteImport } from './routes/_app.admin.interviews'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -41,6 +47,11 @@ const AppMeIndexRoute = AppMeIndexRouteImport.update({
   path: '/me/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppTeamIdRoute = AppTeamIdRouteImport.update({
+  id: '/team/$id',
+  path: '/team/$id',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppMePdiRoute = AppMePdiRouteImport.update({
   id: '/me/pdi',
   path: '/me/pdi',
@@ -51,20 +62,57 @@ const AppMeFeedbacksRoute = AppMeFeedbacksRouteImport.update({
   path: '/me/feedbacks',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAdminSettingsRoute = AppAdminSettingsRouteImport.update({
+  id: '/admin/settings',
+  path: '/admin/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminRolesRoute = AppAdminRolesRouteImport.update({
+  id: '/admin/roles',
+  path: '/admin/roles',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminReportsRoute = AppAdminReportsRouteImport.update({
+  id: '/admin/reports',
+  path: '/admin/reports',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminPeopleRoute = AppAdminPeopleRouteImport.update({
+  id: '/admin/people',
+  path: '/admin/people',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminInterviewsRoute = AppAdminInterviewsRouteImport.update({
+  id: '/admin/interviews',
+  path: '/admin/interviews',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/admin/interviews': typeof AppAdminInterviewsRoute
+  '/admin/people': typeof AppAdminPeopleRoute
+  '/admin/reports': typeof AppAdminReportsRoute
+  '/admin/roles': typeof AppAdminRolesRoute
+  '/admin/settings': typeof AppAdminSettingsRoute
   '/me/feedbacks': typeof AppMeFeedbacksRoute
   '/me/pdi': typeof AppMePdiRoute
+  '/team/$id': typeof AppTeamIdRoute
   '/me/': typeof AppMeIndexRoute
   '/team/': typeof AppTeamIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/admin/interviews': typeof AppAdminInterviewsRoute
+  '/admin/people': typeof AppAdminPeopleRoute
+  '/admin/reports': typeof AppAdminReportsRoute
+  '/admin/roles': typeof AppAdminRolesRoute
+  '/admin/settings': typeof AppAdminSettingsRoute
   '/me/feedbacks': typeof AppMeFeedbacksRoute
   '/me/pdi': typeof AppMePdiRoute
+  '/team/$id': typeof AppTeamIdRoute
   '/me': typeof AppMeIndexRoute
   '/team': typeof AppTeamIndexRoute
 }
@@ -73,23 +121,59 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
+  '/_app/admin/interviews': typeof AppAdminInterviewsRoute
+  '/_app/admin/people': typeof AppAdminPeopleRoute
+  '/_app/admin/reports': typeof AppAdminReportsRoute
+  '/_app/admin/roles': typeof AppAdminRolesRoute
+  '/_app/admin/settings': typeof AppAdminSettingsRoute
   '/_app/me/feedbacks': typeof AppMeFeedbacksRoute
   '/_app/me/pdi': typeof AppMePdiRoute
+  '/_app/team/$id': typeof AppTeamIdRoute
   '/_app/me/': typeof AppMeIndexRoute
   '/_app/team/': typeof AppTeamIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/me/feedbacks' | '/me/pdi' | '/me/' | '/team/'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/admin/interviews'
+    | '/admin/people'
+    | '/admin/reports'
+    | '/admin/roles'
+    | '/admin/settings'
+    | '/me/feedbacks'
+    | '/me/pdi'
+    | '/team/$id'
+    | '/me/'
+    | '/team/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/me/feedbacks' | '/me/pdi' | '/me' | '/team'
+  to:
+    | '/'
+    | '/login'
+    | '/admin/interviews'
+    | '/admin/people'
+    | '/admin/reports'
+    | '/admin/roles'
+    | '/admin/settings'
+    | '/me/feedbacks'
+    | '/me/pdi'
+    | '/team/$id'
+    | '/me'
+    | '/team'
   id:
     | '__root__'
     | '/'
     | '/_app'
     | '/login'
+    | '/_app/admin/interviews'
+    | '/_app/admin/people'
+    | '/_app/admin/reports'
+    | '/_app/admin/roles'
+    | '/_app/admin/settings'
     | '/_app/me/feedbacks'
     | '/_app/me/pdi'
+    | '/_app/team/$id'
     | '/_app/me/'
     | '/_app/team/'
   fileRoutesById: FileRoutesById
@@ -137,6 +221,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMeIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/team/$id': {
+      id: '/_app/team/$id'
+      path: '/team/$id'
+      fullPath: '/team/$id'
+      preLoaderRoute: typeof AppTeamIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/me/pdi': {
       id: '/_app/me/pdi'
       path: '/me/pdi'
@@ -151,19 +242,66 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMeFeedbacksRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/admin/settings': {
+      id: '/_app/admin/settings'
+      path: '/admin/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AppAdminSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/roles': {
+      id: '/_app/admin/roles'
+      path: '/admin/roles'
+      fullPath: '/admin/roles'
+      preLoaderRoute: typeof AppAdminRolesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/reports': {
+      id: '/_app/admin/reports'
+      path: '/admin/reports'
+      fullPath: '/admin/reports'
+      preLoaderRoute: typeof AppAdminReportsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/people': {
+      id: '/_app/admin/people'
+      path: '/admin/people'
+      fullPath: '/admin/people'
+      preLoaderRoute: typeof AppAdminPeopleRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/interviews': {
+      id: '/_app/admin/interviews'
+      path: '/admin/interviews'
+      fullPath: '/admin/interviews'
+      preLoaderRoute: typeof AppAdminInterviewsRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppAdminInterviewsRoute: typeof AppAdminInterviewsRoute
+  AppAdminPeopleRoute: typeof AppAdminPeopleRoute
+  AppAdminReportsRoute: typeof AppAdminReportsRoute
+  AppAdminRolesRoute: typeof AppAdminRolesRoute
+  AppAdminSettingsRoute: typeof AppAdminSettingsRoute
   AppMeFeedbacksRoute: typeof AppMeFeedbacksRoute
   AppMePdiRoute: typeof AppMePdiRoute
+  AppTeamIdRoute: typeof AppTeamIdRoute
   AppMeIndexRoute: typeof AppMeIndexRoute
   AppTeamIndexRoute: typeof AppTeamIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAdminInterviewsRoute: AppAdminInterviewsRoute,
+  AppAdminPeopleRoute: AppAdminPeopleRoute,
+  AppAdminReportsRoute: AppAdminReportsRoute,
+  AppAdminRolesRoute: AppAdminRolesRoute,
+  AppAdminSettingsRoute: AppAdminSettingsRoute,
   AppMeFeedbacksRoute: AppMeFeedbacksRoute,
   AppMePdiRoute: AppMePdiRoute,
+  AppTeamIdRoute: AppTeamIdRoute,
   AppMeIndexRoute: AppMeIndexRoute,
   AppTeamIndexRoute: AppTeamIndexRoute,
 }
