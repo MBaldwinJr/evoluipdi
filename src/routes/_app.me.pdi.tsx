@@ -160,7 +160,7 @@ function PdiCard({ pdi, employeeId }: { pdi: any; employeeId: string }) {
     setBusyAi("gaps");
     try {
       const result = await suggestGapsFromEmployee({ data: { employeeId } });
-      const rows = result.gaps.map((g) => ({ employee_id: employeeId, title: g.title, severity: g.severity, justification: g.justification, root_cause: g.root_cause, source: "IA" }));
+      const rows = result.gaps.map((g: any) => ({ employee_id: employeeId, title: g.title, severity: g.severity, justification: g.justification, root_cause: g.root_cause, source: "IA" }));
       if (rows.length) await supabase.from("gaps").insert(rows);
       toast.success(`${rows.length} gap(s) sugerido(s)`);
     } catch (e: any) {
