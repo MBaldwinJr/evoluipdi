@@ -797,7 +797,14 @@ export type Database = {
       app_role: "colaborador" | "gestor" | "rh"
       feedback_kind: "informal" | "formal"
       gap_severity: "baixa" | "media" | "alta"
-      interview_kind: "inicial" | "periodica" | "avaliacao"
+      interview_kind:
+        | "inicial"
+        | "periodica"
+        | "avaliacao"
+        | "selecao"
+        | "feedback"
+        | "desligamento"
+        | "carreira"
       objective_horizon: "curto" | "medio" | "longo"
       pdi_status:
         | "rascunho"
@@ -944,7 +951,15 @@ export const Constants = {
       app_role: ["colaborador", "gestor", "rh"],
       feedback_kind: ["informal", "formal"],
       gap_severity: ["baixa", "media", "alta"],
-      interview_kind: ["inicial", "periodica", "avaliacao"],
+      interview_kind: [
+        "inicial",
+        "periodica",
+        "avaliacao",
+        "selecao",
+        "feedback",
+        "desligamento",
+        "carreira",
+      ],
       objective_horizon: ["curto", "medio", "longo"],
       pdi_status: [
         "rascunho",
