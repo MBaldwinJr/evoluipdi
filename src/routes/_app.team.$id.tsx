@@ -8,12 +8,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles } from "lucide-react";
+import { Sparkles, ListChecks, Plus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { structureFeedback } from "@/server/ai.functions";
 import { Badge } from "@/components/ui/badge";
+import { InterviewWizard } from "@/components/interview-wizard";
 
 export const Route = createFileRoute("/_app/team/$id")({ component: TeamMember });
 
