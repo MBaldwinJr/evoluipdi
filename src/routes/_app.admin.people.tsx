@@ -88,20 +88,29 @@ function RoleSwitcher({ userId }: { userId: string }) {
 function NewPersonDialog({ roles, depts, managers, onCreated }: any) {
   const [email, setEmail] = useState(""); const [name, setName] = useState(""); const [pwd, setPwd] = useState("");
   const [roleId, setRoleId] = useState(""); const [deptId, setDeptId] = useState(""); const [managerId, setManagerId] = useState("");
+  const [asManager, setAsManager] = useState(false);
   const [busy, setBusy] = useState(false);
   const submit = async () => {
     if (!email || !pwd || !name) return toast.error("Preencha nome, e-mail e senha");
     setBusy(true);
     try {
-      await createUserAndEmployee({ data: { email, password: pwd, fullName: name, roleId: roleId || null, departmentId: deptId || null, managerId: managerId || null } });
-      toast.success("Colaborador criado");
+      const res = await createUserAndEmployee({ data: { email, password: pwd, fullName: name, roleId: roleId || null, departmentId: deptId || null, managerId: managerId || null } });
+      if (asManager && res?.userId) {
+        await setEmployeeRole({ data: { userId: res.userId, role: "gestor" } });
+      }
+      toast.success(asManager ? "Gestor criado" : "Colaborador criado");
       onCreated();
     } catch (e: any) { toast.error(e.message); } finally { setBusy(false); }
   };
   return (
     <DialogContent>
-      <DialogHeader><DialogTitle>Novo colaborador</DialogTitle></DialogHeader>
+      <DialogHeader><DialogTitle>{asManager ? "Novo gestor" : "Novo colaborador"}</DialogTitle></DialogHeader>
       <div className="space-y-3">
+        <label className="flex items-center gap-2 rounded-md border p-3 cursor-pointer">
+          <Checkbox checked={asManager} onCheckedChange={(v)=>setAsManager(!!v)} />
+          <div className="text-sm"><p className="font-medium">Cadastrar como Gestor</p>
+            <p className="text-xs text-muted-foreground">Permite que ele apareça como opção de gestor para outros colaboradores e acesse a aba Equipe.</p></div>
+        </label>
         <div className="space-y-1"><Label>Nome completo</Label><Input value={name} onChange={(e)=>setName(e.target.value)} /></div>
         <div className="space-y-1"><Label>E-mail</Label><Input type="email" value={email} onChange={(e)=>setEmail(e.target.value)} /></div>
         <div className="space-y-1"><Label>Senha provisória</Label><Input type="text" value={pwd} onChange={(e)=>setPwd(e.target.value)} /></div>
@@ -111,9 +120,14 @@ function NewPersonDialog({ roles, depts, managers, onCreated }: any) {
         <div className="space-y-1"><Label>Setor</Label>
           <Select value={deptId} onValueChange={setDeptId}><SelectTrigger><SelectValue placeholder="Selecione"/></SelectTrigger>
             <SelectContent>{depts.map((d: any)=><SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent></Select></div>
-        <div className="space-y-1"><Label>Gestor direto</Label>
-          <Select value={managerId} onValueChange={setManagerId}><SelectTrigger><SelectValue placeholder="Sem gestor"/></SelectTrigger>
-            <SelectContent>{managers.map((m: any)=><SelectItem key={m.id} value={m.id}>{m.profile?.full_name || m.profile?.email}</SelectItem>)}</SelectContent></Select></div>
+        {!asManager && (
+          <div className="space-y-1"><Label>Gestor direto</Label>
+            <Select value={managerId} onValueChange={setManagerId}>
+              <SelectTrigger><SelectValue placeholder={managers.length === 0 ? "Nenhum gestor cadastrado ainda" : "Sem gestor"}/></SelectTrigger>
+              <SelectContent>{managers.map((m: any)=><SelectItem key={m.id} value={m.id}>{m.profile?.full_name || m.profile?.email}</SelectItem>)}</SelectContent></Select>
+            {managers.length === 0 && <p className="text-xs text-muted-foreground">Cadastre primeiro um Gestor (marque o checkbox acima).</p>}
+          </div>
+        )}
       </div>
       <DialogFooter><Button onClick={submit} disabled={busy}>{busy?"Criando...":"Criar"}</Button></DialogFooter>
     </DialogContent>
