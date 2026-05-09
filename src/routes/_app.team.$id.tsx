@@ -80,6 +80,7 @@ function TeamMember() {
           <TabsTrigger value="feedback">Dar feedback</TabsTrigger>
           <TabsTrigger value="historico">Histórico</TabsTrigger>
           <TabsTrigger value="pdi">PDIs</TabsTrigger>
+          <TabsTrigger value="entrevistas">Entrevistas</TabsTrigger>
         </TabsList>
 
         <TabsContent value="feedback">
