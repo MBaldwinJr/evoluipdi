@@ -24,7 +24,7 @@ function TeamMember() {
   const qc = useQueryClient();
   const { data: emp } = useQuery({
     queryKey: ["emp", id],
-    queryFn: async () => (await supabase.from("employees").select("*, profile:profiles(full_name, email), role:roles_catalog(title)").eq("id", id).maybeSingle()).data,
+    queryFn: async () => (await supabase.from("employees").select("*, profile:profiles(full_name, email), role:roles_catalog(id, title)").eq("id", id).maybeSingle()).data,
   });
   const { data: feedbacks = [] } = useQuery({
     queryKey: ["emp-fb", id],
@@ -34,6 +34,11 @@ function TeamMember() {
     queryKey: ["emp-pdis", id],
     queryFn: async () => (await supabase.from("pdis").select("*").eq("employee_id", id).order("created_at", { ascending: false })).data ?? [],
   });
+  const { data: interviews = [] } = useQuery({
+    queryKey: ["emp-int", id],
+    queryFn: async () => (await supabase.from("interviews").select("id, kind, occurred_at, notes, template:interview_templates(title)").eq("employee_id", id).order("occurred_at", { ascending: false })).data ?? [],
+  });
+  const [wizardOpen, setWizardOpen] = useState(false);
 
   const [raw, setRaw] = useState("");
   const [fact, setFact] = useState(""); const [impact, setImpact] = useState(""); const [next, setNext] = useState("");
