@@ -28,7 +28,15 @@ function AdminPeople() {
   });
   const { data: roles = [] } = useQuery({ queryKey: ["roles-cat"], queryFn: async () => (await supabase.from("roles_catalog").select("id, title")).data ?? [] });
   const { data: depts = [] } = useQuery({ queryKey: ["depts"], queryFn: async () => (await supabase.from("departments").select("id, name")).data ?? [] });
-  const { data: managers = [] } = useQuery({ queryKey: ["managers"], queryFn: async () => (await supabase.from("employees").select("id, profile:profiles(full_name, email)")).data ?? [] });
+  const { data: managers = [] } = useQuery({
+    queryKey: ["managers-only"],
+    queryFn: async () => {
+      const { data: gestoresRoles } = await supabase.from("user_roles").select("user_id").in("role", ["gestor", "rh"]);
+      const ids = (gestoresRoles ?? []).map((r: any) => r.user_id);
+      if (ids.length === 0) return [];
+      return (await supabase.from("employees").select("id, profile:profiles(full_name, email)").in("user_id", ids)).data ?? [];
+    },
+  });
 
   if (!isRH) return <EmptyState title="Acesso restrito" description="Apenas o RH pode acessar esta área." />;
 
