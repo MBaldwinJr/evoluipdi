@@ -8,12 +8,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles } from "lucide-react";
+import { Sparkles, ListChecks, Plus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { structureFeedback } from "@/server/ai.functions";
 import { Badge } from "@/components/ui/badge";
+import { InterviewWizard } from "@/components/interview-wizard";
 
 export const Route = createFileRoute("/_app/team/$id")({ component: TeamMember });
 
@@ -23,7 +24,7 @@ function TeamMember() {
   const qc = useQueryClient();
   const { data: emp } = useQuery({
     queryKey: ["emp", id],
-    queryFn: async () => (await supabase.from("employees").select("*, profile:profiles(full_name, email), role:roles_catalog(title)").eq("id", id).maybeSingle()).data,
+    queryFn: async () => (await supabase.from("employees").select("*, profile:profiles(full_name, email), role:roles_catalog(id, title)").eq("id", id).maybeSingle()).data,
   });
   const { data: feedbacks = [] } = useQuery({
     queryKey: ["emp-fb", id],
@@ -33,6 +34,11 @@ function TeamMember() {
     queryKey: ["emp-pdis", id],
     queryFn: async () => (await supabase.from("pdis").select("*").eq("employee_id", id).order("created_at", { ascending: false })).data ?? [],
   });
+  const { data: interviews = [] } = useQuery({
+    queryKey: ["emp-int", id],
+    queryFn: async () => (await supabase.from("interviews").select("id, kind, occurred_at, notes, template:interview_templates(title)").eq("employee_id", id).order("occurred_at", { ascending: false })).data ?? [],
+  });
+  const [wizardOpen, setWizardOpen] = useState(false);
 
   const [raw, setRaw] = useState("");
   const [fact, setFact] = useState(""); const [impact, setImpact] = useState(""); const [next, setNext] = useState("");
@@ -74,6 +80,7 @@ function TeamMember() {
           <TabsTrigger value="feedback">Dar feedback</TabsTrigger>
           <TabsTrigger value="historico">Histórico</TabsTrigger>
           <TabsTrigger value="pdi">PDIs</TabsTrigger>
+          <TabsTrigger value="entrevistas">Entrevistas</TabsTrigger>
         </TabsList>
 
         <TabsContent value="feedback">
@@ -130,7 +137,43 @@ function TeamMember() {
             </div>
           )}
         </TabsContent>
+        <TabsContent value="entrevistas">
+          <Card>
+            <CardHeader className="flex-row items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2"><ListChecks className="h-4 w-4" />Entrevistas aplicadas</CardTitle>
+              <Button size="sm" onClick={() => setWizardOpen(true)}><Plus className="mr-1 h-3 w-3" />Nova entrevista</Button>
+            </CardHeader>
+            <CardContent>
+              {interviews.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Nenhuma entrevista registrada. Clique em "Nova entrevista" para iniciar o wizard.</p>
+              ) : (
+                <div className="space-y-2">
+                  {interviews.map((it: any) => (
+                    <div key={it.id} className="rounded-md border p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="secondary">{it.kind}</Badge>
+                          <span className="text-sm font-medium">{it.template?.title ?? "Entrevista"}</span>
+                        </div>
+                        <span className="text-xs text-muted-foreground">{new Date(it.occurred_at).toLocaleDateString("pt-BR")}</span>
+                      </div>
+                      {it.notes && <p className="mt-2 text-sm text-muted-foreground">{it.notes}</p>}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
+      <InterviewWizard
+        open={wizardOpen}
+        onOpenChange={setWizardOpen}
+        employeeId={id}
+        roleId={(emp as any).role?.id ?? null}
+        employeeName={(emp as any).profile?.full_name || (emp as any).profile?.email || "Colaborador"}
+        onSaved={() => qc.invalidateQueries({ queryKey: ["emp-int", id] })}
+      />
       <div className="mt-4"><Link to="/team" className="text-sm text-primary hover:underline">← Voltar para a equipe</Link></div>
     </>
   );
