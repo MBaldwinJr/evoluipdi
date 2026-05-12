@@ -56,6 +56,9 @@ function AdminPeople() {
                 <Badge variant="secondary">{p.role?.title ?? "Sem cargo"}</Badge></div>
               <p className="text-sm text-muted-foreground">{p.department?.name ?? "Sem setor"}</p>
               <RoleSwitcher userId={p.user_id} />
+              <Link to="/team/$id" params={{ id: p.id }}>
+                <Button size="sm" variant="outline" className="w-full"><ListChecks className="mr-2 h-4 w-4" />Abrir / Aplicar entrevista</Button>
+              </Link>
             </CardContent></Card>
           ))}
         </div>
