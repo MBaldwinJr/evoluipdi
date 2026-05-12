@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { Plus, ListChecks } from "lucide-react";
@@ -93,8 +93,11 @@ function NewPersonDialog({ roles, depts, managers, onCreated }: any) {
   const [roleId, setRoleId] = useState(""); const [deptId, setDeptId] = useState(""); const [managerId, setManagerId] = useState("");
   const [asManager, setAsManager] = useState(false);
   const [busy, setBusy] = useState(false);
+  const submittingRef = useRef(false);
   const submit = async () => {
+    if (submittingRef.current) return;
     if (!email || !pwd || !name) return toast.error("Preencha nome, e-mail e senha");
+    submittingRef.current = true;
     setBusy(true);
     try {
       const res = await createUserAndEmployee({ data: { email, password: pwd, fullName: name, roleId: roleId || null, departmentId: deptId || null, managerId: managerId || null } });
@@ -103,7 +106,15 @@ function NewPersonDialog({ roles, depts, managers, onCreated }: any) {
       }
       toast.success(asManager ? "Gestor criado" : "Colaborador criado");
       onCreated();
-    } catch (e: any) { toast.error(e.message); } finally { setBusy(false); }
+    } catch (e: any) {
+      let msg = "Erro ao criar";
+      if (e instanceof Response) { try { msg = await e.text(); } catch {} }
+      else if (e?.message) msg = e.message;
+      toast.error(msg);
+    } finally {
+      submittingRef.current = false;
+      setBusy(false);
+    }
   };
   return (
     <DialogContent>
