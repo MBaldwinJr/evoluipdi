@@ -13,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
-import { Plus } from "lucide-react";
+import { Plus, ListChecks } from "lucide-react";
 import { createUserAndEmployee, setEmployeeRole } from "@/server/admin.functions";
 
 export const Route = createFileRoute("/_app/admin/people")({ component: AdminPeople });
