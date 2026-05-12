@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, EmptyState } from "@/components/page-header";
@@ -13,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
-import { Plus } from "lucide-react";
+import { Plus, ListChecks } from "lucide-react";
 import { createUserAndEmployee, setEmployeeRole } from "@/server/admin.functions";
 
 export const Route = createFileRoute("/_app/admin/people")({ component: AdminPeople });
@@ -56,6 +56,9 @@ function AdminPeople() {
                 <Badge variant="secondary">{p.role?.title ?? "Sem cargo"}</Badge></div>
               <p className="text-sm text-muted-foreground">{p.department?.name ?? "Sem setor"}</p>
               <RoleSwitcher userId={p.user_id} />
+              <Link to="/team/$id" params={{ id: p.id }}>
+                <Button size="sm" variant="outline" className="w-full"><ListChecks className="mr-2 h-4 w-4" />Abrir / Aplicar entrevista</Button>
+              </Link>
             </CardContent></Card>
           ))}
         </div>
