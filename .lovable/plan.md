@@ -1,45 +1,34 @@
-## Problema 1 — "Cadastro pendente" no /me como RH
+## Problema
 
-A rota `/me` (`_app.me.index.tsx`) busca um registro em `employees` ligado ao seu `user_id`. Usuários RH puros (criados como admin) não têm linha em `employees`, então cai no estado vazio "Cadastro pendente".
+Ao cadastrar colaborador em `/admin/people`, a tela fica em branco com `Error: [object Response]`. O toast "Colaborador criado" aparece, mas em seguida o app quebra.
 
-### Solução
+**Causa raiz** (confirmada pelo session replay): o usuário clicou no botão "Criar" **duas vezes em sequência rápida** (eventos 750022 e 750103, ~80ms de diferença). O `disabled={busy}` ainda não tinha sido aplicado quando o segundo clique disparou. Resultado:
 
-Ajustar `_app.me.index.tsx` para detectar o papel do usuário:
+1. 1ª chamada: `createUserAndEmployee` cria o usuário no Supabase Auth → sucesso → toast "Colaborador criado".
+2. 2ª chamada: tenta criar o **mesmo e-mail** → `supabaseAdmin.auth.admin.createUser` retorna erro "User already registered" → o handler faz `throw new Error(...)`, mas como o server fn TanStack envelopa em `Response`, o erro chega no cliente como `[object Response]` e dispara o errorComponent → tela em branco.
 
-- **Se `isRH`** e não houver `employee`: mostrar painel administrativo resumido em vez do estado vazio confuso. Cards com:
-  - Nº de colaboradores cadastrados
-  - Nº de cargos / setores
-  - Nº de PDIs aguardando validação
-  - Nº de entrevistas aplicadas no mês
-  - Atalhos rápidos: "Cadastrar colaborador", "Gerenciar cargos", "Ver relatórios"
-- **Se `isGestor`** sem registro de colaborador: mensagem orientando ir para `/team`.
-- **Se colaborador comum** sem vínculo: manter mensagem atual ("procure o RH").
+Há também um agravante: como `setState(busy=true)` é assíncrono, dois cliques quase simultâneos passam ambos pela checagem inicial de `busy`.
 
-Também ajustar o sidebar/menu: para RH, fazer `/admin/people` (ou `/admin/reports`) ser o destino padrão ao logar, em vez de `/me`.
+## Correção
 
-## Problema 2 — Tela de entrevista
+### 1. `src/routes/_app.admin.people.tsx` — `NewPersonDialog`
 
-A tela **já existe e está funcional**:
-- Componente: `src/components/interview-wizard.tsx` (wizard pergunta-a-pergunta com progresso, salvamento de rascunho em localStorage e validação mínima de 3 caracteres).
-- Acessada em: **Equipe → clicar em um colaborador → aba "Entrevistas" → botão "Nova entrevista"**.
-- Mostra histórico das entrevistas aplicadas com data, tipo e template.
+- Trocar o estado `busy` por um **`useRef<boolean>`** (`submittingRef`) que bloqueia reentrância de forma síncrona, mantendo `busy` apenas para feedback visual.
+- No `submit`: se `submittingRef.current === true`, retornar imediatamente.
+- Envolver o `submit` em try/catch que sempre reseta `submittingRef.current = false` no finally.
+- Capturar o erro vindo do server fn de forma robusta: se `e instanceof Response`, ler `await e.text()` para mostrar mensagem útil; senão `e.message ?? "Erro ao criar"`.
 
-### Observação importante para RH
+### 2. `src/server/admin.functions.ts` — `createUserAndEmployee`
 
-Hoje o botão "Nova entrevista" só aparece dentro de `/team/$id`, e `/team` lista apenas subordinados diretos do gestor logado. Como RH você precisa conseguir aplicar entrevista em **qualquer** colaborador.
+- Antes de chamar `supabaseAdmin.auth.admin.createUser`, fazer um `select` em `profiles` por e-mail; se já existir, lançar `new Error("E-mail já cadastrado")` com mensagem amigável.
+- Garantir que toda mensagem de erro seja `throw new Error("string legível")` (nunca um `Response` cru), para que o cliente receba texto utilizável.
 
-### Melhorias propostas
+### 3. (Opcional, defensivo) `src/components/interview-wizard.tsx` ou outros formulários com submit
 
-1. **Lista global de colaboradores para RH em `/team`**: se `isRH`, listar todos os colaboradores ativos (não só subordinados).
-2. **Atalho "Aplicar entrevista" no painel RH** (`/me` quando RH) e em `/admin/people` (ícone ao lado de cada colaborador) que abre o wizard direto.
-3. **Página dedicada `/admin/interviews/aplicadas`** (opcional): tabela com todas as entrevistas aplicadas na empresa, com filtro por colaborador/tipo/data e link para ver detalhes (perguntas + respostas).
+- Não alterar agora; apenas o de `people` é o caminho que reproduz o bug.
 
-## Arquivos afetados
+## Resultado esperado
 
-- `src/routes/_app.me.index.tsx` — branch RH/Gestor/Colaborador.
-- `src/routes/_app.team.index.tsx` — listar todos quando RH.
-- `src/routes/_app.admin.people.tsx` — botão "Aplicar entrevista" por linha.
-- (opcional) `src/routes/_app.admin.interviews.aplicadas.tsx` — nova página.
-- `src/components/app-sidebar.tsx` — destacar área RH ao logar.
-
-Quer que eu implemente as 3 melhorias ou apenas a #1 + #2 (mais rápidas)?
+- Clique duplo no "Criar" não quebra mais a tela.
+- Se o e-mail já existir, aparece toast "E-mail já cadastrado" em vez de tela branca.
+- O fluxo normal continua funcionando.

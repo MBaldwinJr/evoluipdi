@@ -20,6 +20,8 @@ export const createUserAndEmployee = createServerFn({ method: "POST" })
   }).parse(d))
   .handler(async ({ data, context }) => {
     await assertRH(context.userId);
+    const { data: existing } = await supabaseAdmin.from("profiles").select("id").eq("email", data.email).maybeSingle();
+    if (existing) throw new Error("E-mail já cadastrado");
     const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
       email: data.email, password: data.password, email_confirm: true,
       user_metadata: { full_name: data.fullName },
