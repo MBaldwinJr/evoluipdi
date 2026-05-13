@@ -19,6 +19,17 @@ import { createUserAndEmployee, setEmployeeRole } from "@/server/admin.functions
 
 export const Route = createFileRoute("/_app/admin/people")({ component: AdminPeople });
 
+async function getErrorMessage(e: unknown, fallback: string) {
+  if (e instanceof Response) return (await e.text()) || fallback;
+  if (e instanceof Error) return e.message || fallback;
+  return fallback;
+}
+
+async function ensureServerFnOk<T>(result: T, fallback: string) {
+  if (result instanceof Response) throw new Error((await result.text()) || fallback);
+  return result;
+}
+
 function AdminPeople() {
   const { isRH } = useAuth();
   const qc = useQueryClient();
@@ -77,8 +88,8 @@ function RoleSwitcher({ userId }: { userId: string }) {
   });
   const current = (roles[0] as any)?.role ?? "colaborador";
   const set = async (r: string) => {
-    try { await setEmployeeRoleFn({ data: { userId, role: r as any } }); toast.success("Papel atualizado"); qc.invalidateQueries({ queryKey: ["uroles", userId] }); }
-    catch (e: any) { toast.error(e.message); }
+    try { await ensureServerFnOk(await setEmployeeRoleFn({ data: { userId, role: r as any } }), "Erro ao atualizar papel"); toast.success("Papel atualizado"); qc.invalidateQueries({ queryKey: ["uroles", userId] }); }
+    catch (e) { toast.error(await getErrorMessage(e, "Erro ao atualizar papel")); }
   };
   return (
     <div className="flex items-center gap-2"><Label className="text-xs">Papel:</Label>
@@ -101,20 +112,18 @@ function NewPersonDialog({ roles, depts, managers, onCreated }: any) {
   const submit = async () => {
     if (submittingRef.current) return;
     if (!email || !pwd || !name) return toast.error("Preencha nome, e-mail e senha");
+    if (pwd.length < 6) return toast.error("A senha provisória deve ter pelo menos 6 caracteres");
     submittingRef.current = true;
     setBusy(true);
     try {
-      const res = await createUserAndEmployeeFn({ data: { email, password: pwd, fullName: name, roleId: roleId || null, departmentId: deptId || null, managerId: managerId || null } });
+      const res = await ensureServerFnOk(await createUserAndEmployeeFn({ data: { email, password: pwd, fullName: name, roleId: roleId || null, departmentId: deptId || null, managerId: managerId || null } }), "Erro ao criar");
       if (asManager && res?.userId) {
-        await setEmployeeRoleFn({ data: { userId: res.userId, role: "gestor" } });
+        await ensureServerFnOk(await setEmployeeRoleFn({ data: { userId: res.userId, role: "gestor" } }), "Erro ao definir gestor");
       }
       toast.success(asManager ? "Gestor criado" : "Colaborador criado");
       onCreated();
-    } catch (e: any) {
-      let msg = "Erro ao criar";
-      if (e instanceof Response) { try { msg = await e.text(); } catch {} }
-      else if (e?.message) msg = e.message;
-      toast.error(msg);
+    } catch (e) {
+      toast.error(await getErrorMessage(e, "Erro ao criar"));
     } finally {
       submittingRef.current = false;
       setBusy(false);
