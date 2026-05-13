@@ -139,6 +139,13 @@ export type Database = {
             referencedRelation: "roles_catalog"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "employees_user_id_profiles_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       evaluation_scores: {
