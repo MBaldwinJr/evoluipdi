@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, EmptyState } from "@/components/page-header";
@@ -69,13 +70,14 @@ function AdminPeople() {
 
 function RoleSwitcher({ userId }: { userId: string }) {
   const qc = useQueryClient();
+  const setEmployeeRoleFn = useServerFn(setEmployeeRole);
   const { data: roles = [] } = useQuery({
     queryKey: ["uroles", userId],
     queryFn: async () => (await supabase.from("user_roles").select("role").eq("user_id", userId)).data ?? [],
   });
   const current = (roles[0] as any)?.role ?? "colaborador";
   const set = async (r: string) => {
-    try { await setEmployeeRole({ data: { userId, role: r as any } }); toast.success("Papel atualizado"); qc.invalidateQueries({ queryKey: ["uroles", userId] }); }
+    try { await setEmployeeRoleFn({ data: { userId, role: r as any } }); toast.success("Papel atualizado"); qc.invalidateQueries({ queryKey: ["uroles", userId] }); }
     catch (e: any) { toast.error(e.message); }
   };
   return (
@@ -89,6 +91,8 @@ function RoleSwitcher({ userId }: { userId: string }) {
 }
 
 function NewPersonDialog({ roles, depts, managers, onCreated }: any) {
+  const createUserAndEmployeeFn = useServerFn(createUserAndEmployee);
+  const setEmployeeRoleFn = useServerFn(setEmployeeRole);
   const [email, setEmail] = useState(""); const [name, setName] = useState(""); const [pwd, setPwd] = useState("");
   const [roleId, setRoleId] = useState(""); const [deptId, setDeptId] = useState(""); const [managerId, setManagerId] = useState("");
   const [asManager, setAsManager] = useState(false);
@@ -100,9 +104,9 @@ function NewPersonDialog({ roles, depts, managers, onCreated }: any) {
     submittingRef.current = true;
     setBusy(true);
     try {
-      const res = await createUserAndEmployee({ data: { email, password: pwd, fullName: name, roleId: roleId || null, departmentId: deptId || null, managerId: managerId || null } });
+      const res = await createUserAndEmployeeFn({ data: { email, password: pwd, fullName: name, roleId: roleId || null, departmentId: deptId || null, managerId: managerId || null } });
       if (asManager && res?.userId) {
-        await setEmployeeRole({ data: { userId: res.userId, role: "gestor" } });
+        await setEmployeeRoleFn({ data: { userId: res.userId, role: "gestor" } });
       }
       toast.success(asManager ? "Gestor criado" : "Colaborador criado");
       onCreated();
