@@ -17,7 +17,7 @@ function TeamPage() {
   const { data: team = [] } = useQuery({
     queryKey: ["team", isRH ? "all" : me?.id], enabled: isRH || !!me,
     queryFn: async () => {
-      let q = supabase.from("employees").select("id, user_id, profile:profiles(full_name, email), role:roles_catalog(title), department:departments(name)").eq("active", true);
+      let q = supabase.from("employees").select("id, user_id, profile:profiles!employees_user_id_profiles_fkey(full_name, email), role:roles_catalog(title), department:departments(name)").eq("active", true);
       if (!isRH && me?.id) q = q.eq("manager_id", me.id);
       return (await q).data ?? [];
     },

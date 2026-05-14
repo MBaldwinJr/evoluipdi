@@ -15,7 +15,7 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { Plus, ListChecks } from "lucide-react";
-import { createUserAndEmployee, setEmployeeRole } from "@/server/admin.functions";
+import { createUserAndEmployee, setEmployeeRole } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_app/admin/people")({ component: AdminPeople });
 
@@ -36,7 +36,7 @@ function AdminPeople() {
   const [open, setOpen] = useState(false);
   const { data: people = [] } = useQuery({
     queryKey: ["admin-people"], enabled: isRH,
-    queryFn: async () => (await supabase.from("employees").select("id, user_id, hire_date, profile:profiles(full_name, email), role:roles_catalog(title), department:departments(name)")).data ?? [],
+    queryFn: async () => (await supabase.from("employees").select("id, user_id, hire_date, profile:profiles!employees_user_id_profiles_fkey(full_name, email), role:roles_catalog(title), department:departments(name)")).data ?? [],
   });
   const { data: roles = [] } = useQuery({ queryKey: ["roles-cat"], queryFn: async () => (await supabase.from("roles_catalog").select("id, title")).data ?? [] });
   const { data: depts = [] } = useQuery({ queryKey: ["depts"], queryFn: async () => (await supabase.from("departments").select("id, name")).data ?? [] });
@@ -46,7 +46,7 @@ function AdminPeople() {
       const { data: gestoresRoles } = await supabase.from("user_roles").select("user_id").in("role", ["gestor", "rh"]);
       const ids = (gestoresRoles ?? []).map((r: any) => r.user_id);
       if (ids.length === 0) return [];
-      return (await supabase.from("employees").select("id, profile:profiles(full_name, email)").in("user_id", ids)).data ?? [];
+      return (await supabase.from("employees").select("id, profile:profiles!employees_user_id_profiles_fkey(full_name, email)").in("user_id", ids)).data ?? [];
     },
   });
 
