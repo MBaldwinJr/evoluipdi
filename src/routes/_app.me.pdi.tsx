@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useState } from "react";
 import { toast } from "sonner";
 import { Sparkles, CheckCircle2, Plus, Trash2 } from "lucide-react";
-import { suggestPdiActions, suggestGapsFromEmployee } from "@/server/ai.functions";
+import { suggestPdiActions, suggestGapsFromEmployee } from "@/lib/ai.functions";
 
 export const Route = createFileRoute("/_app/me/pdi")({
   component: MyPdiPage,
