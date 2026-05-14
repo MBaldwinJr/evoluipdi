@@ -1,25 +1,32 @@
-# Plano: corrigir lista de colaboradores e dropdown de gestor
+# Causa raiz
 
-## Causa raiz
-As queries em `_app.admin.people.tsx` e `_app.team.index.tsx` fazem embed `profile:profiles(full_name, email)` a partir de `employees`. O PostgREST exige uma foreign key entre as duas tabelas para resolver o embed, mas hoje:
+A tabela `employees.user_id` agora tem **duas** foreign keys apontando para o mesmo destino:
+- `employees_user_id_fkey` → `auth.users(id)` (original)
+- `employees_user_id_profiles_fkey` → `public.profiles(id)` (adicionada na última migration)
 
-- `employees.user_id` → `auth.users(id)`
-- `profiles.id` → `auth.users(id)`
+Quando o código faz `profile:profiles(full_name, email)`, o PostgREST não sabe qual relação seguir e retorna erro de **embed ambíguo** ("more than one relationship was found"). Resultado: `.data` vira `null`, o `?? []` mascara o erro, e a lista fica vazia — exatamente o sintoma do usuário.
 
-Não há FK direta entre `employees` e `profiles`, então o embed retorna erro, `.data` vira `null`, e o código (`?? []`) mostra a tela vazia. Por isso o gestor cadastrado some da lista de Colaboradores e do dropdown "Gestor direto".
+Confirmei no banco que o Mauro existe em `employees`, com `profiles.full_name = "Mauro Balduino"` e `user_roles.role = "gestor"`. Os dados estão certos; só o select é que falha.
 
-## Correção
-Adicionar uma FK de `employees.user_id` para `profiles.id` (ambos são o mesmo uuid do auth user, e `handle_new_user` garante que todo novo usuário tem profile). Isso habilita o embed sem mudar nenhuma linha de dado.
+# Correção
 
-```sql
-ALTER TABLE public.employees
-  ADD CONSTRAINT employees_user_id_profiles_fkey
-  FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
-```
+Usar o **hint explícito da FK** em todas as queries que fazem embed de `profiles` a partir de `employees`. Sintaxe PostgREST: `profile:profiles!employees_user_id_profiles_fkey(...)`.
 
-Após a migration, os selects existentes (`profile:profiles(full_name, email)`) passam a resolver e:
-- A lista de Colaboradores mostra o Mauro (gestor) e qualquer outro cadastro futuro.
-- O dropdown "Gestor direto" passa a listar gestores cadastrados.
+## Arquivos a alterar
 
-## Sem mudanças de código
-Nenhuma alteração em `.tsx` é necessária — só a migration.
+1. **`src/routes/_app.admin.people.tsx`**
+   - Query `admin-people`: trocar `profile:profiles(full_name, email)` por `profile:profiles!employees_user_id_profiles_fkey(full_name, email)`.
+   - Query `managers-only`: mesma troca no segundo select.
+
+2. **`src/routes/_app.team.index.tsx`**
+   - Query `team`: mesma troca.
+
+3. **`src/routes/_app.team.$id.tsx`** (verificar se também faz embed de profiles a partir de employees; se sim, aplicar a mesma correção).
+
+# Sem mudanças de banco
+
+A migration anterior continua válida e necessária — só falta dizer ao PostgREST qual FK usar no embed.
+
+# Validação
+
+Após o ajuste, recarregar `/admin/people` logado como RH deve listar o Mauro com nome e e-mail, e o dropdown "Gestor direto" no diálogo de novo colaborador também deve listá-lo.
