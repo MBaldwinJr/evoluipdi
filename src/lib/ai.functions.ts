@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { callAIJson } from "./ai.server";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { getEmployeeAiContext } from "./ai-data.server";
 
 // 1) Estruturar feedback bruto em Fato/Impacto/Próximo passo
 export const structureFeedback = createServerFn({ method: "POST" })
@@ -57,18 +57,7 @@ export const suggestPdiActions = createServerFn({ method: "POST" })
 export const suggestGapsFromEmployee = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ employeeId: z.string().uuid() }).parse(d))
   .handler(async ({ data }) => {
-    const { data: emp } = await supabaseAdmin
-      .from("employees")
-      .select("*, role:roles_catalog(title, rcf_items:rcf_items(title, kind, expected_level))")
-      .eq("id", data.employeeId)
-      .maybeSingle();
-    const { data: evals } = await supabaseAdmin
-      .from("evaluations").select("overall_level, fact, impact, next_step, scores:evaluation_scores(observed_level, expected_level, rcf_item:rcf_items(title))")
-      .eq("employee_id", data.employeeId).order("occurred_at", { ascending: false }).limit(5);
-    const { data: fbs } = await supabaseAdmin
-      .from("feedbacks").select("fact, impact, next_step, kind").eq("employee_id", data.employeeId).order("occurred_at", { ascending: false }).limit(20);
-
-    const ctx = JSON.stringify({ role: (emp as any)?.role, evaluations: evals ?? [], feedbacks: fbs ?? [] }, null, 2);
+    const ctx = await getEmployeeAiContext(data.employeeId);
 
     return callAIJson<{ gaps: Array<{ title: string; severity: "baixa" | "media" | "alta"; justification: string; root_cause: string }> }>({
       system: "Você é especialista em desenvolvimento humano. Cruze o RCF do cargo com avaliações e feedbacks para identificar de 3 a 5 gaps prioritários. Para cada gap, justifique com fatos do contexto e aplique a técnica dos 5 porquês para sugerir uma causa-raiz curta. Português do Brasil. Seja específico, evite generalidades.",
