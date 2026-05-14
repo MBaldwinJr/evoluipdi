@@ -12,7 +12,7 @@ import { Sparkles, ListChecks, Plus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
-import { structureFeedback } from "@/server/ai.functions";
+import { structureFeedback } from "@/lib/ai.functions";
 import { Badge } from "@/components/ui/badge";
 import { InterviewWizard } from "@/components/interview-wizard";
 
@@ -24,7 +24,7 @@ function TeamMember() {
   const qc = useQueryClient();
   const { data: emp } = useQuery({
     queryKey: ["emp", id],
-    queryFn: async () => (await supabase.from("employees").select("*, profile:profiles(full_name, email), role:roles_catalog(id, title)").eq("id", id).maybeSingle()).data,
+    queryFn: async () => (await supabase.from("employees").select("*, profile:profiles!employees_user_id_profiles_fkey(full_name, email), role:roles_catalog(id, title)").eq("id", id).maybeSingle()).data,
   });
   const { data: feedbacks = [] } = useQuery({
     queryKey: ["emp-fb", id],
