@@ -41,7 +41,12 @@ export function InterviewWizard({
   });
 
   const template = templates[0] as any;
-  const questions: string[] = useMemo(() => Array.isArray(template?.questions) ? template.questions : [], [template]);
+  const questions: string[] = useMemo(() => {
+    if (!Array.isArray(template?.questions)) return [];
+    return template.questions.map((q: any) =>
+      typeof q === "string" ? q : (q?.question ?? q?.text ?? String(q ?? ""))
+    );
+  }, [template]);
   const draftKey = template ? `interview-draft:${employeeId}:${template.id}` : "";
 
   const [answers, setAnswers] = useState<string[]>([]);
