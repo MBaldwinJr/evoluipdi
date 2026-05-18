@@ -33,6 +33,7 @@ function AdminInterviews() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
+  const [expanded, setExpanded] = useState<any>(null);
 
   const { data: roles = [] } = useQuery({ queryKey: ["roles-cat"], queryFn: async () => (await supabase.from("roles_catalog").select("id, title")).data ?? [] });
   const { data: templates = [] } = useQuery({
@@ -80,6 +81,9 @@ function AdminInterviews() {
                       </div>
                     </div>
                     <div className="flex gap-1">
+                      <Button size="icon" variant="ghost" className="h-8 w-8" title="Expandir e editar perguntas" onClick={() => setExpanded(t)}>
+                        <Maximize2 className="h-4 w-4" />
+                      </Button>
                       <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => { setEditing(t); setOpen(true); }}>
                         <Pencil className="h-4 w-4" />
                       </Button>
