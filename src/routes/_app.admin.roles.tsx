@@ -104,7 +104,13 @@ function AdminRoles() {
                 <SelectTrigger><SelectValue placeholder="Setor" /></SelectTrigger>
                 <SelectContent>{depts.map((d: any) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent>
               </Select>
-              <Button onClick={addRole}>Adicionar cargo</Button>
+              <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                <input type="checkbox" checked={autoGen} onChange={(e) => setAutoGen(e.target.checked)} />
+                <Sparkles className="h-3 w-3" /> Gerar RCF e roteiros automaticamente com IA
+              </label>
+              <Button onClick={addRole} disabled={generating}>
+                {generating ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Gerando…</> : "Adicionar cargo"}
+              </Button>
             </div>
             <ul className="space-y-1 text-sm">
               {roles.map((r: any) => (
