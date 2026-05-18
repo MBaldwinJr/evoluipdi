@@ -160,12 +160,35 @@ function PdiCard({ pdi, employeeId }: { pdi: any; employeeId: string }) {
     setBusyAi("gaps");
     try {
       const result = await suggestGapsFromEmployee({ data: { employeeId } });
-      const rows = result.gaps.map((g: any) => ({ employee_id: employeeId, title: g.title, severity: g.severity, justification: g.justification, root_cause: g.root_cause, source: "IA" }));
-      if (rows.length) await supabase.from("gaps").insert(rows);
+      const rows = (result.gaps ?? []).map((g: any) => ({ employee_id: employeeId, title: g.title, severity: g.severity, justification: g.justification, root_cause: g.root_cause, source: "IA" }));
+      if (rows.length) {
+        const { error } = await supabase.from("gaps").insert(rows);
+        if (error) throw error;
+      }
       toast.success(`${rows.length} gap(s) sugerido(s)`);
+      qc.invalidateQueries({ queryKey: ["me-gaps", employeeId] });
     } catch (e: any) {
       toast.error("Erro de IA", { description: e.message });
     } finally { setBusyAi(null); }
+  };
+
+  const { data: gaps = [] } = useQuery({
+    queryKey: ["me-gaps", employeeId],
+    queryFn: async () => (await supabase.from("gaps").select("*").eq("employee_id", employeeId).eq("resolved", false).order("created_at", { ascending: false })).data ?? [],
+  });
+
+  const convertGap = async (g: any) => {
+    const { error } = await supabase.from("pdi_development_points").insert({
+      pdi_id: pdi.id, gap_id: g.id, description: g.title, success_criteria: g.root_cause ?? "",
+    });
+    if (error) return toast.error(error.message);
+    toast.success("Gap adicionado como ponto de desenvolvimento");
+    qc.invalidateQueries({ queryKey: ["me-pdis"] });
+  };
+
+  const dismissGap = async (g: any) => {
+    await supabase.from("gaps").update({ resolved: true }).eq("id", g.id);
+    qc.invalidateQueries({ queryKey: ["me-gaps", employeeId] });
   };
 
   const toggleAction = async (a: any) => {
