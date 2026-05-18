@@ -160,12 +160,35 @@ function PdiCard({ pdi, employeeId }: { pdi: any; employeeId: string }) {
     setBusyAi("gaps");
     try {
       const result = await suggestGapsFromEmployee({ data: { employeeId } });
-      const rows = result.gaps.map((g: any) => ({ employee_id: employeeId, title: g.title, severity: g.severity, justification: g.justification, root_cause: g.root_cause, source: "IA" }));
-      if (rows.length) await supabase.from("gaps").insert(rows);
+      const rows = (result.gaps ?? []).map((g: any) => ({ employee_id: employeeId, title: g.title, severity: g.severity, justification: g.justification, root_cause: g.root_cause, source: "IA" }));
+      if (rows.length) {
+        const { error } = await supabase.from("gaps").insert(rows);
+        if (error) throw error;
+      }
       toast.success(`${rows.length} gap(s) sugerido(s)`);
+      qc.invalidateQueries({ queryKey: ["me-gaps", employeeId] });
     } catch (e: any) {
       toast.error("Erro de IA", { description: e.message });
     } finally { setBusyAi(null); }
+  };
+
+  const { data: gaps = [] } = useQuery({
+    queryKey: ["me-gaps", employeeId],
+    queryFn: async () => (await supabase.from("gaps").select("*").eq("employee_id", employeeId).eq("resolved", false).order("created_at", { ascending: false })).data ?? [],
+  });
+
+  const convertGap = async (g: any) => {
+    const { error } = await supabase.from("pdi_development_points").insert({
+      pdi_id: pdi.id, gap_id: g.id, description: g.title, success_criteria: g.root_cause ?? "",
+    });
+    if (error) return toast.error(error.message);
+    toast.success("Gap adicionado como ponto de desenvolvimento");
+    qc.invalidateQueries({ queryKey: ["me-pdis"] });
+  };
+
+  const dismissGap = async (g: any) => {
+    await supabase.from("gaps").update({ resolved: true }).eq("id", g.id);
+    qc.invalidateQueries({ queryKey: ["me-gaps", employeeId] });
   };
 
   const toggleAction = async (a: any) => {
@@ -208,6 +231,32 @@ function PdiCard({ pdi, employeeId }: { pdi: any; employeeId: string }) {
             <span>● Prática {pPratica}%</span><span>● Troca {pTroca}%</span><span>● Formal {pFormal}%</span>
           </div>
         </div>
+        {gaps.length > 0 && (
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium">Gaps sugeridos pela IA ({gaps.length})</h4>
+            <ul className="space-y-2">
+              {gaps.map((g: any) => (
+                <li key={g.id} className="rounded-md border p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium">{g.title}</p>
+                        <Badge variant="outline" className="text-xs">{g.severity}</Badge>
+                      </div>
+                      {g.justification && <p className="text-xs text-muted-foreground">{g.justification}</p>}
+                      {g.root_cause && <p className="text-xs text-muted-foreground"><strong>Causa-raiz:</strong> {g.root_cause}</p>}
+                    </div>
+                    <div className="flex gap-1 shrink-0">
+                      <Button size="sm" variant="outline" onClick={() => convertGap(g)}><Plus className="h-3 w-3" /></Button>
+                      <Button size="sm" variant="ghost" onClick={() => dismissGap(g)}><Trash2 className="h-3 w-3" /></Button>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
 
         <div className="space-y-3">
           <h4 className="text-sm font-medium">Pontos de desenvolvimento</h4>
