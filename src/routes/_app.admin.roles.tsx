@@ -14,6 +14,9 @@ import {
 import { Pencil, Trash2, Check, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
+import { generateRoleContentFn } from "@/lib/role-generator.functions";
+import { Loader2, Sparkles } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/_app/admin/roles")({ component: AdminRoles });
@@ -24,7 +27,10 @@ function AdminRoles() {
   const [newDept, setNewDept] = useState("");
   const [roleTitle, setRoleTitle] = useState("");
   const [roleDept, setRoleDept] = useState("");
+  const [autoGen, setAutoGen] = useState(true);
+  const [generating, setGenerating] = useState(false);
   const [selRole, setSelRole] = useState<string>("");
+  const generateContent = useServerFn(generateRoleContentFn);
 
   const { data: depts = [] } = useQuery({ queryKey: ["depts"], queryFn: async () => (await supabase.from("departments").select("*").order("name")).data ?? [] });
   const { data: roles = [] } = useQuery({ queryKey: ["roles"], queryFn: async () => (await supabase.from("roles_catalog").select("*, department:departments(name)").order("title")).data ?? [] });
@@ -43,9 +49,31 @@ function AdminRoles() {
   };
   const addRole = async () => {
     if (!roleTitle) return;
-    const { error } = await supabase.from("roles_catalog").insert({ title: roleTitle, department_id: roleDept || null });
+    const { data: inserted, error } = await supabase
+      .from("roles_catalog")
+      .insert({ title: roleTitle, department_id: roleDept || null })
+      .select("id, title")
+      .single();
     if (error) return toast.error(error.message);
-    setRoleTitle(""); qc.invalidateQueries({ queryKey: ["roles"] });
+    const created = inserted;
+    const deptName = depts.find((d: any) => d.id === roleDept)?.name ?? null;
+    setRoleTitle("");
+    qc.invalidateQueries({ queryKey: ["roles"] });
+
+    if (autoGen && created) {
+      setGenerating(true);
+      toast.info("Gerando RCF e roteiros de entrevista com IA…");
+      try {
+        const res = await generateContent({ data: { roleId: created.id, title: created.title, departmentName: deptName } });
+        toast.success(`Gerados ${res.rcfCount} itens RCF e ${res.templateCount} roteiros`);
+        qc.invalidateQueries({ queryKey: ["templates"] });
+        qc.invalidateQueries({ queryKey: ["rcf", created.id] });
+      } catch (e: any) {
+        toast.error(`IA falhou: ${e.message}. Cargo foi criado, gere manualmente.`);
+      } finally {
+        setGenerating(false);
+      }
+    }
   };
 
   return (
