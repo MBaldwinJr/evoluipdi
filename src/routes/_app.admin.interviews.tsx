@@ -117,7 +117,89 @@ function AdminInterviews() {
           })}
         </div>
       )}
+
+      <ExpandedQuestionsDialog
+        template={expanded}
+        onClose={() => setExpanded(null)}
+        onSaved={() => qc.invalidateQueries({ queryKey: ["templates"] })}
+      />
     </>
+  );
+}
+
+function ExpandedQuestionsDialog({ template, onClose, onSaved }: { template: any; onClose: () => void; onSaved: () => void }) {
+  const questions: string[] = Array.isArray(template?.questions)
+    ? template.questions.map((q: any) => (typeof q === "string" ? q : q?.question ?? ""))
+    : [];
+  const [editIdx, setEditIdx] = useState<number | null>(null);
+  const [draft, setDraft] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const persist = async (next: string[]) => {
+    setBusy(true);
+    try {
+      const payload = next.map((q) => ({ question: q }));
+      const { error } = await supabase.from("interview_templates").update({ questions: payload }).eq("id", template.id);
+      if (error) throw error;
+      toast.success("Pergunta atualizada");
+      onSaved();
+      template.questions = payload;
+      setEditIdx(null);
+    } catch (e: any) { toast.error(e.message); } finally { setBusy(false); }
+  };
+
+  const saveOne = async (i: number) => {
+    if (!draft.trim()) return toast.error("Pergunta não pode ficar vazia");
+    const next = questions.map((q, idx) => (idx === i ? draft.trim() : q));
+    await persist(next);
+  };
+
+  const removeOne = async (i: number) => {
+    const next = questions.filter((_, idx) => idx !== i);
+    await persist(next);
+  };
+
+  return (
+    <Dialog open={!!template} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogContent className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>{template?.title}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-2 max-h-[70vh] overflow-y-auto pr-2">
+          {questions.length === 0 && <p className="text-sm text-muted-foreground">Sem perguntas.</p>}
+          {questions.map((q, i) => (
+            <div key={i} className="rounded-md border p-3">
+              <div className="flex items-start justify-between gap-2">
+                <span className="text-xs font-medium text-muted-foreground mt-1">#{i + 1}</span>
+                {editIdx === i ? (
+                  <div className="flex-1 space-y-2">
+                    <Textarea value={draft} onChange={(e) => setDraft(e.target.value)} className="min-h-[80px]" />
+                    <div className="flex justify-end gap-1">
+                      <Button size="sm" variant="ghost" onClick={() => setEditIdx(null)} disabled={busy}>Cancelar</Button>
+                      <Button size="sm" onClick={() => saveOne(i)} disabled={busy}>
+                        <Check className="mr-1 h-3 w-3" /> Salvar
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <p className="flex-1 text-sm leading-relaxed">{q}</p>
+                    <div className="flex gap-1">
+                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditIdx(i); setDraft(q); }}>
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => removeOne(i)} disabled={busy}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
