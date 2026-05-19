@@ -3,7 +3,7 @@ import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter, useSidebar,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, User, MessageSquare, Target, Users, Briefcase, ListChecks, FileText, Settings, LogOut, Sparkles } from "lucide-react";
+import { LayoutDashboard, User, MessageSquare, Target, Users, Briefcase, ListChecks, FileText, Settings, LogOut, Sparkles, ClipboardCheck } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 
