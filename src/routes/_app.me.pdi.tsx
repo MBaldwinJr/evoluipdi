@@ -12,9 +12,10 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Sparkles, CheckCircle2, Plus, Trash2 } from "lucide-react";
+import { Sparkles, CheckCircle2, Plus, Trash2, ChevronDown, ChevronRight } from "lucide-react";
 import { suggestPdiActions, suggestGapsFromEmployee } from "@/lib/ai.functions";
 
 export const Route = createFileRoute("/_app/me/pdi")({
