@@ -65,6 +65,8 @@ function AdminInterviews() {
         </Dialog>
       } />
 
+      <CoverageSection />
+
       {templates.length === 0 ? (
         <EmptyState title="Nenhum roteiro criado" description="Crie seu primeiro roteiro de entrevista." />
       ) : (
