@@ -118,6 +118,7 @@ function PdiCard({ pdi, employeeId }: { pdi: any; employeeId: string }) {
   const [pointDesc, setPointDesc] = useState("");
   const [criteria, setCriteria] = useState("");
   const [busyAi, setBusyAi] = useState<string | null>(null);
+  const [gapsOpen, setGapsOpen] = useState(true);
 
   const allActions = pdi.points?.flatMap((p: any) => p.actions ?? []) ?? [];
   const done = allActions.filter((a: any) => a.status === "concluida").length;
