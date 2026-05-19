@@ -12,9 +12,10 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Sparkles, CheckCircle2, Plus, Trash2 } from "lucide-react";
+import { Sparkles, CheckCircle2, Plus, Trash2, ChevronDown, ChevronRight } from "lucide-react";
 import { suggestPdiActions, suggestGapsFromEmployee } from "@/lib/ai.functions";
 
 export const Route = createFileRoute("/_app/me/pdi")({
@@ -117,6 +118,7 @@ function PdiCard({ pdi, employeeId }: { pdi: any; employeeId: string }) {
   const [pointDesc, setPointDesc] = useState("");
   const [criteria, setCriteria] = useState("");
   const [busyAi, setBusyAi] = useState<string | null>(null);
+  const [gapsOpen, setGapsOpen] = useState(true);
 
   const allActions = pdi.points?.flatMap((p: any) => p.actions ?? []) ?? [];
   const done = allActions.filter((a: any) => a.status === "concluida").length;
@@ -232,8 +234,12 @@ function PdiCard({ pdi, employeeId }: { pdi: any; employeeId: string }) {
           </div>
         </div>
         {gaps.length > 0 && (
-          <div className="space-y-2">
-            <h4 className="text-sm font-medium">Gaps sugeridos pela IA ({gaps.length})</h4>
+          <Collapsible open={gapsOpen} onOpenChange={setGapsOpen} className="space-y-2">
+            <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border bg-muted/30 px-3 py-2 hover:bg-muted/50">
+              <h4 className="text-sm font-medium">Gaps sugeridos pela IA ({gaps.length})</h4>
+              {gapsOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            </CollapsibleTrigger>
+            <CollapsibleContent>
             <ul className="space-y-2">
               {gaps.map((g: any) => (
                 <li key={g.id} className="rounded-md border p-3">
@@ -254,7 +260,8 @@ function PdiCard({ pdi, employeeId }: { pdi: any; employeeId: string }) {
                 </li>
               ))}
             </ul>
-          </div>
+            </CollapsibleContent>
+          </Collapsible>
         )}
 
 
