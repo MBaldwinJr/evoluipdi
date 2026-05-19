@@ -278,3 +278,76 @@ function TemplateDialog({ roles, template, onSaved }: { roles: any[]; template: 
     </DialogContent>
   );
 }
+
+const ALL_KINDS = ["selecao", "feedback", "desligamento", "carreira"] as const;
+
+function CoverageSection() {
+  const qc = useQueryClient();
+  const generate = useServerFn(generateMissingTemplatesFn);
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  const { data: roles = [] } = useQuery({
+    queryKey: ["roles-coverage"],
+    queryFn: async () => (await supabase.from("roles_catalog").select("id, title, department:departments(name)").order("title")).data ?? [],
+  });
+  const { data: tpls = [] } = useQuery({
+    queryKey: ["templates-coverage"],
+    queryFn: async () => (await supabase.from("interview_templates").select("role_id, kind")).data ?? [],
+  });
+
+  const coverage = roles.map((r: any) => {
+    const have = new Set(tpls.filter((t: any) => t.role_id === r.id).map((t: any) => t.kind));
+    const missing = ALL_KINDS.filter((k) => !have.has(k));
+    return { ...r, missing, complete: missing.length === 0 };
+  });
+
+  const incomplete = coverage.filter((r: any) => !r.complete);
+
+  const runGenerate = async (r: any) => {
+    setBusyId(r.id);
+    try {
+      const res = await generate({ data: { roleId: r.id, title: r.title, departmentName: r.department?.name ?? null } });
+      toast.success(`${res.generated} roteiro(s) gerado(s) para ${r.title}`);
+      qc.invalidateQueries({ queryKey: ["templates"] });
+      qc.invalidateQueries({ queryKey: ["templates-coverage"] });
+    } catch (e: any) { toast.error(e?.message ?? "Falha ao gerar"); } finally { setBusyId(null); }
+  };
+
+  if (roles.length === 0) return null;
+
+  return (
+    <Card className="mb-4">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base flex items-center gap-2">
+          <AlertTriangle className="h-4 w-4 text-amber-500" />
+          Cobertura de roteiros por cargo
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {incomplete.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Todos os cargos têm os 4 roteiros (Seleção, Feedback, Desligamento, Carreira).</p>
+        ) : (
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground">{incomplete.length} cargo(s) com roteiros faltantes.</p>
+            {incomplete.map((r: any) => (
+              <div key={r.id} className="flex items-center justify-between gap-2 rounded border p-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium truncate">{r.title}</p>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {r.missing.map((k: string) => (
+                      <Badge key={k} variant="outline" className="text-xs">faltando: {KINDS.find(x => x.value === k)?.label ?? k}</Badge>
+                    ))}
+                  </div>
+                </div>
+                <Button size="sm" variant="outline" disabled={busyId === r.id} onClick={() => runGenerate(r)}>
+                  {busyId === r.id ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Sparkles className="mr-1 h-3 w-3" />}
+                  Gerar faltantes
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
