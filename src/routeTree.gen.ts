@@ -21,6 +21,7 @@ import { Route as AppAdminSettingsRouteImport } from './routes/_app.admin.settin
 import { Route as AppAdminRolesRouteImport } from './routes/_app.admin.roles'
 import { Route as AppAdminReportsRouteImport } from './routes/_app.admin.reports'
 import { Route as AppAdminPeopleRouteImport } from './routes/_app.admin.people'
+import { Route as AppAdminInterviewsReviewRouteImport } from './routes/_app.admin.interviews-review'
 import { Route as AppAdminInterviewsRouteImport } from './routes/_app.admin.interviews'
 
 const LoginRoute = LoginRouteImport.update({
@@ -82,6 +83,12 @@ const AppAdminPeopleRoute = AppAdminPeopleRouteImport.update({
   path: '/admin/people',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAdminInterviewsReviewRoute =
+  AppAdminInterviewsReviewRouteImport.update({
+    id: '/admin/interviews-review',
+    path: '/admin/interviews-review',
+    getParentRoute: () => AppRoute,
+  } as any)
 const AppAdminInterviewsRoute = AppAdminInterviewsRouteImport.update({
   id: '/admin/interviews',
   path: '/admin/interviews',
@@ -92,6 +99,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/admin/interviews': typeof AppAdminInterviewsRoute
+  '/admin/interviews-review': typeof AppAdminInterviewsReviewRoute
   '/admin/people': typeof AppAdminPeopleRoute
   '/admin/reports': typeof AppAdminReportsRoute
   '/admin/roles': typeof AppAdminRolesRoute
@@ -106,6 +114,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/admin/interviews': typeof AppAdminInterviewsRoute
+  '/admin/interviews-review': typeof AppAdminInterviewsReviewRoute
   '/admin/people': typeof AppAdminPeopleRoute
   '/admin/reports': typeof AppAdminReportsRoute
   '/admin/roles': typeof AppAdminRolesRoute
@@ -122,6 +131,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
   '/_app/admin/interviews': typeof AppAdminInterviewsRoute
+  '/_app/admin/interviews-review': typeof AppAdminInterviewsReviewRoute
   '/_app/admin/people': typeof AppAdminPeopleRoute
   '/_app/admin/reports': typeof AppAdminReportsRoute
   '/_app/admin/roles': typeof AppAdminRolesRoute
@@ -138,6 +148,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/admin/interviews'
+    | '/admin/interviews-review'
     | '/admin/people'
     | '/admin/reports'
     | '/admin/roles'
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/admin/interviews'
+    | '/admin/interviews-review'
     | '/admin/people'
     | '/admin/reports'
     | '/admin/roles'
@@ -167,6 +179,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/login'
     | '/_app/admin/interviews'
+    | '/_app/admin/interviews-review'
     | '/_app/admin/people'
     | '/_app/admin/reports'
     | '/_app/admin/roles'
@@ -270,6 +283,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminPeopleRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/admin/interviews-review': {
+      id: '/_app/admin/interviews-review'
+      path: '/admin/interviews-review'
+      fullPath: '/admin/interviews-review'
+      preLoaderRoute: typeof AppAdminInterviewsReviewRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/admin/interviews': {
       id: '/_app/admin/interviews'
       path: '/admin/interviews'
@@ -282,6 +302,7 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppAdminInterviewsRoute: typeof AppAdminInterviewsRoute
+  AppAdminInterviewsReviewRoute: typeof AppAdminInterviewsReviewRoute
   AppAdminPeopleRoute: typeof AppAdminPeopleRoute
   AppAdminReportsRoute: typeof AppAdminReportsRoute
   AppAdminRolesRoute: typeof AppAdminRolesRoute
@@ -295,6 +316,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppAdminInterviewsRoute: AppAdminInterviewsRoute,
+  AppAdminInterviewsReviewRoute: AppAdminInterviewsReviewRoute,
   AppAdminPeopleRoute: AppAdminPeopleRoute,
   AppAdminReportsRoute: AppAdminReportsRoute,
   AppAdminRolesRoute: AppAdminRolesRoute,

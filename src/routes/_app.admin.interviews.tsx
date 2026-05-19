@@ -14,10 +14,12 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Pencil, Trash2, X, Maximize2, Check } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Maximize2, Check, Sparkles, Loader2, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
+import { useServerFn } from "@tanstack/react-start";
+import { generateMissingTemplatesFn } from "@/lib/template-coverage.functions";
 
 export const Route = createFileRoute("/_app/admin/interviews")({ component: AdminInterviews });
 
