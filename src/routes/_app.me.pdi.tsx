@@ -260,7 +260,8 @@ function PdiCard({ pdi, employeeId }: { pdi: any; employeeId: string }) {
                 </li>
               ))}
             </ul>
-          </div>
+            </CollapsibleContent>
+          </Collapsible>
         )}
 
 
