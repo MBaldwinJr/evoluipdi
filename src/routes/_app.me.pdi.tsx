@@ -234,8 +234,12 @@ function PdiCard({ pdi, employeeId }: { pdi: any; employeeId: string }) {
           </div>
         </div>
         {gaps.length > 0 && (
-          <div className="space-y-2">
-            <h4 className="text-sm font-medium">Gaps sugeridos pela IA ({gaps.length})</h4>
+          <Collapsible open={gapsOpen} onOpenChange={setGapsOpen} className="space-y-2">
+            <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border bg-muted/30 px-3 py-2 hover:bg-muted/50">
+              <h4 className="text-sm font-medium">Gaps sugeridos pela IA ({gaps.length})</h4>
+              {gapsOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            </CollapsibleTrigger>
+            <CollapsibleContent>
             <ul className="space-y-2">
               {gaps.map((g: any) => (
                 <li key={g.id} className="rounded-md border p-3">
