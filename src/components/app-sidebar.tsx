@@ -19,6 +19,7 @@ const rhItems = [
   { title: "Colaboradores", url: "/admin/people", icon: User },
   { title: "Cargos & RCF", url: "/admin/roles", icon: Briefcase },
   { title: "Roteiros de entrevista", url: "/admin/interviews", icon: ListChecks },
+  { title: "Entrevistas aplicadas", url: "/admin/interviews-review", icon: ClipboardCheck },
   { title: "Relatórios", url: "/admin/reports", icon: FileText },
   { title: "Configurações", url: "/admin/settings", icon: Settings },
 ];
