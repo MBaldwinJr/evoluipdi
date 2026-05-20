@@ -107,6 +107,7 @@ function InterviewDetailDialog({ id, onClose, onChanged }: { id: string | null; 
         supabase.from("interviews").select("*, employee:employees(id, profile:profiles(full_name))").eq("id", id!).maybeSingle(),
         supabase.from("interview_answers").select("question, answer").eq("interview_id", id!).order("created_at"),
       ]);
+      if ((itv as any)?.analysis) setAnalysis((itv as any).analysis);
       return { itv, ans: ans ?? [] };
     },
   });
