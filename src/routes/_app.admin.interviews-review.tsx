@@ -139,22 +139,32 @@ function InterviewDetailDialog({ id, onClose, onChanged }: { id: string | null; 
 
   return (
     <Dialog open={!!id} onOpenChange={(v) => { if (!v) close(); }}>
-      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+      <DialogContent id="interview-print-area" className="max-w-3xl max-h-[85vh] overflow-y-auto print:max-h-none print:overflow-visible print:max-w-full print:shadow-none">
         <DialogHeader>
           <DialogTitle>Entrevista — {data?.itv?.employee?.profile?.full_name ?? ""}</DialogTitle>
         </DialogHeader>
 
         {isLoading ? <p className="text-sm text-muted-foreground">Carregando…</p> : (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2 print:hidden">
               <p className="text-xs text-muted-foreground">
                 {KIND_LABEL[data?.itv?.kind ?? ""] ?? data?.itv?.kind} · {data?.itv?.occurred_at ? new Date(data.itv.occurred_at).toLocaleString("pt-BR") : ""}
+                {(data?.itv as any)?.analyzed_at && <> · Analisada em {new Date((data!.itv as any).analyzed_at).toLocaleString("pt-BR")}</>}
               </p>
-              <Button size="sm" onClick={runAnalysis} disabled={loading}>
-                {loading ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Sparkles className="mr-1 h-3 w-3" />}
-                {loading ? "Analisando…" : "Analisar com IA"}
-              </Button>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" onClick={() => window.print()}>
+                  <Printer className="mr-1 h-3 w-3" /> Imprimir / Salvar
+                </Button>
+                <Button size="sm" onClick={runAnalysis} disabled={loading}>
+                  {loading ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Sparkles className="mr-1 h-3 w-3" />}
+                  {loading ? "Analisando…" : analysis ? "Reanalisar com IA" : "Analisar com IA"}
+                </Button>
+              </div>
             </div>
+            <p className="hidden print:block text-xs">
+              {KIND_LABEL[data?.itv?.kind ?? ""] ?? data?.itv?.kind} · {data?.itv?.occurred_at ? new Date(data.itv.occurred_at).toLocaleString("pt-BR") : ""}
+            </p>
+
 
             <div className="space-y-2">
               <h3 className="text-sm font-semibold">Perguntas e respostas</h3>
