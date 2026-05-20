@@ -14,11 +14,14 @@ export type InterviewAnalysis = {
 export async function analyzeInterviewById(interviewId: string): Promise<InterviewAnalysis> {
   const { data: itv, error } = await supabaseAdmin
     .from("interviews")
-    .select("id, kind, notes, occurred_at, employee:employees(id, role:roles_catalog(title, rcf_items:rcf_items(title, kind, expected_level)))")
+    .select("id, kind, notes, occurred_at, analysis, employee:employees(id, role:roles_catalog(title, rcf_items:rcf_items(title, kind, expected_level)))")
     .eq("id", interviewId)
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (!itv) throw new Error("Entrevista não encontrada");
+
+  // Return cached analysis if it already exists
+  if ((itv as any).analysis) return (itv as any).analysis as InterviewAnalysis;
 
   const { data: answers } = await supabaseAdmin
     .from("interview_answers")
