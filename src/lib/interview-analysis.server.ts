@@ -11,7 +11,7 @@ export type InterviewAnalysis = {
   overall_level_suggestion: "abaixo" | "parcial" | "atende" | "supera";
 };
 
-export async function analyzeInterviewById(interviewId: string): Promise<InterviewAnalysis> {
+export async function analyzeInterviewById(interviewId: string, force = false): Promise<InterviewAnalysis> {
   const { data: itv, error } = await supabaseAdmin
     .from("interviews")
     .select("id, kind, notes, occurred_at, analysis, employee:employees(id, role:roles_catalog(title, rcf_items:rcf_items(title, kind, expected_level)))")
@@ -20,8 +20,8 @@ export async function analyzeInterviewById(interviewId: string): Promise<Intervi
   if (error) throw new Error(error.message);
   if (!itv) throw new Error("Entrevista não encontrada");
 
-  // Return cached analysis if it already exists
-  if ((itv as any).analysis) return (itv as any).analysis as InterviewAnalysis;
+  // Return cached analysis if it already exists and not forcing
+  if (!force && (itv as any).analysis) return (itv as any).analysis as InterviewAnalysis;
 
   const { data: answers } = await supabaseAdmin
     .from("interview_answers")
