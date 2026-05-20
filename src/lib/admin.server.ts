@@ -46,7 +46,7 @@ export async function updateEmployee(
   if (data.fullName !== undefined) {
     await supabaseAdmin.from("profiles").update({ full_name: data.fullName }).eq("id", emp.user_id);
   }
-  const patch: Record<string, unknown> = {};
+  const patch: { role_id?: string | null; department_id?: string | null; manager_id?: string | null } = {};
   if (data.roleId !== undefined) patch.role_id = data.roleId;
   if (data.departmentId !== undefined) patch.department_id = data.departmentId;
   if (data.managerId !== undefined) patch.manager_id = data.managerId;
