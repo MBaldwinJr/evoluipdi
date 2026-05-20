@@ -40,7 +40,7 @@ export async function analyzeInterviewById(interviewId: string): Promise<Intervi
     2,
   );
 
-  return callAIJson<InterviewAnalysis>({
+  const result = await callAIJson<InterviewAnalysis>({
     system:
       "Você é especialista em RH e entrevistas estruturadas. Analise a entrevista informada cruzando perguntas, respostas e o RCF do cargo. Identifique pontos fortes, preocupações, sinais por pergunta, gaps prováveis e próximos passos práticos. Português do Brasil, factual, sem generalidades.",
     user: `Contexto da entrevista:\n${ctx}`,
@@ -53,8 +53,7 @@ export async function analyzeInterviewById(interviewId: string): Promise<Intervi
         strengths: { type: "array", items: { type: "string" }, minItems: 1, maxItems: 6 },
         concerns: { type: "array", items: { type: "string" }, minItems: 0, maxItems: 6 },
         signals: {
-          type: "array",
-          minItems: 1,
+          type: "array", minItems: 1,
           items: {
             type: "object",
             properties: {
@@ -66,9 +65,7 @@ export async function analyzeInterviewById(interviewId: string): Promise<Intervi
           },
         },
         suggested_gaps: {
-          type: "array",
-          minItems: 0,
-          maxItems: 5,
+          type: "array", minItems: 0, maxItems: 5,
           items: {
             type: "object",
             properties: {
@@ -85,4 +82,11 @@ export async function analyzeInterviewById(interviewId: string): Promise<Intervi
       required: ["summary", "strengths", "concerns", "signals", "suggested_gaps", "next_steps", "overall_level_suggestion"],
     },
   });
+
+  await supabaseAdmin
+    .from("interviews")
+    .update({ analysis: result as any, analyzed_at: new Date().toISOString() })
+    .eq("id", interviewId);
+
+  return result;
 }
