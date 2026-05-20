@@ -118,8 +118,9 @@ function InterviewDetailDialog({ id, onClose, onChanged }: { id: string | null; 
     if (!id) return;
     setLoading(true);
     try {
-      const res = await analyzeFn({ data: { interviewId: id } });
+      const res = await analyzeFn({ data: { interviewId: id, force: !!analysis } });
       setAnalysis(res);
+      onChanged();
     } catch (e: any) { toast.error(e?.message ?? "Falha na análise"); } finally { setLoading(false); }
   };
 
