@@ -57,13 +57,13 @@ export async function generateRoleContent(args: { roleId: string; title: string;
   const templateRows: any[] = [];
   for (const k of kinds) {
     const result = await callAIJson<{ questions: string[] }>({
-      system: `Você é especialista em entrevistas estruturadas de RH. Gere de 8 a 12 perguntas abertas, específicas e acionáveis para uma ${k.focus}. Use o cargo como contexto para tornar as perguntas relevantes. Português do Brasil. Evite perguntas genéricas ou sim/não.`,
+      system: `Você é especialista em entrevistas estruturadas de RH. Gere de 28 a 32 perguntas abertas, específicas e acionáveis para uma ${k.focus}. Use o cargo como contexto para tornar as perguntas relevantes. Cubra aspectos técnicos, comportamentais, situacionais, histórico, motivação e fit cultural. Português do Brasil. Evite perguntas genéricas ou sim/não.`,
       user: ctx,
       toolName: "generate_questions",
       toolDescription: `Perguntas para roteiro de ${k.label}`,
       parameters: {
         type: "object",
-        properties: { questions: { type: "array", items: { type: "string" }, minItems: 6, maxItems: 14 } },
+        properties: { questions: { type: "array", items: { type: "string" }, minItems: 25, maxItems: 35 } },
         required: ["questions"],
       },
     });
