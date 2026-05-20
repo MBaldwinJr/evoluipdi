@@ -420,6 +420,8 @@ export type Database = {
       }
       interviews: {
         Row: {
+          analysis: Json | null
+          analyzed_at: string | null
           conducted_by: string
           created_at: string
           employee_id: string
@@ -431,6 +433,8 @@ export type Database = {
           template_id: string | null
         }
         Insert: {
+          analysis?: Json | null
+          analyzed_at?: string | null
           conducted_by: string
           created_at?: string
           employee_id: string
@@ -444,6 +448,8 @@ export type Database = {
           template_id?: string | null
         }
         Update: {
+          analysis?: Json | null
+          analyzed_at?: string | null
           conducted_by?: string
           created_at?: string
           employee_id?: string
