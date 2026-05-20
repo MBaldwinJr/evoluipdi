@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { assertRH, createEmployeeUser, replaceEmployeeRole } from "./admin.server";
+import { assertRH, createEmployeeUser, replaceEmployeeRole, updateEmployee, deleteEmployee } from "./admin.server";
 
 export const createUserAndEmployee = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
