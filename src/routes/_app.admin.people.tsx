@@ -69,14 +69,97 @@ function AdminPeople() {
                 <Badge variant="secondary">{p.role?.title ?? "Sem cargo"}</Badge></div>
               <p className="text-sm text-muted-foreground">{p.department?.name ?? "Sem setor"}</p>
               <RoleSwitcher userId={p.user_id} />
-              <Link to="/team/$id" params={{ id: p.id }}>
-                <Button size="sm" variant="outline" className="w-full"><ListChecks className="mr-2 h-4 w-4" />Abrir / Aplicar entrevista</Button>
-              </Link>
+              <div className="flex gap-2">
+                <Link to="/team/$id" params={{ id: p.id }} className="flex-1">
+                  <Button size="sm" variant="outline" className="w-full"><ListChecks className="mr-2 h-4 w-4" />Abrir</Button>
+                </Link>
+                <EditPersonButton person={p} roles={roles} depts={depts} managers={managers as any} onSaved={() => qc.invalidateQueries({ queryKey: ["admin-people"] })} />
+                <DeletePersonButton employeeId={p.id} name={p.profile?.full_name || p.profile?.email} onDeleted={() => qc.invalidateQueries({ queryKey: ["admin-people"] })} />
+              </div>
             </CardContent></Card>
           ))}
         </div>
       )}
     </>
+  );
+}
+
+function EditPersonButton({ person, roles, depts, managers, onSaved }: any) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState(person.profile?.full_name ?? "");
+  const [roleId, setRoleId] = useState(person.role?.id ?? "");
+  const [deptId, setDeptId] = useState(person.department?.id ?? "");
+  const [managerId, setManagerId] = useState("");
+  const [busy, setBusy] = useState(false);
+  const updateFn = useServerFn(updateEmployeeFn);
+  const save = async () => {
+    setBusy(true);
+    try {
+      await ensureServerFnOk(await updateFn({ data: {
+        employeeId: person.id,
+        fullName: name,
+        roleId: roleId || null,
+        departmentId: deptId || null,
+        managerId: managerId || null,
+      } }), "Erro ao atualizar");
+      toast.success("Atualizado");
+      setOpen(false);
+      onSaved();
+    } catch (e) { toast.error(await getErrorMessage(e, "Erro ao atualizar")); }
+    finally { setBusy(false); }
+  };
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild><Button size="sm" variant="ghost"><Pencil className="h-4 w-4" /></Button></DialogTrigger>
+      <DialogContent>
+        <DialogHeader><DialogTitle>Editar colaborador</DialogTitle></DialogHeader>
+        <div className="space-y-3">
+          <div className="space-y-1"><Label>Nome completo</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
+          <div className="space-y-1"><Label>Cargo</Label>
+            <Select value={roleId} onValueChange={setRoleId}><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <SelectContent>{roles.map((r: any) => <SelectItem key={r.id} value={r.id}>{r.title}</SelectItem>)}</SelectContent></Select></div>
+          <div className="space-y-1"><Label>Setor</Label>
+            <Select value={deptId} onValueChange={setDeptId}><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <SelectContent>{depts.map((d: any) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent></Select></div>
+          <div className="space-y-1"><Label>Gestor direto (opcional)</Label>
+            <Select value={managerId} onValueChange={setManagerId}>
+              <SelectTrigger><SelectValue placeholder="Manter atual / sem alteração" /></SelectTrigger>
+              <SelectContent>{managers.map((m: any) => <SelectItem key={m.id} value={m.id}>{m.profile?.full_name || m.profile?.email}</SelectItem>)}</SelectContent></Select></div>
+        </div>
+        <DialogFooter><Button onClick={save} disabled={busy}>{busy ? "Salvando..." : "Salvar"}</Button></DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function DeletePersonButton({ employeeId, name, onDeleted }: { employeeId: string; name: string; onDeleted: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const deleteFn = useServerFn(deleteEmployeeFn);
+  const remove = async () => {
+    setBusy(true);
+    try {
+      await ensureServerFnOk(await deleteFn({ data: { employeeId } }), "Erro ao excluir");
+      toast.success("Colaborador excluído");
+      onDeleted();
+    } catch (e) { toast.error(await getErrorMessage(e, "Erro ao excluir")); }
+    finally { setBusy(false); }
+  };
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild><Button size="sm" variant="ghost" className="text-destructive"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Excluir {name}?</AlertDialogTitle>
+          <AlertDialogDescription>Esta ação remove o usuário e seu vínculo de colaborador. Não pode ser desfeita.</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={busy}>Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={remove} disabled={busy} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            {busy ? "Excluindo..." : "Excluir"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
 
