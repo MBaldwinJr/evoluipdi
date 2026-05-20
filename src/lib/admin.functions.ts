@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { assertRH, createEmployeeUser, replaceEmployeeRole } from "./admin.server";
+import { assertRH, createEmployeeUser, replaceEmployeeRole, updateEmployee, deleteEmployee } from "./admin.server";
 
 export const createUserAndEmployee = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -24,4 +24,27 @@ export const setEmployeeRole = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertRH(context.userId);
     return replaceEmployeeRole(data.userId, data.role);
+  });
+
+export const updateEmployeeFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({
+    employeeId: z.string().uuid(),
+    fullName: z.string().min(1).max(200).optional(),
+    roleId: z.string().uuid().nullable().optional(),
+    departmentId: z.string().uuid().nullable().optional(),
+    managerId: z.string().uuid().nullable().optional(),
+  }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertRH(context.userId);
+    const { employeeId, ...rest } = data;
+    return updateEmployee(employeeId, rest);
+  });
+
+export const deleteEmployeeFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ employeeId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertRH(context.userId);
+    return deleteEmployee(data.employeeId);
   });

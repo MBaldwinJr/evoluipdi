@@ -35,3 +35,33 @@ export async function replaceEmployeeRole(userId: string, role: "colaborador" | 
   if (error) throw new Error(error.message);
   return { ok: true };
 }
+
+export async function updateEmployee(
+  employeeId: string,
+  data: { fullName?: string; roleId?: string | null; departmentId?: string | null; managerId?: string | null },
+) {
+  const { data: emp, error: e0 } = await supabaseAdmin
+    .from("employees").select("user_id").eq("id", employeeId).maybeSingle();
+  if (e0 || !emp) throw new Error("Colaborador não encontrado");
+  if (data.fullName !== undefined) {
+    await supabaseAdmin.from("profiles").update({ full_name: data.fullName }).eq("id", emp.user_id);
+  }
+  const patch: { role_id?: string | null; department_id?: string | null; manager_id?: string | null } = {};
+  if (data.roleId !== undefined) patch.role_id = data.roleId;
+  if (data.departmentId !== undefined) patch.department_id = data.departmentId;
+  if (data.managerId !== undefined) patch.manager_id = data.managerId;
+  if (Object.keys(patch).length) {
+    const { error } = await supabaseAdmin.from("employees").update(patch).eq("id", employeeId);
+    if (error) throw new Error(error.message);
+  }
+  return { ok: true };
+}
+
+export async function deleteEmployee(employeeId: string) {
+  const { data: emp, error: e0 } = await supabaseAdmin
+    .from("employees").select("user_id").eq("id", employeeId).maybeSingle();
+  if (e0 || !emp) throw new Error("Colaborador não encontrado");
+  const { error } = await supabaseAdmin.auth.admin.deleteUser(emp.user_id);
+  if (error) throw new Error(error.message);
+  return { ok: true };
+}

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Sparkles, Loader2, Eye, Plus } from "lucide-react";
+import { Sparkles, Loader2, Eye, Plus, Printer } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
@@ -107,6 +107,7 @@ function InterviewDetailDialog({ id, onClose, onChanged }: { id: string | null; 
         supabase.from("interviews").select("*, employee:employees(id, profile:profiles(full_name))").eq("id", id!).maybeSingle(),
         supabase.from("interview_answers").select("question, answer").eq("interview_id", id!).order("created_at"),
       ]);
+      if ((itv as any)?.analysis) setAnalysis((itv as any).analysis);
       return { itv, ans: ans ?? [] };
     },
   });
@@ -117,8 +118,9 @@ function InterviewDetailDialog({ id, onClose, onChanged }: { id: string | null; 
     if (!id) return;
     setLoading(true);
     try {
-      const res = await analyzeFn({ data: { interviewId: id } });
+      const res = await analyzeFn({ data: { interviewId: id, force: !!analysis } });
       setAnalysis(res);
+      onChanged();
     } catch (e: any) { toast.error(e?.message ?? "Falha na análise"); } finally { setLoading(false); }
   };
 
@@ -138,22 +140,32 @@ function InterviewDetailDialog({ id, onClose, onChanged }: { id: string | null; 
 
   return (
     <Dialog open={!!id} onOpenChange={(v) => { if (!v) close(); }}>
-      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+      <DialogContent id="interview-print-area" className="max-w-3xl max-h-[85vh] overflow-y-auto print:max-h-none print:overflow-visible print:max-w-full print:shadow-none">
         <DialogHeader>
           <DialogTitle>Entrevista — {data?.itv?.employee?.profile?.full_name ?? ""}</DialogTitle>
         </DialogHeader>
 
         {isLoading ? <p className="text-sm text-muted-foreground">Carregando…</p> : (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2 print:hidden">
               <p className="text-xs text-muted-foreground">
                 {KIND_LABEL[data?.itv?.kind ?? ""] ?? data?.itv?.kind} · {data?.itv?.occurred_at ? new Date(data.itv.occurred_at).toLocaleString("pt-BR") : ""}
+                {(data?.itv as any)?.analyzed_at && <> · Analisada em {new Date((data!.itv as any).analyzed_at).toLocaleString("pt-BR")}</>}
               </p>
-              <Button size="sm" onClick={runAnalysis} disabled={loading}>
-                {loading ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Sparkles className="mr-1 h-3 w-3" />}
-                {loading ? "Analisando…" : "Analisar com IA"}
-              </Button>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" onClick={() => window.print()}>
+                  <Printer className="mr-1 h-3 w-3" /> Imprimir / Salvar
+                </Button>
+                <Button size="sm" onClick={runAnalysis} disabled={loading}>
+                  {loading ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Sparkles className="mr-1 h-3 w-3" />}
+                  {loading ? "Analisando…" : analysis ? "Reanalisar com IA" : "Analisar com IA"}
+                </Button>
+              </div>
             </div>
+            <p className="hidden print:block text-xs">
+              {KIND_LABEL[data?.itv?.kind ?? ""] ?? data?.itv?.kind} · {data?.itv?.occurred_at ? new Date(data.itv.occurred_at).toLocaleString("pt-BR") : ""}
+            </p>
+
 
             <div className="space-y-2">
               <h3 className="text-sm font-semibold">Perguntas e respostas</h3>
