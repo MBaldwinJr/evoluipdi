@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CandidatoTokenRouteImport } from './routes/candidato.$token'
 import { Route as AppTeamIndexRouteImport } from './routes/_app.team.index'
 import { Route as AppMeIndexRouteImport } from './routes/_app.me.index'
 import { Route as AppTeamIdRouteImport } from './routes/_app.team.$id'
@@ -23,6 +24,8 @@ import { Route as AppAdminReportsRouteImport } from './routes/_app.admin.reports
 import { Route as AppAdminPeopleRouteImport } from './routes/_app.admin.people'
 import { Route as AppAdminInterviewsReviewRouteImport } from './routes/_app.admin.interviews-review'
 import { Route as AppAdminInterviewsRouteImport } from './routes/_app.admin.interviews'
+import { Route as AppAdminCandidatesRouteImport } from './routes/_app.admin.candidates'
+import { Route as ApiPublicCandidateTokenRouteImport } from './routes/api/public/candidate.$token'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -36,6 +39,11 @@ const AppRoute = AppRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CandidatoTokenRoute = CandidatoTokenRouteImport.update({
+  id: '/candidato/$token',
+  path: '/candidato/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppTeamIndexRoute = AppTeamIndexRouteImport.update({
@@ -94,10 +102,22 @@ const AppAdminInterviewsRoute = AppAdminInterviewsRouteImport.update({
   path: '/admin/interviews',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAdminCandidatesRoute = AppAdminCandidatesRouteImport.update({
+  id: '/admin/candidates',
+  path: '/admin/candidates',
+  getParentRoute: () => AppRoute,
+} as any)
+const ApiPublicCandidateTokenRoute = ApiPublicCandidateTokenRouteImport.update({
+  id: '/api/public/candidate/$token',
+  path: '/api/public/candidate/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/candidato/$token': typeof CandidatoTokenRoute
+  '/admin/candidates': typeof AppAdminCandidatesRoute
   '/admin/interviews': typeof AppAdminInterviewsRoute
   '/admin/interviews-review': typeof AppAdminInterviewsReviewRoute
   '/admin/people': typeof AppAdminPeopleRoute
@@ -109,10 +129,13 @@ export interface FileRoutesByFullPath {
   '/team/$id': typeof AppTeamIdRoute
   '/me/': typeof AppMeIndexRoute
   '/team/': typeof AppTeamIndexRoute
+  '/api/public/candidate/$token': typeof ApiPublicCandidateTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/candidato/$token': typeof CandidatoTokenRoute
+  '/admin/candidates': typeof AppAdminCandidatesRoute
   '/admin/interviews': typeof AppAdminInterviewsRoute
   '/admin/interviews-review': typeof AppAdminInterviewsReviewRoute
   '/admin/people': typeof AppAdminPeopleRoute
@@ -124,12 +147,15 @@ export interface FileRoutesByTo {
   '/team/$id': typeof AppTeamIdRoute
   '/me': typeof AppMeIndexRoute
   '/team': typeof AppTeamIndexRoute
+  '/api/public/candidate/$token': typeof ApiPublicCandidateTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
+  '/candidato/$token': typeof CandidatoTokenRoute
+  '/_app/admin/candidates': typeof AppAdminCandidatesRoute
   '/_app/admin/interviews': typeof AppAdminInterviewsRoute
   '/_app/admin/interviews-review': typeof AppAdminInterviewsReviewRoute
   '/_app/admin/people': typeof AppAdminPeopleRoute
@@ -141,12 +167,15 @@ export interface FileRoutesById {
   '/_app/team/$id': typeof AppTeamIdRoute
   '/_app/me/': typeof AppMeIndexRoute
   '/_app/team/': typeof AppTeamIndexRoute
+  '/api/public/candidate/$token': typeof ApiPublicCandidateTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/login'
+    | '/candidato/$token'
+    | '/admin/candidates'
     | '/admin/interviews'
     | '/admin/interviews-review'
     | '/admin/people'
@@ -158,10 +187,13 @@ export interface FileRouteTypes {
     | '/team/$id'
     | '/me/'
     | '/team/'
+    | '/api/public/candidate/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/login'
+    | '/candidato/$token'
+    | '/admin/candidates'
     | '/admin/interviews'
     | '/admin/interviews-review'
     | '/admin/people'
@@ -173,11 +205,14 @@ export interface FileRouteTypes {
     | '/team/$id'
     | '/me'
     | '/team'
+    | '/api/public/candidate/$token'
   id:
     | '__root__'
     | '/'
     | '/_app'
     | '/login'
+    | '/candidato/$token'
+    | '/_app/admin/candidates'
     | '/_app/admin/interviews'
     | '/_app/admin/interviews-review'
     | '/_app/admin/people'
@@ -189,12 +224,15 @@ export interface FileRouteTypes {
     | '/_app/team/$id'
     | '/_app/me/'
     | '/_app/team/'
+    | '/api/public/candidate/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
   LoginRoute: typeof LoginRoute
+  CandidatoTokenRoute: typeof CandidatoTokenRoute
+  ApiPublicCandidateTokenRoute: typeof ApiPublicCandidateTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -218,6 +256,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/candidato/$token': {
+      id: '/candidato/$token'
+      path: '/candidato/$token'
+      fullPath: '/candidato/$token'
+      preLoaderRoute: typeof CandidatoTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app/team/': {
@@ -297,10 +342,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminInterviewsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/admin/candidates': {
+      id: '/_app/admin/candidates'
+      path: '/admin/candidates'
+      fullPath: '/admin/candidates'
+      preLoaderRoute: typeof AppAdminCandidatesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/api/public/candidate/$token': {
+      id: '/api/public/candidate/$token'
+      path: '/api/public/candidate/$token'
+      fullPath: '/api/public/candidate/$token'
+      preLoaderRoute: typeof ApiPublicCandidateTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppAdminCandidatesRoute: typeof AppAdminCandidatesRoute
   AppAdminInterviewsRoute: typeof AppAdminInterviewsRoute
   AppAdminInterviewsReviewRoute: typeof AppAdminInterviewsReviewRoute
   AppAdminPeopleRoute: typeof AppAdminPeopleRoute
@@ -315,6 +375,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAdminCandidatesRoute: AppAdminCandidatesRoute,
   AppAdminInterviewsRoute: AppAdminInterviewsRoute,
   AppAdminInterviewsReviewRoute: AppAdminInterviewsReviewRoute,
   AppAdminPeopleRoute: AppAdminPeopleRoute,
@@ -334,17 +395,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
   LoginRoute: LoginRoute,
+  CandidatoTokenRoute: CandidatoTokenRoute,
+  ApiPublicCandidateTokenRoute: ApiPublicCandidateTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

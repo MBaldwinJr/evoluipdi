@@ -3,7 +3,7 @@ import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter, useSidebar,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, User, MessageSquare, Target, Users, Briefcase, ListChecks, FileText, Settings, LogOut, Sparkles, ClipboardCheck } from "lucide-react";
+import { LayoutDashboard, User, MessageSquare, Target, Users, Briefcase, ListChecks, FileText, Settings, LogOut, Sparkles, ClipboardCheck, UserPlus } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 
@@ -20,6 +20,7 @@ const rhItems = [
   { title: "Cargos & RCF", url: "/admin/roles", icon: Briefcase },
   { title: "Roteiros de entrevista", url: "/admin/interviews", icon: ListChecks },
   { title: "Entrevistas aplicadas", url: "/admin/interviews-review", icon: ClipboardCheck },
+  { title: "Candidatos / Pré-entrevistas", url: "/admin/candidates", icon: UserPlus },
   { title: "Relatórios", url: "/admin/reports", icon: FileText },
   { title: "Configurações", url: "/admin/settings", icon: Settings },
 ];
