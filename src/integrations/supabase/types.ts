@@ -14,6 +14,81 @@ export type Database = {
   }
   public: {
     Tables: {
+      candidate_invites: {
+        Row: {
+          analysis: Json | null
+          analyzed_at: string | null
+          answers: Json | null
+          candidate_email: string | null
+          candidate_name: string
+          candidate_phone: string | null
+          created_at: string
+          created_by: string
+          expires_at: string | null
+          id: string
+          notes: string | null
+          role_id: string
+          status: string
+          submitted_at: string | null
+          template_id: string | null
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          analysis?: Json | null
+          analyzed_at?: string | null
+          answers?: Json | null
+          candidate_email?: string | null
+          candidate_name: string
+          candidate_phone?: string | null
+          created_at?: string
+          created_by: string
+          expires_at?: string | null
+          id?: string
+          notes?: string | null
+          role_id: string
+          status?: string
+          submitted_at?: string | null
+          template_id?: string | null
+          token?: string
+          updated_at?: string
+        }
+        Update: {
+          analysis?: Json | null
+          analyzed_at?: string | null
+          answers?: Json | null
+          candidate_email?: string | null
+          candidate_name?: string
+          candidate_phone?: string | null
+          created_at?: string
+          created_by?: string
+          expires_at?: string | null
+          id?: string
+          notes?: string | null
+          role_id?: string
+          status?: string
+          submitted_at?: string | null
+          template_id?: string | null
+          token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_invites_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles_catalog"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_invites_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "interview_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       checkins: {
         Row: {
           completed_at: string | null
