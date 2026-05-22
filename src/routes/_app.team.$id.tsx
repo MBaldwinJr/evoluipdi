@@ -95,6 +95,7 @@ function TeamMember() {
         <TabsList>
           <TabsTrigger value="feedback">Dar feedback</TabsTrigger>
           <TabsTrigger value="historico">Histórico</TabsTrigger>
+          <TabsTrigger value="gaps">Gaps ({gaps.filter((g:any)=>!g.resolved).length})</TabsTrigger>
           <TabsTrigger value="pdi">PDIs</TabsTrigger>
           <TabsTrigger value="entrevistas">Entrevistas</TabsTrigger>
         </TabsList>
