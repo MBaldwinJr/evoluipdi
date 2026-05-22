@@ -134,6 +134,45 @@ export type Database = {
           },
         ]
       }
+      company_settings: {
+        Row: {
+          cnae_code: string | null
+          cnae_description: string | null
+          cnpj: string | null
+          created_at: string
+          id: string
+          legal_name: string | null
+          notes: string | null
+          segment: string | null
+          trade_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          cnae_code?: string | null
+          cnae_description?: string | null
+          cnpj?: string | null
+          created_at?: string
+          id?: string
+          legal_name?: string | null
+          notes?: string | null
+          segment?: string | null
+          trade_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cnae_code?: string | null
+          cnae_description?: string | null
+          cnpj?: string | null
+          created_at?: string
+          id?: string
+          legal_name?: string | null
+          notes?: string | null
+          segment?: string | null
+          trade_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       departments: {
         Row: {
           created_at: string
@@ -796,6 +835,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      role_processes: {
+        Row: {
+          created_at: string
+          id: string
+          objective: string | null
+          role_id: string
+          sort_order: number
+          steps: Json
+          success_criteria: string | null
+          title: string
+          tools: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          objective?: string | null
+          role_id: string
+          sort_order?: number
+          steps?: Json
+          success_criteria?: string | null
+          title: string
+          tools?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          objective?: string | null
+          role_id?: string
+          sort_order?: number
+          steps?: Json
+          success_criteria?: string | null
+          title?: string
+          tools?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       roles_catalog: {
         Row: {
