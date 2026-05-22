@@ -95,7 +95,7 @@ function ProcessesPage() {
       <PageHeader
         title="Processos por cargo"
         description="Manuais passo a passo (POPs) gerados a partir do CNAE da empresa e do RCF de cada cargo"
-        actions={
+        action={
           <div className="flex gap-2 no-print">
             <Dialog open={companyOpen} onOpenChange={setCompanyOpen}>
               <DialogTrigger asChild>

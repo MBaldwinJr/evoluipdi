@@ -21,6 +21,7 @@ import { Route as AppMeFeedbacksRouteImport } from './routes/_app.me.feedbacks'
 import { Route as AppAdminSettingsRouteImport } from './routes/_app.admin.settings'
 import { Route as AppAdminRolesRouteImport } from './routes/_app.admin.roles'
 import { Route as AppAdminReportsRouteImport } from './routes/_app.admin.reports'
+import { Route as AppAdminProcessesRouteImport } from './routes/_app.admin.processes'
 import { Route as AppAdminPeopleRouteImport } from './routes/_app.admin.people'
 import { Route as AppAdminInterviewsReviewRouteImport } from './routes/_app.admin.interviews-review'
 import { Route as AppAdminInterviewsRouteImport } from './routes/_app.admin.interviews'
@@ -86,6 +87,11 @@ const AppAdminReportsRoute = AppAdminReportsRouteImport.update({
   path: '/admin/reports',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAdminProcessesRoute = AppAdminProcessesRouteImport.update({
+  id: '/admin/processes',
+  path: '/admin/processes',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAdminPeopleRoute = AppAdminPeopleRouteImport.update({
   id: '/admin/people',
   path: '/admin/people',
@@ -121,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/admin/interviews': typeof AppAdminInterviewsRoute
   '/admin/interviews-review': typeof AppAdminInterviewsReviewRoute
   '/admin/people': typeof AppAdminPeopleRoute
+  '/admin/processes': typeof AppAdminProcessesRoute
   '/admin/reports': typeof AppAdminReportsRoute
   '/admin/roles': typeof AppAdminRolesRoute
   '/admin/settings': typeof AppAdminSettingsRoute
@@ -139,6 +146,7 @@ export interface FileRoutesByTo {
   '/admin/interviews': typeof AppAdminInterviewsRoute
   '/admin/interviews-review': typeof AppAdminInterviewsReviewRoute
   '/admin/people': typeof AppAdminPeopleRoute
+  '/admin/processes': typeof AppAdminProcessesRoute
   '/admin/reports': typeof AppAdminReportsRoute
   '/admin/roles': typeof AppAdminRolesRoute
   '/admin/settings': typeof AppAdminSettingsRoute
@@ -159,6 +167,7 @@ export interface FileRoutesById {
   '/_app/admin/interviews': typeof AppAdminInterviewsRoute
   '/_app/admin/interviews-review': typeof AppAdminInterviewsReviewRoute
   '/_app/admin/people': typeof AppAdminPeopleRoute
+  '/_app/admin/processes': typeof AppAdminProcessesRoute
   '/_app/admin/reports': typeof AppAdminReportsRoute
   '/_app/admin/roles': typeof AppAdminRolesRoute
   '/_app/admin/settings': typeof AppAdminSettingsRoute
@@ -179,6 +188,7 @@ export interface FileRouteTypes {
     | '/admin/interviews'
     | '/admin/interviews-review'
     | '/admin/people'
+    | '/admin/processes'
     | '/admin/reports'
     | '/admin/roles'
     | '/admin/settings'
@@ -197,6 +207,7 @@ export interface FileRouteTypes {
     | '/admin/interviews'
     | '/admin/interviews-review'
     | '/admin/people'
+    | '/admin/processes'
     | '/admin/reports'
     | '/admin/roles'
     | '/admin/settings'
@@ -216,6 +227,7 @@ export interface FileRouteTypes {
     | '/_app/admin/interviews'
     | '/_app/admin/interviews-review'
     | '/_app/admin/people'
+    | '/_app/admin/processes'
     | '/_app/admin/reports'
     | '/_app/admin/roles'
     | '/_app/admin/settings'
@@ -321,6 +333,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminReportsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/admin/processes': {
+      id: '/_app/admin/processes'
+      path: '/admin/processes'
+      fullPath: '/admin/processes'
+      preLoaderRoute: typeof AppAdminProcessesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/admin/people': {
       id: '/_app/admin/people'
       path: '/admin/people'
@@ -364,6 +383,7 @@ interface AppRouteChildren {
   AppAdminInterviewsRoute: typeof AppAdminInterviewsRoute
   AppAdminInterviewsReviewRoute: typeof AppAdminInterviewsReviewRoute
   AppAdminPeopleRoute: typeof AppAdminPeopleRoute
+  AppAdminProcessesRoute: typeof AppAdminProcessesRoute
   AppAdminReportsRoute: typeof AppAdminReportsRoute
   AppAdminRolesRoute: typeof AppAdminRolesRoute
   AppAdminSettingsRoute: typeof AppAdminSettingsRoute
@@ -379,6 +399,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAdminInterviewsRoute: AppAdminInterviewsRoute,
   AppAdminInterviewsReviewRoute: AppAdminInterviewsReviewRoute,
   AppAdminPeopleRoute: AppAdminPeopleRoute,
+  AppAdminProcessesRoute: AppAdminProcessesRoute,
   AppAdminReportsRoute: AppAdminReportsRoute,
   AppAdminRolesRoute: AppAdminRolesRoute,
   AppAdminSettingsRoute: AppAdminSettingsRoute,
