@@ -38,6 +38,22 @@ function TeamMember() {
     queryKey: ["emp-int", id],
     queryFn: async () => (await supabase.from("interviews").select("id, kind, occurred_at, notes, template:interview_templates(title)").eq("employee_id", id).order("occurred_at", { ascending: false })).data ?? [],
   });
+  const { data: gaps = [] } = useQuery({
+    queryKey: ["emp-gaps", id],
+    queryFn: async () => (await supabase.from("gaps").select("*").eq("employee_id", id).order("created_at", { ascending: false })).data ?? [],
+  });
+  const toggleGapResolved = async (gapId: string, resolved: boolean) => {
+    const { error } = await supabase.from("gaps").update({ resolved: !resolved }).eq("id", gapId);
+    if (error) return toast.error(error.message);
+    qc.invalidateQueries({ queryKey: ["emp-gaps", id] });
+  };
+  const deleteGap = async (gapId: string) => {
+    if (!confirm("Excluir este gap?")) return;
+    const { error } = await supabase.from("gaps").delete().eq("id", gapId);
+    if (error) return toast.error(error.message);
+    toast.success("Gap excluído");
+    qc.invalidateQueries({ queryKey: ["emp-gaps", id] });
+  };
   const [wizardOpen, setWizardOpen] = useState(false);
 
   const [raw, setRaw] = useState("");
