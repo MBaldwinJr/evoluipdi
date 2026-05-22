@@ -38,6 +38,22 @@ function TeamMember() {
     queryKey: ["emp-int", id],
     queryFn: async () => (await supabase.from("interviews").select("id, kind, occurred_at, notes, template:interview_templates(title)").eq("employee_id", id).order("occurred_at", { ascending: false })).data ?? [],
   });
+  const { data: gaps = [] } = useQuery({
+    queryKey: ["emp-gaps", id],
+    queryFn: async () => (await supabase.from("gaps").select("*").eq("employee_id", id).order("created_at", { ascending: false })).data ?? [],
+  });
+  const toggleGapResolved = async (gapId: string, resolved: boolean) => {
+    const { error } = await supabase.from("gaps").update({ resolved: !resolved }).eq("id", gapId);
+    if (error) return toast.error(error.message);
+    qc.invalidateQueries({ queryKey: ["emp-gaps", id] });
+  };
+  const deleteGap = async (gapId: string) => {
+    if (!confirm("Excluir este gap?")) return;
+    const { error } = await supabase.from("gaps").delete().eq("id", gapId);
+    if (error) return toast.error(error.message);
+    toast.success("Gap excluído");
+    qc.invalidateQueries({ queryKey: ["emp-gaps", id] });
+  };
   const [wizardOpen, setWizardOpen] = useState(false);
 
   const [raw, setRaw] = useState("");
@@ -79,6 +95,7 @@ function TeamMember() {
         <TabsList>
           <TabsTrigger value="feedback">Dar feedback</TabsTrigger>
           <TabsTrigger value="historico">Histórico</TabsTrigger>
+          <TabsTrigger value="gaps">Gaps ({gaps.filter((g:any)=>!g.resolved).length})</TabsTrigger>
           <TabsTrigger value="pdi">PDIs</TabsTrigger>
           <TabsTrigger value="entrevistas">Entrevistas</TabsTrigger>
         </TabsList>
@@ -116,6 +133,33 @@ function TeamMember() {
                   {f.impact && <p className="text-sm"><strong>Impacto:</strong> {f.impact}</p>}
                   {f.next_step && <p className="text-sm"><strong>Próximo:</strong> {f.next_step}</p>}
                 </CardContent></Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="gaps">
+          {gaps.length === 0 ? <EmptyState title="Sem gaps" description="Nenhum gap registrado. Aplique uma entrevista e analise com IA para gerar gaps automaticamente." /> : (
+            <div className="space-y-2">
+              {gaps.map((g: any) => (
+                <Card key={g.id} className={g.resolved ? "opacity-60" : ""}>
+                  <CardContent className="pt-4 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant={g.severity === "alta" ? "destructive" : g.severity === "media" ? "default" : "secondary"}>{g.severity}</Badge>
+                        {g.source && <Badge variant="outline">{g.source}</Badge>}
+                        <span className="font-medium text-sm">{g.title}</span>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button size="sm" variant="ghost" onClick={() => toggleGapResolved(g.id, g.resolved)}>{g.resolved ? "Reabrir" : "Resolver"}</Button>
+                        <Button size="sm" variant="ghost" onClick={() => deleteGap(g.id)}>Excluir</Button>
+                      </div>
+                    </div>
+                    {g.justification && <p className="text-xs text-muted-foreground"><strong>Justificativa:</strong> {g.justification}</p>}
+                    {g.root_cause && <p className="text-xs text-muted-foreground"><strong>Causa-raiz:</strong> {g.root_cause}</p>}
+                    <p className="text-xs text-muted-foreground">{new Date(g.created_at).toLocaleDateString("pt-BR")}</p>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           )}
