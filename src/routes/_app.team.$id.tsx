@@ -138,6 +138,33 @@ function TeamMember() {
           )}
         </TabsContent>
 
+        <TabsContent value="gaps">
+          {gaps.length === 0 ? <EmptyState title="Sem gaps" description="Nenhum gap registrado. Aplique uma entrevista e analise com IA para gerar gaps automaticamente." /> : (
+            <div className="space-y-2">
+              {gaps.map((g: any) => (
+                <Card key={g.id} className={g.resolved ? "opacity-60" : ""}>
+                  <CardContent className="pt-4 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant={g.severity === "alta" ? "destructive" : g.severity === "media" ? "default" : "secondary"}>{g.severity}</Badge>
+                        {g.source && <Badge variant="outline">{g.source}</Badge>}
+                        <span className="font-medium text-sm">{g.title}</span>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button size="sm" variant="ghost" onClick={() => toggleGapResolved(g.id, g.resolved)}>{g.resolved ? "Reabrir" : "Resolver"}</Button>
+                        <Button size="sm" variant="ghost" onClick={() => deleteGap(g.id)}>Excluir</Button>
+                      </div>
+                    </div>
+                    {g.justification && <p className="text-xs text-muted-foreground"><strong>Justificativa:</strong> {g.justification}</p>}
+                    {g.root_cause && <p className="text-xs text-muted-foreground"><strong>Causa-raiz:</strong> {g.root_cause}</p>}
+                    <p className="text-xs text-muted-foreground">{new Date(g.created_at).toLocaleDateString("pt-BR")}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
         <TabsContent value="pdi">
           {pdis.length === 0 ? <EmptyState title="Sem PDIs" description="O colaborador ainda não criou um PDI." /> : (
             <div className="space-y-3">
