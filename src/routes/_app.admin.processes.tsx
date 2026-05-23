@@ -13,10 +13,11 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Sparkles, Loader2, Pencil, Trash2, Plus, Printer, Building2 } from "lucide-react";
+import { Sparkles, Loader2, Pencil, Trash2, Plus, Printer, Building2, Search } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { generateProcessesFn, generateAllMissingProcessesFn, upsertProcessFn, deleteProcessFn, saveCompanySettingsFn } from "@/lib/processes.functions";
+import { lookupCnpjFn } from "@/lib/cnpj.functions";
 import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/_app/admin/processes")({ component: ProcessesPage });
