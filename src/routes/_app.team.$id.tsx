@@ -24,7 +24,16 @@ function TeamMember() {
   const qc = useQueryClient();
   const { data: emp } = useQuery({
     queryKey: ["emp", id],
-    queryFn: async () => (await supabase.from("employees").select("*, profile:profiles!employees_user_id_profiles_fkey(full_name, email), role:roles_catalog(id, title)").eq("id", id).maybeSingle()).data,
+    queryFn: async () => {
+      const { data } = await supabase.rpc("get_employee_basic", { _employee_id: id });
+      const row: any = Array.isArray(data) ? data[0] : data;
+      if (!row) return null;
+      return {
+        ...row,
+        profile: { full_name: row.full_name },
+        role: { id: row.role_id, title: row.role_title },
+      };
+    },
   });
   const { data: feedbacks = [] } = useQuery({
     queryKey: ["emp-fb", id],

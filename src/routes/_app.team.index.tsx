@@ -17,9 +17,16 @@ function TeamPage() {
   const { data: team = [] } = useQuery({
     queryKey: ["team", isRH ? "all" : me?.id], enabled: isRH || !!me,
     queryFn: async () => {
-      let q = supabase.from("employees").select("id, user_id, profile:profiles!employees_user_id_profiles_fkey(full_name, email), role:roles_catalog(title), department:departments(name)").eq("active", true);
-      if (!isRH && me?.id) q = q.eq("manager_id", me.id);
-      return (await q).data ?? [];
+      const { data } = await supabase.rpc("list_team_directory");
+      const rows = (data ?? []) as any[];
+      const filtered = !isRH && me?.id ? rows.filter((r) => r.manager_id === me.id) : rows;
+      return filtered.map((r) => ({
+        id: r.id,
+        user_id: r.user_id,
+        profile: { full_name: r.full_name },
+        role: { title: r.role_title },
+        department: { name: r.department_name },
+      }));
     },
   });
 
