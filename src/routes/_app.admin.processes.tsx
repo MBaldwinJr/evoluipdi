@@ -240,20 +240,53 @@ function CompanyDialog({ company, onSave }: { company: any; onSave: (p: any) => 
   const [cnaeDesc, setCnaeDesc] = useState(company?.cnae_description ?? "Comércio varejista de materiais de construção em geral");
   const [segment, setSegment] = useState(company?.segment ?? "Materiais de construção (varejo)");
   const [notes, setNotes] = useState(company?.notes ?? "");
+  const [lookingUp, setLookingUp] = useState(false);
+  const lookup = useServerFn(lookupCnpjFn);
+
+  const doLookup = async (value?: string) => {
+    const v = (value ?? cnpj).replace(/\D/g, "");
+    if (v.length !== 14) return toast.error("Informe um CNPJ com 14 dígitos");
+    setLookingUp(true);
+    try {
+      const r = await lookup({ data: { cnpj: v } });
+      if (r.legal_name) setLegal(r.legal_name);
+      if (r.trade_name) setTrade(r.trade_name);
+      if (r.cnae_code) setCnae(r.cnae_code);
+      if (r.cnae_description) setCnaeDesc(r.cnae_description);
+      if (r.segment) setSegment(r.segment);
+      toast.success("Dados do CNPJ preenchidos");
+    } catch (e: any) { toast.error(e.message); } finally { setLookingUp(false); }
+  };
+
   return (
     <DialogContent className="max-w-xl">
       <DialogHeader><DialogTitle>Dados da empresa</DialogTitle></DialogHeader>
       <div className="grid gap-3">
+        <div className="space-y-1">
+          <Label>CNPJ</Label>
+          <div className="flex gap-2">
+            <Input
+              value={cnpj}
+              onChange={(e) => setCnpj(e.target.value)}
+              onBlur={() => { const v = cnpj.replace(/\D/g, ""); if (v.length === 14) doLookup(v); }}
+              placeholder="00.000.000/0000-00"
+            />
+            <Button type="button" variant="outline" onClick={() => doLookup()} disabled={lookingUp}>
+              {lookingUp ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+              <span className="ml-2">Buscar</span>
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">Os campos abaixo são preenchidos automaticamente a partir do CNPJ.</p>
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1"><Label>Razão social</Label><Input value={legal} onChange={(e) => setLegal(e.target.value)} /></div>
           <div className="space-y-1"><Label>Nome fantasia</Label><Input value={trade} onChange={(e) => setTrade(e.target.value)} /></div>
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1"><Label>CNPJ</Label><Input value={cnpj} onChange={(e) => setCnpj(e.target.value)} placeholder="00.000.000/0000-00" /></div>
           <div className="space-y-1"><Label>CNAE</Label><Input value={cnae} onChange={(e) => setCnae(e.target.value)} placeholder="4744-0/05" /></div>
+          <div className="space-y-1"><Label>Segmento</Label><Input value={segment} onChange={(e) => setSegment(e.target.value)} /></div>
         </div>
         <div className="space-y-1"><Label>Descrição do CNAE</Label><Input value={cnaeDesc} onChange={(e) => setCnaeDesc(e.target.value)} /></div>
-        <div className="space-y-1"><Label>Segmento</Label><Input value={segment} onChange={(e) => setSegment(e.target.value)} /></div>
         <div className="space-y-1"><Label>Observações (público-alvo, mix de produtos, particularidades)</Label><Textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
       </div>
       <DialogFooter>
