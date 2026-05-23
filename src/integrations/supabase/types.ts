@@ -936,6 +936,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_employee_basic: {
+        Args: { _employee_id: string }
+        Returns: {
+          career_goals: string
+          department_id: string
+          department_name: string
+          full_name: string
+          hire_date: string
+          id: string
+          manager_id: string
+          role_id: string
+          role_title: string
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -955,6 +970,20 @@ export type Database = {
       is_self_emp: {
         Args: { _employee_id: string; _user_id: string }
         Returns: boolean
+      }
+      list_team_directory: {
+        Args: never
+        Returns: {
+          department_id: string
+          department_name: string
+          full_name: string
+          hire_date: string
+          id: string
+          manager_id: string
+          role_id: string
+          role_title: string
+          user_id: string
+        }[]
       }
     }
     Enums: {
