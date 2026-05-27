@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Loader2, CheckCircle2, Sparkles } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Loader2, CheckCircle2, Sparkles, Upload, FileCheck2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/candidato/$token")({ component: CandidateForm });
@@ -18,21 +18,36 @@ function CandidateForm() {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [cvName, setCvName] = useState<string | null>(null);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch(`/api/public/candidate/${token}`);
-        const json = await res.json();
-        if (!res.ok) {
-          setError(json.error === "expired" ? "Este link expirou." : "Link inválido ou não encontrado.");
-        } else {
-          setData(json);
-          if (json.status === "respondido" || json.status === "analisado") setDone(true);
-        }
-      } catch { setError("Erro ao carregar."); } finally { setLoading(false); }
-    })();
-  }, [token]);
+  const refresh = async () => {
+    const res = await fetch(`/api/public/candidate/${token}`);
+    const json = await res.json();
+    if (!res.ok) {
+      setError(json.error === "expired" ? "Este link expirou." : "Link inválido ou não encontrado.");
+    } else {
+      setData(json);
+      setCvName(json.cv_filename ?? null);
+      if (json.status === "respondido" || json.status === "analisado") setDone(true);
+    }
+  };
+
+  useEffect(() => { (async () => { try { await refresh(); } catch { setError("Erro ao carregar."); } finally { setLoading(false); } })(); }, [token]);
+
+  const uploadCv = async (file: File) => {
+    if (file.size > 8 * 1024 * 1024) { toast.error("Arquivo maior que 8MB"); return; }
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("cv", file);
+      const res = await fetch(`/api/public/candidate/${token}`, { method: "POST", body: fd });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Falha no upload");
+      setCvName(json.filename);
+      toast.success("Currículo enviado!");
+    } catch (e: any) { toast.error(e.message); } finally { setUploading(false); }
+  };
 
   const submit = async () => {
     if (!data) return;
@@ -85,13 +100,27 @@ function CandidateForm() {
         </div>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Olá, {data?.candidate_name}</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle>Olá, {data?.candidate_name}</CardTitle></CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Responda as perguntas abaixo com calma e o máximo de detalhes possível. Suas respostas serão analisadas e usadas como base para a entrevista presencial. Não é uma prova: queremos entender sua experiência e forma de pensar.
+              Responda as perguntas abaixo com calma e o máximo de detalhes possível. Suas respostas serão analisadas e usadas como base para a entrevista presencial.
             </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-base">Currículo (opcional)</CardTitle></CardHeader>
+          <CardContent className="space-y-2">
+            <p className="text-sm text-muted-foreground">PDF ou DOCX, até 8MB. Recomendado para acelerar a análise.</p>
+            <div className="flex items-center gap-3">
+              <Input type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                disabled={uploading}
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadCv(f); }} />
+              {uploading && <Loader2 className="h-4 w-4 animate-spin" />}
+            </div>
+            {cvName && !uploading && (
+              <p className="text-sm text-primary flex items-center gap-1"><FileCheck2 className="h-4 w-4" /> {cvName}</p>
+            )}
           </CardContent>
         </Card>
 
@@ -102,12 +131,8 @@ function CandidateForm() {
               <Card key={i}>
                 <CardHeader className="pb-2"><CardTitle className="text-base">{i + 1}. {text}</CardTitle></CardHeader>
                 <CardContent>
-                  <Textarea
-                    rows={4}
-                    placeholder="Sua resposta…"
-                    value={answers[i] ?? ""}
-                    onChange={(e) => setAnswers((p) => ({ ...p, [i]: e.target.value }))}
-                  />
+                  <Textarea rows={4} placeholder="Sua resposta…" value={answers[i] ?? ""}
+                    onChange={(e) => setAnswers((p) => ({ ...p, [i]: e.target.value }))} />
                 </CardContent>
               </Card>
             );
@@ -123,7 +148,7 @@ function CandidateForm() {
 
         <div className="flex justify-end">
           <Button size="lg" onClick={submit} disabled={submitting}>
-            {submitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Enviando…</> : "Enviar respostas"}
+            {submitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Enviando…</> : <><Upload className="mr-2 h-4 w-4" /> Enviar respostas</>}
           </Button>
         </div>
       </div>
