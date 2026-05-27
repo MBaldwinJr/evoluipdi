@@ -265,7 +265,7 @@ function CandidateDetailDialog({ id, onClose, onChanged, isRH }: { id: string | 
 
   const updateField = async (patch: Record<string, any>) => {
     if (!id) return;
-    const { error } = await supabase.from("candidate_invites").update(patch).eq("id", id);
+    const { error } = await (supabase.from("candidate_invites") as any).update(patch).eq("id", id);
     if (error) toast.error(error.message);
     else { refetch(); onChanged(); }
   };
