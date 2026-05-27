@@ -1,7 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export const lookupCnpjFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ cnpj: z.string().min(11).max(20) }).parse(d))
   .handler(async ({ data }) => {
     const digits = data.cnpj.replace(/\D/g, "");
