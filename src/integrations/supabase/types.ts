@@ -24,9 +24,20 @@ export type Database = {
           candidate_phone: string | null
           created_at: string
           created_by: string
+          cv_analysis: Json | null
+          cv_analyzed_at: string | null
+          cv_filename: string | null
+          cv_path: string | null
+          cv_uploaded_at: string | null
           expires_at: string | null
+          hire_status: string
+          hired_at: string | null
+          hired_employee_id: string | null
           id: string
           notes: string | null
+          presential_at: string | null
+          presential_done: boolean
+          presential_notes: string | null
           role_id: string
           status: string
           submitted_at: string | null
@@ -43,9 +54,20 @@ export type Database = {
           candidate_phone?: string | null
           created_at?: string
           created_by: string
+          cv_analysis?: Json | null
+          cv_analyzed_at?: string | null
+          cv_filename?: string | null
+          cv_path?: string | null
+          cv_uploaded_at?: string | null
           expires_at?: string | null
+          hire_status?: string
+          hired_at?: string | null
+          hired_employee_id?: string | null
           id?: string
           notes?: string | null
+          presential_at?: string | null
+          presential_done?: boolean
+          presential_notes?: string | null
           role_id: string
           status?: string
           submitted_at?: string | null
@@ -62,9 +84,20 @@ export type Database = {
           candidate_phone?: string | null
           created_at?: string
           created_by?: string
+          cv_analysis?: Json | null
+          cv_analyzed_at?: string | null
+          cv_filename?: string | null
+          cv_path?: string | null
+          cv_uploaded_at?: string | null
           expires_at?: string | null
+          hire_status?: string
+          hired_at?: string | null
+          hired_employee_id?: string | null
           id?: string
           notes?: string | null
+          presential_at?: string | null
+          presential_done?: boolean
+          presential_notes?: string | null
           role_id?: string
           status?: string
           submitted_at?: string | null
@@ -73,6 +106,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "candidate_invites_hired_employee_id_fkey"
+            columns: ["hired_employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "candidate_invites_role_id_fkey"
             columns: ["role_id"]
