@@ -835,6 +835,498 @@ export type Database = {
         }
         Relationships: []
       }
+      pt_anomalies: {
+        Row: {
+          company_id: string
+          created_at: string
+          details: Json | null
+          employee_id: string | null
+          id: string
+          kind: string
+          punch_id: string | null
+          resolved: boolean
+          severity: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          details?: Json | null
+          employee_id?: string | null
+          id?: string
+          kind: string
+          punch_id?: string | null
+          resolved?: boolean
+          severity?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          details?: Json | null
+          employee_id?: string | null
+          id?: string
+          kind?: string
+          punch_id?: string | null
+          resolved?: boolean
+          severity?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pt_anomalies_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "pt_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pt_anomalies_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "pt_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pt_anomalies_punch_id_fkey"
+            columns: ["punch_id"]
+            isOneToOne: false
+            referencedRelation: "pt_punches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pt_audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          after: Json | null
+          before: Json | null
+          company_id: string
+          id: string
+          ip: string | null
+          target_id: string | null
+          target_table: string | null
+          ts: string
+          ua: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          after?: Json | null
+          before?: Json | null
+          company_id: string
+          id?: string
+          ip?: string | null
+          target_id?: string | null
+          target_table?: string | null
+          ts?: string
+          ua?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          after?: Json | null
+          before?: Json | null
+          company_id?: string
+          id?: string
+          ip?: string | null
+          target_id?: string | null
+          target_table?: string | null
+          ts?: string
+          ua?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pt_audit_log_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "pt_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pt_branches: {
+        Row: {
+          active: boolean
+          address: string | null
+          company_id: string
+          created_at: string
+          geofence_radius_m: number
+          id: string
+          lat: number | null
+          lng: number | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          address?: string | null
+          company_id: string
+          created_at?: string
+          geofence_radius_m?: number
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          address?: string | null
+          company_id?: string
+          created_at?: string
+          geofence_radius_m?: number
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pt_branches_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "pt_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pt_companies: {
+        Row: {
+          block_outside_geofence: boolean
+          cnpj: string | null
+          created_at: string
+          created_by: string
+          id: string
+          legal_name: string
+          timezone: string
+          trade_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          block_outside_geofence?: boolean
+          cnpj?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          legal_name: string
+          timezone?: string
+          trade_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          block_outside_geofence?: boolean
+          cnpj?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          legal_name?: string
+          timezone?: string
+          trade_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pt_company_members: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["pt_role"]
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["pt_role"]
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["pt_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pt_company_members_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "pt_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pt_employees: {
+        Row: {
+          active: boolean
+          branch_id: string | null
+          company_id: string
+          contract_type: string | null
+          cpf: string | null
+          created_at: string
+          full_name: string
+          hire_date: string | null
+          id: string
+          manager_id: string | null
+          registration: string | null
+          role_title: string | null
+          schedule_id: string | null
+          updated_at: string
+          user_id: string | null
+          weekly_hours: number | null
+        }
+        Insert: {
+          active?: boolean
+          branch_id?: string | null
+          company_id: string
+          contract_type?: string | null
+          cpf?: string | null
+          created_at?: string
+          full_name: string
+          hire_date?: string | null
+          id?: string
+          manager_id?: string | null
+          registration?: string | null
+          role_title?: string | null
+          schedule_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+          weekly_hours?: number | null
+        }
+        Update: {
+          active?: boolean
+          branch_id?: string | null
+          company_id?: string
+          contract_type?: string | null
+          cpf?: string | null
+          created_at?: string
+          full_name?: string
+          hire_date?: string | null
+          id?: string
+          manager_id?: string | null
+          registration?: string | null
+          role_title?: string | null
+          schedule_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+          weekly_hours?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pt_employees_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "pt_branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pt_employees_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "pt_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pt_employees_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "pt_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pt_employees_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "pt_schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pt_holidays: {
+        Row: {
+          branch_id: string | null
+          company_id: string
+          created_at: string
+          date: string
+          id: string
+          name: string
+        }
+        Insert: {
+          branch_id?: string | null
+          company_id: string
+          created_at?: string
+          date: string
+          id?: string
+          name: string
+        }
+        Update: {
+          branch_id?: string | null
+          company_id?: string
+          created_at?: string
+          date?: string
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pt_holidays_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "pt_branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pt_holidays_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "pt_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pt_punches: {
+        Row: {
+          accuracy_m: number | null
+          anomaly_flags: string[] | null
+          branch_id: string | null
+          company_id: string
+          created_at: string
+          device_info: Json | null
+          distance_to_branch_m: number | null
+          employee_id: string
+          id: string
+          inside_geofence: boolean | null
+          ip: string | null
+          kind: Database["public"]["Enums"]["pt_punch_kind"]
+          lat: number | null
+          lng: number | null
+          notes: string | null
+          selfie_path: string | null
+          source: Database["public"]["Enums"]["pt_punch_source"]
+          status: Database["public"]["Enums"]["pt_punch_status"]
+          ts: string
+        }
+        Insert: {
+          accuracy_m?: number | null
+          anomaly_flags?: string[] | null
+          branch_id?: string | null
+          company_id: string
+          created_at?: string
+          device_info?: Json | null
+          distance_to_branch_m?: number | null
+          employee_id: string
+          id?: string
+          inside_geofence?: boolean | null
+          ip?: string | null
+          kind: Database["public"]["Enums"]["pt_punch_kind"]
+          lat?: number | null
+          lng?: number | null
+          notes?: string | null
+          selfie_path?: string | null
+          source?: Database["public"]["Enums"]["pt_punch_source"]
+          status?: Database["public"]["Enums"]["pt_punch_status"]
+          ts?: string
+        }
+        Update: {
+          accuracy_m?: number | null
+          anomaly_flags?: string[] | null
+          branch_id?: string | null
+          company_id?: string
+          created_at?: string
+          device_info?: Json | null
+          distance_to_branch_m?: number | null
+          employee_id?: string
+          id?: string
+          inside_geofence?: boolean | null
+          ip?: string | null
+          kind?: Database["public"]["Enums"]["pt_punch_kind"]
+          lat?: number | null
+          lng?: number | null
+          notes?: string | null
+          selfie_path?: string | null
+          source?: Database["public"]["Enums"]["pt_punch_source"]
+          status?: Database["public"]["Enums"]["pt_punch_status"]
+          ts?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pt_punches_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "pt_branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pt_punches_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "pt_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pt_punches_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "pt_employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pt_schedules: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          interjornada_min: number
+          intrajornada_min: number
+          kind: Database["public"]["Enums"]["pt_schedule_kind"]
+          name: string
+          night_shift_end: string | null
+          night_shift_start: string | null
+          tolerance_min: number
+          updated_at: string
+          weekly_pattern: Json
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          interjornada_min?: number
+          intrajornada_min?: number
+          kind?: Database["public"]["Enums"]["pt_schedule_kind"]
+          name: string
+          night_shift_end?: string | null
+          night_shift_start?: string | null
+          tolerance_min?: number
+          updated_at?: string
+          weekly_pattern?: Json
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          interjornada_min?: number
+          intrajornada_min?: number
+          kind?: Database["public"]["Enums"]["pt_schedule_kind"]
+          name?: string
+          night_shift_end?: string | null
+          night_shift_start?: string | null
+          tolerance_min?: number
+          updated_at?: string
+          weekly_pattern?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pt_schedules_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "pt_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rcf_items: {
         Row: {
           created_at: string
@@ -1025,6 +1517,19 @@ export type Database = {
           user_id: string
         }[]
       }
+      pt_companies_for_user: { Args: { _user: string }; Returns: string[] }
+      pt_has_role: {
+        Args: {
+          _company: string
+          _roles: Database["public"]["Enums"]["pt_role"][]
+          _user: string
+        }
+        Returns: boolean
+      }
+      pt_is_member: {
+        Args: { _company: string; _user: string }
+        Returns: boolean
+      }
     }
     Enums: {
       action_category: "pratica" | "troca" | "formal"
@@ -1049,6 +1554,22 @@ export type Database = {
         | "concluido"
         | "cancelado"
       performance_level: "abaixo" | "dentro" | "acima"
+      pt_punch_kind: "entrada" | "saida" | "inicio_intervalo" | "fim_intervalo"
+      pt_punch_source: "web" | "pwa" | "ajuste"
+      pt_punch_status: "ok" | "pendente" | "ajustada" | "rejeitada"
+      pt_role:
+        | "admin"
+        | "rh"
+        | "gestor"
+        | "supervisor"
+        | "funcionario"
+        | "auditor"
+      pt_schedule_kind:
+        | "fixa"
+        | "cinco_x_dois"
+        | "seis_x_um"
+        | "doze_x_trinta_seis"
+        | "flex"
       rcf_item_kind:
         | "responsabilidade"
         | "competencia_tecnica"
@@ -1205,6 +1726,24 @@ export const Constants = {
         "cancelado",
       ],
       performance_level: ["abaixo", "dentro", "acima"],
+      pt_punch_kind: ["entrada", "saida", "inicio_intervalo", "fim_intervalo"],
+      pt_punch_source: ["web", "pwa", "ajuste"],
+      pt_punch_status: ["ok", "pendente", "ajustada", "rejeitada"],
+      pt_role: [
+        "admin",
+        "rh",
+        "gestor",
+        "supervisor",
+        "funcionario",
+        "auditor",
+      ],
+      pt_schedule_kind: [
+        "fixa",
+        "cinco_x_dois",
+        "seis_x_um",
+        "doze_x_trinta_seis",
+        "flex",
+      ],
       rcf_item_kind: [
         "responsabilidade",
         "competencia_tecnica",
