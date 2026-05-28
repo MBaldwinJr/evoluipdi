@@ -3,7 +3,7 @@ import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter, useSidebar,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, User, MessageSquare, Target, Users, Briefcase, ListChecks, FileText, Settings, LogOut, Sparkles, ClipboardCheck, UserPlus, BookOpen } from "lucide-react";
+import { LayoutDashboard, User, MessageSquare, Target, Users, Briefcase, ListChecks, FileText, Settings, LogOut, Sparkles, ClipboardCheck, UserPlus, BookOpen, Clock } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 
@@ -14,6 +14,9 @@ const meItems = [
 ];
 const teamItems = [
   { title: "Minha equipe", url: "/team", icon: Users },
+];
+const pontoItems = [
+  { title: "Ponto", url: "/pt", icon: Clock },
 ];
 const rhItems = [
   { title: "Colaboradores", url: "/admin/people", icon: User },
@@ -55,6 +58,21 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {meItems.map((it) => (
+                <SidebarMenuItem key={it.url}>
+                  <SidebarMenuButton asChild isActive={isActive(it.url)}>
+                    <Link to={it.url}><it.icon /><span>{it.title}</span></Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Jornada</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {pontoItems.map((it) => (
                 <SidebarMenuItem key={it.url}>
                   <SidebarMenuButton asChild isActive={isActive(it.url)}>
                     <Link to={it.url}><it.icon /><span>{it.title}</span></Link>
