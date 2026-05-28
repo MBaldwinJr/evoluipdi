@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { ptGetMirror } from "@/lib/pt.functions";
 import { usePtCompany } from "@/lib/pt-context";
-import { fmtMin } from "@/lib/pt-engine.server";
+import { fmtMin } from "@/lib/pt-format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";

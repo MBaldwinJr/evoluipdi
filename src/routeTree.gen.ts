@@ -13,9 +13,13 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CandidatoTokenRouteImport } from './routes/candidato.$token'
+import { Route as AppPtRouteImport } from './routes/_app.pt'
 import { Route as AppTeamIndexRouteImport } from './routes/_app.team.index'
+import { Route as AppPtIndexRouteImport } from './routes/_app.pt.index'
 import { Route as AppMeIndexRouteImport } from './routes/_app.me.index'
 import { Route as AppTeamIdRouteImport } from './routes/_app.team.$id'
+import { Route as AppPtFiliaisRouteImport } from './routes/_app.pt.filiais'
+import { Route as AppPtEspelhoRouteImport } from './routes/_app.pt.espelho'
 import { Route as AppMePdiRouteImport } from './routes/_app.me.pdi'
 import { Route as AppMeFeedbacksRouteImport } from './routes/_app.me.feedbacks'
 import { Route as AppAdminSettingsRouteImport } from './routes/_app.admin.settings'
@@ -47,10 +51,20 @@ const CandidatoTokenRoute = CandidatoTokenRouteImport.update({
   path: '/candidato/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppPtRoute = AppPtRouteImport.update({
+  id: '/pt',
+  path: '/pt',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppTeamIndexRoute = AppTeamIndexRouteImport.update({
   id: '/team/',
   path: '/team/',
   getParentRoute: () => AppRoute,
+} as any)
+const AppPtIndexRoute = AppPtIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppPtRoute,
 } as any)
 const AppMeIndexRoute = AppMeIndexRouteImport.update({
   id: '/me/',
@@ -61,6 +75,16 @@ const AppTeamIdRoute = AppTeamIdRouteImport.update({
   id: '/team/$id',
   path: '/team/$id',
   getParentRoute: () => AppRoute,
+} as any)
+const AppPtFiliaisRoute = AppPtFiliaisRouteImport.update({
+  id: '/filiais',
+  path: '/filiais',
+  getParentRoute: () => AppPtRoute,
+} as any)
+const AppPtEspelhoRoute = AppPtEspelhoRouteImport.update({
+  id: '/espelho',
+  path: '/espelho',
+  getParentRoute: () => AppPtRoute,
 } as any)
 const AppMePdiRoute = AppMePdiRouteImport.update({
   id: '/me/pdi',
@@ -122,6 +146,7 @@ const ApiPublicCandidateTokenRoute = ApiPublicCandidateTokenRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/pt': typeof AppPtRouteWithChildren
   '/candidato/$token': typeof CandidatoTokenRoute
   '/admin/candidates': typeof AppAdminCandidatesRoute
   '/admin/interviews': typeof AppAdminInterviewsRoute
@@ -133,8 +158,11 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AppAdminSettingsRoute
   '/me/feedbacks': typeof AppMeFeedbacksRoute
   '/me/pdi': typeof AppMePdiRoute
+  '/pt/espelho': typeof AppPtEspelhoRoute
+  '/pt/filiais': typeof AppPtFiliaisRoute
   '/team/$id': typeof AppTeamIdRoute
   '/me/': typeof AppMeIndexRoute
+  '/pt/': typeof AppPtIndexRoute
   '/team/': typeof AppTeamIndexRoute
   '/api/public/candidate/$token': typeof ApiPublicCandidateTokenRoute
 }
@@ -152,8 +180,11 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AppAdminSettingsRoute
   '/me/feedbacks': typeof AppMeFeedbacksRoute
   '/me/pdi': typeof AppMePdiRoute
+  '/pt/espelho': typeof AppPtEspelhoRoute
+  '/pt/filiais': typeof AppPtFiliaisRoute
   '/team/$id': typeof AppTeamIdRoute
   '/me': typeof AppMeIndexRoute
+  '/pt': typeof AppPtIndexRoute
   '/team': typeof AppTeamIndexRoute
   '/api/public/candidate/$token': typeof ApiPublicCandidateTokenRoute
 }
@@ -162,6 +193,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
+  '/_app/pt': typeof AppPtRouteWithChildren
   '/candidato/$token': typeof CandidatoTokenRoute
   '/_app/admin/candidates': typeof AppAdminCandidatesRoute
   '/_app/admin/interviews': typeof AppAdminInterviewsRoute
@@ -173,8 +205,11 @@ export interface FileRoutesById {
   '/_app/admin/settings': typeof AppAdminSettingsRoute
   '/_app/me/feedbacks': typeof AppMeFeedbacksRoute
   '/_app/me/pdi': typeof AppMePdiRoute
+  '/_app/pt/espelho': typeof AppPtEspelhoRoute
+  '/_app/pt/filiais': typeof AppPtFiliaisRoute
   '/_app/team/$id': typeof AppTeamIdRoute
   '/_app/me/': typeof AppMeIndexRoute
+  '/_app/pt/': typeof AppPtIndexRoute
   '/_app/team/': typeof AppTeamIndexRoute
   '/api/public/candidate/$token': typeof ApiPublicCandidateTokenRoute
 }
@@ -183,6 +218,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/pt'
     | '/candidato/$token'
     | '/admin/candidates'
     | '/admin/interviews'
@@ -194,8 +230,11 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/me/feedbacks'
     | '/me/pdi'
+    | '/pt/espelho'
+    | '/pt/filiais'
     | '/team/$id'
     | '/me/'
+    | '/pt/'
     | '/team/'
     | '/api/public/candidate/$token'
   fileRoutesByTo: FileRoutesByTo
@@ -213,8 +252,11 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/me/feedbacks'
     | '/me/pdi'
+    | '/pt/espelho'
+    | '/pt/filiais'
     | '/team/$id'
     | '/me'
+    | '/pt'
     | '/team'
     | '/api/public/candidate/$token'
   id:
@@ -222,6 +264,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_app'
     | '/login'
+    | '/_app/pt'
     | '/candidato/$token'
     | '/_app/admin/candidates'
     | '/_app/admin/interviews'
@@ -233,8 +276,11 @@ export interface FileRouteTypes {
     | '/_app/admin/settings'
     | '/_app/me/feedbacks'
     | '/_app/me/pdi'
+    | '/_app/pt/espelho'
+    | '/_app/pt/filiais'
     | '/_app/team/$id'
     | '/_app/me/'
+    | '/_app/pt/'
     | '/_app/team/'
     | '/api/public/candidate/$token'
   fileRoutesById: FileRoutesById
@@ -277,12 +323,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CandidatoTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/pt': {
+      id: '/_app/pt'
+      path: '/pt'
+      fullPath: '/pt'
+      preLoaderRoute: typeof AppPtRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/team/': {
       id: '/_app/team/'
       path: '/team'
       fullPath: '/team/'
       preLoaderRoute: typeof AppTeamIndexRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/_app/pt/': {
+      id: '/_app/pt/'
+      path: '/'
+      fullPath: '/pt/'
+      preLoaderRoute: typeof AppPtIndexRouteImport
+      parentRoute: typeof AppPtRoute
     }
     '/_app/me/': {
       id: '/_app/me/'
@@ -297,6 +357,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/team/$id'
       preLoaderRoute: typeof AppTeamIdRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/_app/pt/filiais': {
+      id: '/_app/pt/filiais'
+      path: '/filiais'
+      fullPath: '/pt/filiais'
+      preLoaderRoute: typeof AppPtFiliaisRouteImport
+      parentRoute: typeof AppPtRoute
+    }
+    '/_app/pt/espelho': {
+      id: '/_app/pt/espelho'
+      path: '/espelho'
+      fullPath: '/pt/espelho'
+      preLoaderRoute: typeof AppPtEspelhoRouteImport
+      parentRoute: typeof AppPtRoute
     }
     '/_app/me/pdi': {
       id: '/_app/me/pdi'
@@ -378,7 +452,22 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AppPtRouteChildren {
+  AppPtEspelhoRoute: typeof AppPtEspelhoRoute
+  AppPtFiliaisRoute: typeof AppPtFiliaisRoute
+  AppPtIndexRoute: typeof AppPtIndexRoute
+}
+
+const AppPtRouteChildren: AppPtRouteChildren = {
+  AppPtEspelhoRoute: AppPtEspelhoRoute,
+  AppPtFiliaisRoute: AppPtFiliaisRoute,
+  AppPtIndexRoute: AppPtIndexRoute,
+}
+
+const AppPtRouteWithChildren = AppPtRoute._addFileChildren(AppPtRouteChildren)
+
 interface AppRouteChildren {
+  AppPtRoute: typeof AppPtRouteWithChildren
   AppAdminCandidatesRoute: typeof AppAdminCandidatesRoute
   AppAdminInterviewsRoute: typeof AppAdminInterviewsRoute
   AppAdminInterviewsReviewRoute: typeof AppAdminInterviewsReviewRoute
@@ -395,6 +484,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppPtRoute: AppPtRouteWithChildren,
   AppAdminCandidatesRoute: AppAdminCandidatesRoute,
   AppAdminInterviewsRoute: AppAdminInterviewsRoute,
   AppAdminInterviewsReviewRoute: AppAdminInterviewsReviewRoute,
@@ -422,13 +512,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
