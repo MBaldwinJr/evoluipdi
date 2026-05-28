@@ -18,8 +18,11 @@ import { Route as AppTeamIndexRouteImport } from './routes/_app.team.index'
 import { Route as AppPtIndexRouteImport } from './routes/_app.pt.index'
 import { Route as AppMeIndexRouteImport } from './routes/_app.me.index'
 import { Route as AppTeamIdRouteImport } from './routes/_app.team.$id'
+import { Route as AppPtFuncionariosRouteImport } from './routes/_app.pt.funcionarios'
 import { Route as AppPtFiliaisRouteImport } from './routes/_app.pt.filiais'
 import { Route as AppPtEspelhoRouteImport } from './routes/_app.pt.espelho'
+import { Route as AppPtEscalasRouteImport } from './routes/_app.pt.escalas'
+import { Route as AppPtDashboardRouteImport } from './routes/_app.pt.dashboard'
 import { Route as AppMePdiRouteImport } from './routes/_app.me.pdi'
 import { Route as AppMeFeedbacksRouteImport } from './routes/_app.me.feedbacks'
 import { Route as AppAdminSettingsRouteImport } from './routes/_app.admin.settings'
@@ -76,6 +79,11 @@ const AppTeamIdRoute = AppTeamIdRouteImport.update({
   path: '/team/$id',
   getParentRoute: () => AppRoute,
 } as any)
+const AppPtFuncionariosRoute = AppPtFuncionariosRouteImport.update({
+  id: '/funcionarios',
+  path: '/funcionarios',
+  getParentRoute: () => AppPtRoute,
+} as any)
 const AppPtFiliaisRoute = AppPtFiliaisRouteImport.update({
   id: '/filiais',
   path: '/filiais',
@@ -84,6 +92,16 @@ const AppPtFiliaisRoute = AppPtFiliaisRouteImport.update({
 const AppPtEspelhoRoute = AppPtEspelhoRouteImport.update({
   id: '/espelho',
   path: '/espelho',
+  getParentRoute: () => AppPtRoute,
+} as any)
+const AppPtEscalasRoute = AppPtEscalasRouteImport.update({
+  id: '/escalas',
+  path: '/escalas',
+  getParentRoute: () => AppPtRoute,
+} as any)
+const AppPtDashboardRoute = AppPtDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => AppPtRoute,
 } as any)
 const AppMePdiRoute = AppMePdiRouteImport.update({
@@ -158,8 +176,11 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AppAdminSettingsRoute
   '/me/feedbacks': typeof AppMeFeedbacksRoute
   '/me/pdi': typeof AppMePdiRoute
+  '/pt/dashboard': typeof AppPtDashboardRoute
+  '/pt/escalas': typeof AppPtEscalasRoute
   '/pt/espelho': typeof AppPtEspelhoRoute
   '/pt/filiais': typeof AppPtFiliaisRoute
+  '/pt/funcionarios': typeof AppPtFuncionariosRoute
   '/team/$id': typeof AppTeamIdRoute
   '/me/': typeof AppMeIndexRoute
   '/pt/': typeof AppPtIndexRoute
@@ -180,8 +201,11 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AppAdminSettingsRoute
   '/me/feedbacks': typeof AppMeFeedbacksRoute
   '/me/pdi': typeof AppMePdiRoute
+  '/pt/dashboard': typeof AppPtDashboardRoute
+  '/pt/escalas': typeof AppPtEscalasRoute
   '/pt/espelho': typeof AppPtEspelhoRoute
   '/pt/filiais': typeof AppPtFiliaisRoute
+  '/pt/funcionarios': typeof AppPtFuncionariosRoute
   '/team/$id': typeof AppTeamIdRoute
   '/me': typeof AppMeIndexRoute
   '/pt': typeof AppPtIndexRoute
@@ -205,8 +229,11 @@ export interface FileRoutesById {
   '/_app/admin/settings': typeof AppAdminSettingsRoute
   '/_app/me/feedbacks': typeof AppMeFeedbacksRoute
   '/_app/me/pdi': typeof AppMePdiRoute
+  '/_app/pt/dashboard': typeof AppPtDashboardRoute
+  '/_app/pt/escalas': typeof AppPtEscalasRoute
   '/_app/pt/espelho': typeof AppPtEspelhoRoute
   '/_app/pt/filiais': typeof AppPtFiliaisRoute
+  '/_app/pt/funcionarios': typeof AppPtFuncionariosRoute
   '/_app/team/$id': typeof AppTeamIdRoute
   '/_app/me/': typeof AppMeIndexRoute
   '/_app/pt/': typeof AppPtIndexRoute
@@ -230,8 +257,11 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/me/feedbacks'
     | '/me/pdi'
+    | '/pt/dashboard'
+    | '/pt/escalas'
     | '/pt/espelho'
     | '/pt/filiais'
+    | '/pt/funcionarios'
     | '/team/$id'
     | '/me/'
     | '/pt/'
@@ -252,8 +282,11 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/me/feedbacks'
     | '/me/pdi'
+    | '/pt/dashboard'
+    | '/pt/escalas'
     | '/pt/espelho'
     | '/pt/filiais'
+    | '/pt/funcionarios'
     | '/team/$id'
     | '/me'
     | '/pt'
@@ -276,8 +309,11 @@ export interface FileRouteTypes {
     | '/_app/admin/settings'
     | '/_app/me/feedbacks'
     | '/_app/me/pdi'
+    | '/_app/pt/dashboard'
+    | '/_app/pt/escalas'
     | '/_app/pt/espelho'
     | '/_app/pt/filiais'
+    | '/_app/pt/funcionarios'
     | '/_app/team/$id'
     | '/_app/me/'
     | '/_app/pt/'
@@ -358,6 +394,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTeamIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/pt/funcionarios': {
+      id: '/_app/pt/funcionarios'
+      path: '/funcionarios'
+      fullPath: '/pt/funcionarios'
+      preLoaderRoute: typeof AppPtFuncionariosRouteImport
+      parentRoute: typeof AppPtRoute
+    }
     '/_app/pt/filiais': {
       id: '/_app/pt/filiais'
       path: '/filiais'
@@ -370,6 +413,20 @@ declare module '@tanstack/react-router' {
       path: '/espelho'
       fullPath: '/pt/espelho'
       preLoaderRoute: typeof AppPtEspelhoRouteImport
+      parentRoute: typeof AppPtRoute
+    }
+    '/_app/pt/escalas': {
+      id: '/_app/pt/escalas'
+      path: '/escalas'
+      fullPath: '/pt/escalas'
+      preLoaderRoute: typeof AppPtEscalasRouteImport
+      parentRoute: typeof AppPtRoute
+    }
+    '/_app/pt/dashboard': {
+      id: '/_app/pt/dashboard'
+      path: '/dashboard'
+      fullPath: '/pt/dashboard'
+      preLoaderRoute: typeof AppPtDashboardRouteImport
       parentRoute: typeof AppPtRoute
     }
     '/_app/me/pdi': {
@@ -453,14 +510,20 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppPtRouteChildren {
+  AppPtDashboardRoute: typeof AppPtDashboardRoute
+  AppPtEscalasRoute: typeof AppPtEscalasRoute
   AppPtEspelhoRoute: typeof AppPtEspelhoRoute
   AppPtFiliaisRoute: typeof AppPtFiliaisRoute
+  AppPtFuncionariosRoute: typeof AppPtFuncionariosRoute
   AppPtIndexRoute: typeof AppPtIndexRoute
 }
 
 const AppPtRouteChildren: AppPtRouteChildren = {
+  AppPtDashboardRoute: AppPtDashboardRoute,
+  AppPtEscalasRoute: AppPtEscalasRoute,
   AppPtEspelhoRoute: AppPtEspelhoRoute,
   AppPtFiliaisRoute: AppPtFiliaisRoute,
+  AppPtFuncionariosRoute: AppPtFuncionariosRoute,
   AppPtIndexRoute: AppPtIndexRoute,
 }
 
