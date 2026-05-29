@@ -675,6 +675,136 @@ export type Database = {
           },
         ]
       }
+      org_members: {
+        Row: {
+          created_at: string
+          id: string
+          org_id: string
+          role: Database["public"]["Enums"]["org_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          org_id: string
+          role: Database["public"]["Enums"]["org_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          org_id?: string
+          role?: Database["public"]["Enums"]["org_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_members_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_plans: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          limits: Json
+          modules: string[]
+          org_id: string
+          plan_code: Database["public"]["Enums"]["plan_code"]
+          valid_from: string
+          valid_to: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          limits?: Json
+          modules?: string[]
+          org_id: string
+          plan_code?: Database["public"]["Enums"]["plan_code"]
+          valid_from?: string
+          valid_to?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          limits?: Json
+          modules?: string[]
+          org_id?: string
+          plan_code?: Database["public"]["Enums"]["plan_code"]
+          valid_from?: string
+          valid_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_plans_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orgs: {
+        Row: {
+          block_outside_geofence: boolean
+          cnae_code: string | null
+          cnae_description: string | null
+          cnpj: string | null
+          created_at: string
+          created_by: string
+          id: string
+          legal_name: string
+          receita_payload: Json | null
+          receita_validated_at: string | null
+          segment: string | null
+          status: Database["public"]["Enums"]["org_status"]
+          timezone: string
+          trade_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          block_outside_geofence?: boolean
+          cnae_code?: string | null
+          cnae_description?: string | null
+          cnpj?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          legal_name: string
+          receita_payload?: Json | null
+          receita_validated_at?: string | null
+          segment?: string | null
+          status?: Database["public"]["Enums"]["org_status"]
+          timezone?: string
+          trade_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          block_outside_geofence?: boolean
+          cnae_code?: string | null
+          cnae_description?: string | null
+          cnpj?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          legal_name?: string
+          receita_payload?: Json | null
+          receita_validated_at?: string | null
+          segment?: string | null
+          status?: Database["public"]["Enums"]["org_status"]
+          timezone?: string
+          trade_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pdi_actions: {
         Row: {
           category: Database["public"]["Enums"]["action_category"]
@@ -1483,6 +1613,14 @@ export type Database = {
           user_id: string
         }[]
       }
+      has_org_role: {
+        Args: {
+          _org: string
+          _roles: Database["public"]["Enums"]["org_role"][]
+          _user: string
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1498,6 +1636,7 @@ export type Database = {
         Args: { _employee_id: string; _user_id: string }
         Returns: boolean
       }
+      is_org_member: { Args: { _org: string; _user: string }; Returns: boolean }
       is_rh: { Args: { _user_id: string }; Returns: boolean }
       is_self_emp: {
         Args: { _employee_id: string; _user_id: string }
@@ -1517,6 +1656,11 @@ export type Database = {
           user_id: string
         }[]
       }
+      org_has_module: {
+        Args: { _module: string; _org: string }
+        Returns: boolean
+      }
+      orgs_for_user: { Args: { _user: string }; Returns: string[] }
       pt_companies_for_user: { Args: { _user: string }; Returns: string[] }
       pt_has_role: {
         Args: {
@@ -1546,6 +1690,14 @@ export type Database = {
         | "desligamento"
         | "carreira"
       objective_horizon: "curto" | "medio" | "longo"
+      org_role:
+        | "admin"
+        | "rh"
+        | "gestor"
+        | "supervisor"
+        | "colaborador"
+        | "auditor"
+      org_status: "trial" | "active" | "suspended" | "cancelled"
       pdi_status:
         | "rascunho"
         | "aguardando_validacao"
@@ -1554,6 +1706,7 @@ export type Database = {
         | "concluido"
         | "cancelado"
       performance_level: "abaixo" | "dentro" | "acima"
+      plan_code: "free" | "starter" | "pro" | "enterprise" | "custom"
       pt_punch_kind: "entrada" | "saida" | "inicio_intervalo" | "fim_intervalo"
       pt_punch_source: "web" | "pwa" | "ajuste"
       pt_punch_status: "ok" | "pendente" | "ajustada" | "rejeitada"
@@ -1717,6 +1870,15 @@ export const Constants = {
         "carreira",
       ],
       objective_horizon: ["curto", "medio", "longo"],
+      org_role: [
+        "admin",
+        "rh",
+        "gestor",
+        "supervisor",
+        "colaborador",
+        "auditor",
+      ],
+      org_status: ["trial", "active", "suspended", "cancelled"],
       pdi_status: [
         "rascunho",
         "aguardando_validacao",
@@ -1726,6 +1888,7 @@ export const Constants = {
         "cancelado",
       ],
       performance_level: ["abaixo", "dentro", "acima"],
+      plan_code: ["free", "starter", "pro", "enterprise", "custom"],
       pt_punch_kind: ["entrada", "saida", "inicio_intervalo", "fim_intervalo"],
       pt_punch_source: ["web", "pwa", "ajuste"],
       pt_punch_status: ["ok", "pendente", "ajustada", "rejeitada"],
