@@ -58,9 +58,9 @@ export const orgGetEntitlements = createServerFn({ method: "POST" })
       .limit(1);
     if (error) throw new Error(error.message);
     const plan = plans?.[0];
-    if (!plan) return { plan_code: "free", modules: PLAN_MODULES.free, limits: {} as Record<string, unknown> };
+    if (!plan) return { plan_code: "free" as string, modules: PLAN_MODULES.free, limits: {} as Record<string, unknown> };
     return {
-      plan_code: plan.plan_code,
+      plan_code: plan.plan_code as string,
       modules: (plan.modules ?? []) as string[],
       limits: (plan.limits ?? {}) as Record<string, unknown>,
     };
