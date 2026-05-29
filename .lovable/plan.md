@@ -1,120 +1,117 @@
-# Módulo Ponto — MVP enterprise dentro do Evolui
 
-Novo módulo "Ponto" acessível por uma nova seção no menu lateral, com tenancy próprio (multiempresa/multifilial), motor de jornada por escala, registro web/PWA com GPS + selfie + geofence, banco de horas, aprovações, dashboards e IA (detecção de anomalias + assistente).
+# Ecossistema multiempresa unificado + planos por módulo
 
-> Escopo: **só o módulo de Ponto é multiempresa**. As tabelas existentes do Evolui (employees, pdis, evaluations…) permanecem monoempresa nesta fase. Uma fase 2 unifica.
+Hoje o sistema tem dois mundos paralelos: o Evolui original (RH/PDI/Entrevistas/Candidatos) é **monoempresa** (tabelas `employees`, `roles_catalog`, `departments`, `company_settings` sem `company_id`, RLS por `auth.uid()` e role global), e o módulo Ponto é **multiempresa** (tabelas `pt_*` com `company_id` + `pt_company_members`). Isso quebra a promessa de SaaS: cada cliente vê todos os colaboradores de todos os clientes no RH.
 
-## 1. Modelo de dados (nova migration)
+Este plano unifica os dois em um único tenant (`org`), com cadastro de empresa validado na Receita, entitlements por plano e migração dos dados existentes.
 
-Novas tabelas (todas com `company_id`, RLS por empresa + papel):
+## 1. Modelo de tenancy único
 
-- `pt_companies` — empresas/tenants do módulo. (RH global cria; vincula a `auth.users` via `pt_company_members`).
-- `pt_company_members(user_id, company_id, role)` — papéis: `admin`, `rh`, `gestor`, `supervisor`, `funcionario`, `auditor`. Único por (user, company).
-- `pt_branches(company_id, name, address, lat, lng, geofence_radius_m)` — filiais com cerca virtual.
-- `pt_departments(company_id, branch_id, name)`.
-- `pt_employees(company_id, branch_id, department_id, user_id?, full_name, cpf, registration, role_title, hire_date, contract_type, weekly_hours, schedule_id, manager_id, active)` — pode existir sem `auth.users` (RH convida depois).
-- `pt_schedules(company_id, name, kind: fixa|5x2|6x1|12x36|flex, weekly_pattern jsonb, tolerance_min, night_shift_start, night_shift_end, interjornada_min, intrajornada_min)` — regras configuráveis por escala.
-- `pt_schedule_assignments(employee_id, schedule_id, valid_from, valid_to)` — histórico de jornada.
-- `pt_holidays(company_id|branch_id, date, name)`.
-- `pt_punches(company_id, employee_id, ts, kind: entrada|saida|inicio_intervalo|fim_intervalo, source: web|pwa|adjustment, lat, lng, accuracy_m, inside_geofence, branch_id, selfie_path, device_info jsonb, ip, status: ok|pendente|ajustada|rejeitada, anomaly_flags text[])`.
-- `pt_punch_adjustments(punch_id?, employee_id, requested_ts, requested_kind, reason, attachment_path, status, approver_id, decided_at, decision_notes)`.
-- `pt_justifications(employee_id, date_from, date_to, type: atestado|folga|ferias|outro, reason, attachment_path, status, approver_id)`.
-- `pt_day_summary(employee_id, work_date, worked_min, expected_min, late_min, extra_min_50, extra_min_100, night_min, balance_min, computed_at)` — fechamento diário (gerado pelo motor).
-- `pt_bank_hours(employee_id, period_start, period_end, opening_min, accrued_min, used_min, expires_at, balance_min)`.
-- `pt_approvals(target_type: ajuste|justificativa|hora_extra, target_id, level, approver_role, approver_id, status, decided_at)`.
-- `pt_audit_log(company_id, actor_id, action, target_table, target_id, before jsonb, after jsonb, ip, ua, ts)` — append-only, sem UPDATE/DELETE.
-- `pt_anomalies(punch_id, kind, severity, details jsonb, resolved)` — saída da IA.
-- `pt_assistant_threads(user_id, company_id, title)` + `pt_assistant_messages(thread_id, role, parts jsonb)`.
+Nova tabela `orgs` substitui logicamente `company_settings` e `pt_companies` como **fonte única de verdade da empresa**:
 
-Bucket Storage: `pt-selfies` (privado) e `pt-attachments` (privado), policies escopadas a `{company_id}/{employee_id}/...`.
+```text
+orgs
+  id, legal_name, trade_name, cnpj (unique), cnae_code, cnae_description,
+  segment, status (active|trial|suspended), receita_validated_at,
+  receita_payload jsonb, timezone, created_by, created_at, updated_at
 
-Funções SECURITY DEFINER:
-- `pt_has_role(_user, _company, _role app_role_pt) → bool`
-- `pt_is_member(_user, _company) → bool`
-- `pt_can_manage_employee(_user, _employee_id)` (RH da empresa ou gestor na linha hierárquica).
+org_members (substitui pt_company_members + user_roles global)
+  id, org_id, user_id, role: admin|rh|gestor|supervisor|colaborador|auditor,
+  unique(org_id, user_id, role)
 
-RLS padrão de todas as tabelas `pt_*`: leitura exige `pt_is_member`; escrita exige role apropriado; `pt_audit_log` só INSERT por trigger.
+org_plans
+  id, org_id, plan_code (free|starter|pro|enterprise|custom),
+  modules text[] (ex: ['rh','pdi','entrevistas','candidatos','ponto','relatorios']),
+  limits jsonb (ex: {max_employees:50, max_branches:3}),
+  valid_from, valid_to, active
 
-## 2. Motor de jornada (`src/lib/pt-engine.server.ts`)
+org_module_entitlements (opcional, override fino por módulo)
+  org_id, module_key, enabled, limits jsonb
+```
 
-Funções puras testáveis:
-- `computeDay({ punches, schedule, holidays, date }) → DaySummary` — calcula trabalhado, esperado, atrasos, h.extras 50%/100%, adicional noturno, saldo banco horas, conflitos (interjornada/intrajornada).
-- Suporte a turnos cruzando meia-noite, 12x36, escalas semanais via `weekly_pattern`.
-- `recomputeEmployee(employeeId, range)` — server fn que regrava `pt_day_summary` e atualiza `pt_bank_hours`.
-- Gatilho: após inserir/alterar punch ou justificativa, enfileira recomputação do dia.
+Funções SECURITY DEFINER novas:
+- `current_org_id()` — lê de `app.current_org` (setado via `set_config` por server fn na entrada da request) ou cai no único `org_member` do user.
+- `has_org_role(_user, _org, _role[])`.
+- `is_org_member(_user, _org)`.
+- `org_has_module(_org, _module)` — usado em RLS para travar tabelas conforme plano.
 
-## 3. Server functions (`src/lib/pt-*.functions.ts`)
+## 2. Migração das tabelas existentes para multi-tenancy
 
-Todas com `requireSupabaseAuth` + verificação de membership/role:
-- `ptCreateCompany`, `ptInviteMember`, `ptSetRole`.
-- `ptListBranches/Departments/Employees`, `ptUpsertEmployee`, `ptAssignSchedule`.
-- `ptCreateSchedule/Holiday`.
-- `ptRegisterPunch({ kind, lat, lng, accuracy, selfieBase64 })` — valida geofence, salva selfie no Storage, grava punch, retorna confirmação.
-- `ptRequestAdjustment`, `ptDecideApproval`.
-- `ptSubmitJustification`.
-- `ptGetMyMirror(month)` — espelho de ponto do colaborador.
-- `ptGetTeamSnapshot(branchId)` — painel operacional.
-- `ptGetDashboardKpis(filters)`.
-- `ptRunAnomalyScan(date)` — chama Lovable AI Gateway (`google/gemini-3-flash-preview`) com lote de punches do dia, retorna `pt_anomalies` (selfie igual sequência, punch fora de cerca, sequência impossível, excesso de extras).
-- `ptAssistantTools` — tools AI SDK: `query_attendance`, `list_late_today`, `summarize_extras(period, scope)`, `who_is_working_now`. Servidas via rota `/api/pt/chat` com `streamText` + `useChat`.
+Todas as tabelas de domínio recebem `org_id uuid not null` (com default temporário durante backfill) e novas policies:
 
-## 4. Front-end
+- **Backfill**: cria 1 `org` "Default" usando dados de `company_settings` + 1 `org_members` admin para cada `user_roles.role='rh'`. Todas as linhas existentes de `employees`, `departments`, `roles_catalog`, `rcf_items`, `role_processes`, `interview_templates`, `interviews`, `interview_answers`, `evaluations`, `evaluation_scores`, `feedbacks`, `gaps`, `pdis`, `pdi_development_points`, `pdi_actions`, `checkins`, `learning_logs`, `candidate_invites` recebem esse `org_id`.
+- **RLS reescrito**: substitui `has_role(auth.uid(),'rh')` por `has_org_role(auth.uid(), org_id, ARRAY['rh','admin'])` e `is_self_emp`/`is_manager_of_emp` por versões scoped no `org_id` da linha.
+- **Ponto**: `pt_companies` vira view de compatibilidade sobre `orgs`; `pt_company_members` é deprecated em favor de `org_members` (mantém durante transição com trigger de sincronização). Tabelas `pt_branches`, `pt_employees`, etc. passam a referenciar `org_id` direto.
+- **Unificação de colaboradores**: `pt_employees` e `employees` ficam unificadas em **uma** tabela `employees` com `org_id`. Campos do ponto (`weekly_hours`, `schedule_id`, `branch_id`, `contract_type`, `cpf`, `registration`) entram em `employees`. Punches/escalas continuam em tabelas próprias mas referenciam `employees.id`.
 
-Novo grupo no `app-sidebar.tsx`: "Ponto" (visível só para membros de pelo menos uma `pt_company`). Switcher de empresa no topo (persistido em `localStorage` + query param).
+> Cuidado: `employees` hoje exige `user_id NOT NULL`. Vamos relaxar para `user_id NULL` (colaborador pode existir antes de ter login), igual ao Ponto faz.
 
-Rotas (`src/routes/_app.pt.*`):
-- `_app.pt.tsx` — layout com guard de membership e seleção de empresa ativa.
-- `_app.pt.index.tsx` — **Bater ponto** (botão grande, captura GPS, abre câmera para selfie, mostra status da cerca, últimas 4 batidas do dia).
-- `_app.pt.espelho.tsx` — espelho mensal do próprio colaborador.
-- `_app.pt.equipe.tsx` — para gestor/supervisor: lista da equipe, status agora, atrasos, mapa.
-- `_app.pt.aprovacoes.tsx` — fila de ajustes/justificativas/extras pendentes.
-- `_app.pt.banco-horas.tsx` — saldos e movimentações.
-- `_app.pt.escalas.tsx` — calendário (drag-and-drop simples) + CRUD de `pt_schedules` e atribuições.
-- `_app.pt.funcionarios.tsx` — CRUD de funcionários do ponto.
-- `_app.pt.filiais.tsx` — filiais + cerca virtual (mapa com raio editável).
-- `_app.pt.dashboard.tsx` — KPIs (atrasos, absenteísmo, extras, online agora, anomalias).
-- `_app.pt.auditoria.tsx` — visualização de `pt_audit_log` filtrável.
-- `_app.pt.config.tsx` — regras da empresa, feriados, papéis.
-- `_app.pt.assistente.tsx` — chat com `useChat` apontando para `/api/pt/chat`.
+## 3. Validação na Receita Federal
 
-Componentes-chave: `PunchButton`, `SelfieCapture` (MediaDevices API), `GeofenceStatus`, `MirrorTable`, `ApprovalCard`, `BranchMap` (Google Maps via connector — se o usuário aceitar conectar).
+Server fn `validateCnpj` em `src/lib/org.functions.ts`:
 
-## 5. PWA leve (sem service worker)
+- Chama BrasilAPI público (`https://brasilapi.com.br/api/cnpj/v1/{cnpj}`) — não exige API key. Fallback secundário ReceitaWS.
+- Normaliza CNPJ (só dígitos), valida DV.
+- Retorna `{ legal_name, trade_name, cnae_code, cnae_description, status, address, opening_date }` e persiste em `orgs.receita_payload` + `receita_validated_at`.
+- Bloqueia criação de org com CNPJ duplicado.
 
-Só manifesto + `display: standalone` + ícones, para permitir "Adicionar à tela inicial" no celular. **Sem** offline real no MVP — bater ponto exige conectividade (caso contrário, complica auditoria). Modo "fila offline" fica como melhoria.
+Já existe `src/lib/cnpj.functions.ts` — reaproveitar/expandir.
 
-## 6. IA
+## 4. Onboarding & seleção de org
 
-- **Detecção de anomalias**: server fn agendável que processa o dia anterior. Sinaliza em `pt_anomalies` e aparece em badge no dashboard.
-- **Assistente**: rota `/api/pt/chat` (AI SDK + Lovable AI Gateway), `streamText` + tools que leem `pt_*` filtrando por `company_id` do usuário e por papel. Histórico em `pt_assistant_threads`.
+- Rota nova `/onboarding`: usuário sem nenhuma `org_members` cai aqui. Form: CNPJ → valida na Receita → confirma dados → cria `orgs` + `org_members(admin)` + plano `trial`.
+- Componente global `<OrgSwitcher>` no topo do `_app` (header), sincroniza `localStorage.active_org` + cookie `org_id` (lido por server fns).
+- Hook `useActiveOrg()` substitui `usePtCompany()`. Toda server fn passa a aceitar/inferir `org_id`.
+- Guard no `_app.tsx`: se sem orgs → redirect para `/onboarding`.
 
-## 7. Segurança / LGPD
+## 5. Entitlements por plano (liberação por módulo)
 
-- RLS em todas as tabelas `pt_*` escopadas por `company_id` + papel.
-- Audit log imutável (trigger bloqueia UPDATE/DELETE).
-- Selfies e anexos privados com URLs assinadas (5 min).
-- Validação Zod em todos inputs.
-- Trigger registra IP/UA via `current_setting` quando disponível; demais campos via server fn.
+- Constante `MODULES = ['rh','pdi','entrevistas','candidatos','ponto','relatorios','jornada-avancada','ia-assistente']`.
+- Sidebar e rotas consultam `useEntitlements()` que chama `getOrgEntitlements()` (server fn). Itens fora do plano ficam ocultos ou com badge "Upgrade".
+- Rota `/admin/billing` (admin only): mostra plano atual, módulos ativos, botão de upgrade (sem gateway de pagamento agora — apenas registro).
+- Server fns checam `org_has_module(org_id, 'ponto')` antes de operar e retornam 403 amigável.
+- RLS adicional em tabelas-chave: `USING (... AND org_has_module(org_id, 'ponto'))` para travar dados também no banco.
 
-## 8. Fora de escopo nesta fase
+## 6. UI por módulo
 
-Mobile nativo (Flutter/RN), biometria/REP/face liveness real, integração folha/ERP, WhatsApp/SMS, gamificação, workflow builder visual, multi-tenancy do resto do Evolui, RabbitMQ/Redis/K8s. Tudo isso vira backlog.
+- **Sidebar**: passa a renderizar grupos dinamicamente conforme entitlements + role. `OrgSwitcher` no header.
+- **RH (`/admin/*`)**: já existe, recebe `org_id` filter via context. Sem grandes mudanças visuais; só a RLS muda.
+- **Ponto (`/pt/*`)**: remove seletor de empresa próprio (passa a usar o global). Remove `PtCompanyProvider`.
+- **Configurações** (`/admin/settings`): aba "Empresa" passa a editar `orgs` (com revalidação Receita), aba "Plano & Módulos", aba "Administradores" (CRUD `org_members` admin/rh).
+- **Candidatos contratados → colaborador**: ao "contratar" cria `employees` com `org_id` ativo (já existe fluxo, só passa a respeitar o tenant).
+
+## 7. Migração de dados (script idempotente)
+
+Migration SQL faz nesta ordem:
+
+1. Cria `orgs`, `org_members`, `org_plans`, `org_module_entitlements` + GRANTs + RLS + helpers.
+2. Insere 1 `org` "Default" copiando de `company_settings` (ou placeholder se vazio).
+3. Insere `org_members` para cada `user_roles` (mapeia `rh→rh+admin`, `gestor→gestor`, `colaborador→colaborador`).
+4. `ALTER TABLE ... ADD COLUMN org_id` em todas as tabelas de domínio com default temporário = id da org Default; depois `SET NOT NULL` e remove default.
+5. Funde `pt_employees` em `employees` (insere as linhas que ainda não existem, casa por `cpf`/`user_id`). Atualiza FKs em `pt_punches`, `pt_schedules`, etc.
+6. Reescreve todas as policies RLS antigas para usar `has_org_role(auth.uid(), org_id, ...)`.
+7. Cria view `pt_companies` apontando para `orgs` (compat com código atual durante deploy).
+
+## 8. Fora de escopo desta iteração
+
+- Gateway de pagamento real (Stripe) para upgrade de plano.
+- Auto-provisionamento de subdomínio por org.
+- Convites por e-mail (vai por link/CPF como já existe).
+- Auditoria global unificada (hoje só `pt_audit_log`).
+
+## 9. Estimativa
+
+3 iterações grandes:
+
+1. **Esta**: migration + helpers + onboarding + OrgSwitcher + entitlements + sidebar dinâmica + ajuste das telas do Ponto para usar org global. RH continua funcionando (RLS via org Default).
+2. Reescrita das policies RH para multi-tenant real + unificação `employees` ↔ `pt_employees` + tela de billing.
+3. Telas refinadas de Plano, Administradores, Auditoria unificada, validações de limite (max_employees etc.).
 
 ---
 
-## Detalhes técnicos
+## Perguntas antes de executar
 
-- Stack mantida: TanStack Start + React 19 + Tailwind v4 + Supabase (Lovable Cloud) + AI SDK + Lovable AI Gateway. Sem NestJS/Prisma/Docker/Redis/RabbitMQ.
-- Selfies enviadas como base64 → server fn → `supabaseAdmin.storage.from('pt-selfies').upload(...)`. Limite 1 MB, jpeg.
-- Geofence: cálculo Haversine no server, raio configurável por filial; punch fora marca `inside_geofence=false` e gera anomalia, mas **não bloqueia** (configurável por empresa).
-- Mapas: usar conector Google Maps já documentado (`VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY`); se ausente, cair para SVG/CSS no painel operacional. Pergunto antes de conectar.
-- Chat com `useChat` + `DefaultChatTransport({ api: "/api/pt/chat" })`, threads persistidas, mensagens DB-backed.
-- `attachSupabaseAuth` já registrado em `src/start.ts` — manter.
-- Migration única (módulo isolado), com GRANTs corretos por tabela e policies RLS.
-- Estimativa: **2–3 iterações grandes** para chegar ao MVP completo. Esta primeira iteração entrega: migrations + bater ponto + espelho + funcionários + filiais + escala fixa simples + dashboard mínimo. Iterações seguintes: aprovações, banco de horas avançado, IA, escalas complexas, auditoria UI.
-
-## Perguntas
-
-1. **Google Maps**: posso pedir para você conectar o connector Google Maps agora (para o mapa de filiais e painel operacional)? Sem ele, uso visualização simplificada.
-2. **Primeira empresa**: você quer que eu pré-cadastre uma empresa de ponto vinculada ao seu usuário como admin no seed, ou prefere criar pela UI?
-3. **Bloquear punch fora da cerca?** Padrão sugerido: registra mas marca como anomalia (não bloqueia). Confirma?
+1. **Validação Receita**: posso usar **BrasilAPI** (público, sem chave)? Senão você prefere ReceitaWS pago / outro provedor?
+2. **Org Default no backfill**: quero criar a org com **seu CNPJ** (você me dá) ou só "Empresa Default — atualizar depois"? Sem isso a primeira org fica com dados placeholder.
+3. **Planos iniciais**: confirma estes 4 planos? `free` (RH básico), `starter` (RH+PDI+Entrevistas), `pro` (+ Ponto + Candidatos), `enterprise` (tudo + IA avançada).
+4. **Compat Ponto**: posso deletar `pt_companies`/`pt_company_members` (substituídas por `orgs`/`org_members`) já nesta migration, ou prefere manter como view por 1 release para segurança?
