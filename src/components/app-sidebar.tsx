@@ -5,6 +5,7 @@ import {
 } from "@/components/ui/sidebar";
 import { LayoutDashboard, User, MessageSquare, Target, Users, Briefcase, ListChecks, FileText, Settings, LogOut, Sparkles, ClipboardCheck, UserPlus, BookOpen, Clock } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { useOrg } from "@/lib/org-context";
 import { Button } from "@/components/ui/button";
 
 const meItems = [
@@ -34,7 +35,10 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const path = useRouterState({ select: (r) => r.location.pathname });
   const { isRH, isGestor, signOut, user } = useAuth();
+  const { hasModule } = useOrg();
   const isActive = (u: string) => path === u || path.startsWith(u + "/");
+  const showPonto = hasModule("ponto");
+  const showRH = isRH && hasModule("rh");
 
   return (
     <Sidebar collapsible="icon">
@@ -68,20 +72,22 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Jornada</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {pontoItems.map((it) => (
-                <SidebarMenuItem key={it.url}>
-                  <SidebarMenuButton asChild isActive={isActive(it.url)}>
-                    <Link to={it.url}><it.icon /><span>{it.title}</span></Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {showPonto && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Jornada</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {pontoItems.map((it) => (
+                  <SidebarMenuItem key={it.url}>
+                    <SidebarMenuButton asChild isActive={isActive(it.url)}>
+                      <Link to={it.url}><it.icon /><span>{it.title}</span></Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         {isGestor && (
           <SidebarGroup>
@@ -100,7 +106,7 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {isRH && (
+        {showRH && (
           <SidebarGroup>
             <SidebarGroupLabel>RH</SidebarGroupLabel>
             <SidebarGroupContent>
