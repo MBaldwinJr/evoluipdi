@@ -5,6 +5,7 @@ import {
 } from "@/components/ui/sidebar";
 import { LayoutDashboard, User, MessageSquare, Target, Users, Briefcase, ListChecks, FileText, Settings, LogOut, Sparkles, ClipboardCheck, UserPlus, BookOpen, Clock } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { useOrg } from "@/lib/org-context";
 import { Button } from "@/components/ui/button";
 
 const meItems = [
