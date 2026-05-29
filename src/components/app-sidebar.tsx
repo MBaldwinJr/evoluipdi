@@ -106,7 +106,7 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {isRH && (
+        {showRH && (
           <SidebarGroup>
             <SidebarGroupLabel>RH</SidebarGroupLabel>
             <SidebarGroupContent>
