@@ -72,20 +72,22 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Jornada</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {pontoItems.map((it) => (
-                <SidebarMenuItem key={it.url}>
-                  <SidebarMenuButton asChild isActive={isActive(it.url)}>
-                    <Link to={it.url}><it.icon /><span>{it.title}</span></Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {showPonto && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Jornada</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {pontoItems.map((it) => (
+                  <SidebarMenuItem key={it.url}>
+                    <SidebarMenuButton asChild isActive={isActive(it.url)}>
+                      <Link to={it.url}><it.icon /><span>{it.title}</span></Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         {isGestor && (
           <SidebarGroup>
