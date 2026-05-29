@@ -35,7 +35,10 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const path = useRouterState({ select: (r) => r.location.pathname });
   const { isRH, isGestor, signOut, user } = useAuth();
+  const { hasModule } = useOrg();
   const isActive = (u: string) => path === u || path.startsWith(u + "/");
+  const showPonto = hasModule("ponto");
+  const showRH = isRH && hasModule("rh");
 
   return (
     <Sidebar collapsible="icon">
