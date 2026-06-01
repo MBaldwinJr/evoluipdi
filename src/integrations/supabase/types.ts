@@ -35,6 +35,7 @@ export type Database = {
           hired_employee_id: string | null
           id: string
           notes: string | null
+          org_id: string
           presential_at: string | null
           presential_done: boolean
           presential_notes: string | null
@@ -65,6 +66,7 @@ export type Database = {
           hired_employee_id?: string | null
           id?: string
           notes?: string | null
+          org_id: string
           presential_at?: string | null
           presential_done?: boolean
           presential_notes?: string | null
@@ -95,6 +97,7 @@ export type Database = {
           hired_employee_id?: string | null
           id?: string
           notes?: string | null
+          org_id?: string
           presential_at?: string | null
           presential_done?: boolean
           presential_notes?: string | null
@@ -136,6 +139,7 @@ export type Database = {
           employee_id: string
           id: string
           notes: string | null
+          org_id: string
           pdi_id: string | null
           scheduled_for: string
         }
@@ -145,6 +149,7 @@ export type Database = {
           employee_id: string
           id?: string
           notes?: string | null
+          org_id: string
           pdi_id?: string | null
           scheduled_for: string
         }
@@ -154,6 +159,7 @@ export type Database = {
           employee_id?: string
           id?: string
           notes?: string | null
+          org_id?: string
           pdi_id?: string | null
           scheduled_for?: string
         }
@@ -219,18 +225,21 @@ export type Database = {
           description: string | null
           id: string
           name: string
+          org_id: string
         }
         Insert: {
           created_at?: string
           description?: string | null
           id?: string
           name: string
+          org_id: string
         }
         Update: {
           created_at?: string
           description?: string | null
           id?: string
           name?: string
+          org_id?: string
         }
         Relationships: []
       }
@@ -243,9 +252,10 @@ export type Database = {
           hire_date: string | null
           id: string
           manager_id: string | null
+          org_id: string
           role_id: string | null
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           active?: boolean
@@ -255,9 +265,10 @@ export type Database = {
           hire_date?: string | null
           id?: string
           manager_id?: string | null
+          org_id: string
           role_id?: string | null
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           active?: boolean
@@ -267,9 +278,10 @@ export type Database = {
           hire_date?: string | null
           id?: string
           manager_id?: string | null
+          org_id?: string
           role_id?: string | null
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -358,6 +370,7 @@ export type Database = {
           impact: string
           next_step: string
           occurred_at: string
+          org_id: string
           overall_level: Database["public"]["Enums"]["performance_level"]
         }
         Insert: {
@@ -370,6 +383,7 @@ export type Database = {
           impact: string
           next_step: string
           occurred_at?: string
+          org_id: string
           overall_level: Database["public"]["Enums"]["performance_level"]
         }
         Update: {
@@ -382,6 +396,7 @@ export type Database = {
           impact?: string
           next_step?: string
           occurred_at?: string
+          org_id?: string
           overall_level?: Database["public"]["Enums"]["performance_level"]
         }
         Relationships: [
@@ -405,6 +420,7 @@ export type Database = {
           kind: Database["public"]["Enums"]["feedback_kind"]
           next_step: string | null
           occurred_at: string
+          org_id: string
         }
         Insert: {
           author_id: string
@@ -416,6 +432,7 @@ export type Database = {
           kind?: Database["public"]["Enums"]["feedback_kind"]
           next_step?: string | null
           occurred_at?: string
+          org_id: string
         }
         Update: {
           author_id?: string
@@ -427,6 +444,7 @@ export type Database = {
           kind?: Database["public"]["Enums"]["feedback_kind"]
           next_step?: string | null
           occurred_at?: string
+          org_id?: string
         }
         Relationships: [
           {
@@ -444,6 +462,7 @@ export type Database = {
           employee_id: string
           id: string
           justification: string | null
+          org_id: string
           rcf_item_id: string | null
           resolved: boolean
           root_cause: string | null
@@ -456,6 +475,7 @@ export type Database = {
           employee_id: string
           id?: string
           justification?: string | null
+          org_id: string
           rcf_item_id?: string | null
           resolved?: boolean
           root_cause?: string | null
@@ -468,6 +488,7 @@ export type Database = {
           employee_id?: string
           id?: string
           justification?: string | null
+          org_id?: string
           rcf_item_id?: string | null
           resolved?: boolean
           root_cause?: string | null
@@ -542,6 +563,7 @@ export type Database = {
           created_at: string
           id: string
           kind: Database["public"]["Enums"]["interview_kind"]
+          org_id: string
           questions: Json
           role_id: string | null
           title: string
@@ -550,6 +572,7 @@ export type Database = {
           created_at?: string
           id?: string
           kind: Database["public"]["Enums"]["interview_kind"]
+          org_id: string
           questions?: Json
           role_id?: string | null
           title: string
@@ -558,6 +581,7 @@ export type Database = {
           created_at?: string
           id?: string
           kind?: Database["public"]["Enums"]["interview_kind"]
+          org_id?: string
           questions?: Json
           role_id?: string | null
           title?: string
@@ -583,6 +607,7 @@ export type Database = {
           kind: Database["public"]["Enums"]["interview_kind"]
           notes: string | null
           occurred_at: string
+          org_id: string
           overall_level: Database["public"]["Enums"]["performance_level"] | null
           template_id: string | null
         }
@@ -596,6 +621,7 @@ export type Database = {
           kind: Database["public"]["Enums"]["interview_kind"]
           notes?: string | null
           occurred_at?: string
+          org_id: string
           overall_level?:
             | Database["public"]["Enums"]["performance_level"]
             | null
@@ -611,6 +637,7 @@ export type Database = {
           kind?: Database["public"]["Enums"]["interview_kind"]
           notes?: string | null
           occurred_at?: string
+          org_id?: string
           overall_level?:
             | Database["public"]["Enums"]["performance_level"]
             | null
@@ -639,6 +666,7 @@ export type Database = {
           created_at: string
           employee_id: string
           id: string
+          org_id: string
           pdi_action_id: string | null
           title: string
         }
@@ -647,6 +675,7 @@ export type Database = {
           created_at?: string
           employee_id: string
           id?: string
+          org_id: string
           pdi_action_id?: string | null
           title: string
         }
@@ -655,6 +684,7 @@ export type Database = {
           created_at?: string
           employee_id?: string
           id?: string
+          org_id?: string
           pdi_action_id?: string | null
           title?: string
         }
@@ -899,6 +929,7 @@ export type Database = {
           horizon: Database["public"]["Enums"]["objective_horizon"]
           id: string
           objective: string
+          org_id: string
           status: Database["public"]["Enums"]["pdi_status"]
           updated_at: string
           validated_at: string | null
@@ -911,6 +942,7 @@ export type Database = {
           horizon?: Database["public"]["Enums"]["objective_horizon"]
           id?: string
           objective: string
+          org_id: string
           status?: Database["public"]["Enums"]["pdi_status"]
           updated_at?: string
           validated_at?: string | null
@@ -923,6 +955,7 @@ export type Database = {
           horizon?: Database["public"]["Enums"]["objective_horizon"]
           id?: string
           objective?: string
+          org_id?: string
           status?: Database["public"]["Enums"]["pdi_status"]
           updated_at?: string
           validated_at?: string | null
@@ -1464,6 +1497,7 @@ export type Database = {
           expected_level: number
           id: string
           kind: Database["public"]["Enums"]["rcf_item_kind"]
+          org_id: string
           role_id: string
           sort_order: number
           title: string
@@ -1474,6 +1508,7 @@ export type Database = {
           expected_level?: number
           id?: string
           kind: Database["public"]["Enums"]["rcf_item_kind"]
+          org_id: string
           role_id: string
           sort_order?: number
           title: string
@@ -1484,6 +1519,7 @@ export type Database = {
           expected_level?: number
           id?: string
           kind?: Database["public"]["Enums"]["rcf_item_kind"]
+          org_id?: string
           role_id?: string
           sort_order?: number
           title?: string
@@ -1503,6 +1539,7 @@ export type Database = {
           created_at: string
           id: string
           objective: string | null
+          org_id: string
           role_id: string
           sort_order: number
           steps: Json
@@ -1515,6 +1552,7 @@ export type Database = {
           created_at?: string
           id?: string
           objective?: string | null
+          org_id: string
           role_id: string
           sort_order?: number
           steps?: Json
@@ -1527,6 +1565,7 @@ export type Database = {
           created_at?: string
           id?: string
           objective?: string | null
+          org_id?: string
           role_id?: string
           sort_order?: number
           steps?: Json
@@ -1542,6 +1581,7 @@ export type Database = {
           created_at: string
           department_id: string | null
           id: string
+          org_id: string
           summary: string | null
           title: string
           updated_at: string
@@ -1550,6 +1590,7 @@ export type Database = {
           created_at?: string
           department_id?: string | null
           id?: string
+          org_id: string
           summary?: string | null
           title: string
           updated_at?: string
@@ -1558,6 +1599,7 @@ export type Database = {
           created_at?: string
           department_id?: string | null
           id?: string
+          org_id?: string
           summary?: string | null
           title?: string
           updated_at?: string
@@ -1598,6 +1640,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      current_org_id: { Args: never; Returns: string }
       get_employee_basic: {
         Args: { _employee_id: string }
         Returns: {
