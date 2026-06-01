@@ -15,7 +15,7 @@ export const createUserAndEmployee = createServerFn({ method: "POST" })
   }).parse(d))
   .handler(async ({ data, context }) => {
     await assertRH(context.userId);
-    return createEmployeeUser(data);
+    return createEmployeeUser({ ...data, createdByUserId: context.userId });
   });
 
 export const setEmployeeRole = createServerFn({ method: "POST" })
