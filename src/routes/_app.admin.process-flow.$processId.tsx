@@ -9,7 +9,7 @@ import { useAuth } from "@/lib/auth";
 import { ProcessFlowEditor } from "@/components/process-flow-editor";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_app/admin/processes/$processId/flow")({ component: FlowPage });
+export const Route = createFileRoute("/_app/admin/process-flow/$processId")({ component: FlowPage });
 
 function FlowPage() {
   const { processId } = Route.useParams();
