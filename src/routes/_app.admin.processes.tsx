@@ -206,7 +206,7 @@ function ProcessesPage() {
                       </ol>
                       {p.success_criteria && <p className="text-sm"><strong>Critério de sucesso: </strong>{p.success_criteria}</p>}
                       <div className="flex flex-wrap gap-2 no-print">
-                        <Link to="/admin/processes/$processId/flow" params={{ processId: p.id }}>
+                        <Link to="/admin/process-flow/$processId" params={{ processId: p.id }}>
                           <Button variant="default" size="sm"><Sparkles className="mr-2 h-4 w-4" />Fluxograma</Button>
                         </Link>
                         <ProcessEditor roleId={selRole} existing={p} onSaved={() => qc.invalidateQueries({ queryKey: ["role-processes"] })}>
