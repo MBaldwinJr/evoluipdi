@@ -16,7 +16,7 @@ export const setEmployeeManagerFn = createServerFn({ method: "POST" })
     await assertRH(context.userId);
     const { error } = await supabaseAdmin.rpc("set_employee_manager", {
       _employee_id: data.employeeId,
-      _manager_id: data.managerId,
+      _manager_id: data.managerId as any,
     });
     if (error) throw new Error(error.message);
     return { ok: true };
