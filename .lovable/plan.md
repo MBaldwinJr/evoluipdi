@@ -1,117 +1,118 @@
 
-# Ecossistema multiempresa unificado + planos por módulo
+## Objetivo
 
-Hoje o sistema tem dois mundos paralelos: o Evolui original (RH/PDI/Entrevistas/Candidatos) é **monoempresa** (tabelas `employees`, `roles_catalog`, `departments`, `company_settings` sem `company_id`, RLS por `auth.uid()` e role global), e o módulo Ponto é **multiempresa** (tabelas `pt_*` com `company_id` + `pt_company_members`). Isso quebra a promessa de SaaS: cada cliente vê todos os colaboradores de todos os clientes no RH.
+Três frentes integradas no mesmo ecossistema multi-tenant (org_id):
 
-Este plano unifica os dois em um único tenant (`org`), com cadastro de empresa validado na Receita, entitlements por plano e migração dos dados existentes.
-
-## 1. Modelo de tenancy único
-
-Nova tabela `orgs` substitui logicamente `company_settings` e `pt_companies` como **fonte única de verdade da empresa**:
-
-```text
-orgs
-  id, legal_name, trade_name, cnpj (unique), cnae_code, cnae_description,
-  segment, status (active|trial|suspended), receita_validated_at,
-  receita_payload jsonb, timezone, created_by, created_at, updated_at
-
-org_members (substitui pt_company_members + user_roles global)
-  id, org_id, user_id, role: admin|rh|gestor|supervisor|colaborador|auditor,
-  unique(org_id, user_id, role)
-
-org_plans
-  id, org_id, plan_code (free|starter|pro|enterprise|custom),
-  modules text[] (ex: ['rh','pdi','entrevistas','candidatos','ponto','relatorios']),
-  limits jsonb (ex: {max_employees:50, max_branches:3}),
-  valid_from, valid_to, active
-
-org_module_entitlements (opcional, override fino por módulo)
-  org_id, module_key, enabled, limits jsonb
-```
-
-Funções SECURITY DEFINER novas:
-- `current_org_id()` — lê de `app.current_org` (setado via `set_config` por server fn na entrada da request) ou cai no único `org_member` do user.
-- `has_org_role(_user, _org, _role[])`.
-- `is_org_member(_user, _org)`.
-- `org_has_module(_org, _module)` — usado em RLS para travar tabelas conforme plano.
-
-## 2. Migração das tabelas existentes para multi-tenancy
-
-Todas as tabelas de domínio recebem `org_id uuid not null` (com default temporário durante backfill) e novas policies:
-
-- **Backfill**: cria 1 `org` "Default" usando dados de `company_settings` + 1 `org_members` admin para cada `user_roles.role='rh'`. Todas as linhas existentes de `employees`, `departments`, `roles_catalog`, `rcf_items`, `role_processes`, `interview_templates`, `interviews`, `interview_answers`, `evaluations`, `evaluation_scores`, `feedbacks`, `gaps`, `pdis`, `pdi_development_points`, `pdi_actions`, `checkins`, `learning_logs`, `candidate_invites` recebem esse `org_id`.
-- **RLS reescrito**: substitui `has_role(auth.uid(),'rh')` por `has_org_role(auth.uid(), org_id, ARRAY['rh','admin'])` e `is_self_emp`/`is_manager_of_emp` por versões scoped no `org_id` da linha.
-- **Ponto**: `pt_companies` vira view de compatibilidade sobre `orgs`; `pt_company_members` é deprecated em favor de `org_members` (mantém durante transição com trigger de sincronização). Tabelas `pt_branches`, `pt_employees`, etc. passam a referenciar `org_id` direto.
-- **Unificação de colaboradores**: `pt_employees` e `employees` ficam unificadas em **uma** tabela `employees` com `org_id`. Campos do ponto (`weekly_hours`, `schedule_id`, `branch_id`, `contract_type`, `cpf`, `registration`) entram em `employees`. Punches/escalas continuam em tabelas próprias mas referenciam `employees.id`.
-
-> Cuidado: `employees` hoje exige `user_id NOT NULL`. Vamos relaxar para `user_id NULL` (colaborador pode existir antes de ter login), igual ao Ponto faz.
-
-## 3. Validação na Receita Federal
-
-Server fn `validateCnpj` em `src/lib/org.functions.ts`:
-
-- Chama BrasilAPI público (`https://brasilapi.com.br/api/cnpj/v1/{cnpj}`) — não exige API key. Fallback secundário ReceitaWS.
-- Normaliza CNPJ (só dígitos), valida DV.
-- Retorna `{ legal_name, trade_name, cnae_code, cnae_description, status, address, opening_date }` e persiste em `orgs.receita_payload` + `receita_validated_at`.
-- Bloqueia criação de org com CNPJ duplicado.
-
-Já existe `src/lib/cnpj.functions.ts` — reaproveitar/expandir.
-
-## 4. Onboarding & seleção de org
-
-- Rota nova `/onboarding`: usuário sem nenhuma `org_members` cai aqui. Form: CNPJ → valida na Receita → confirma dados → cria `orgs` + `org_members(admin)` + plano `trial`.
-- Componente global `<OrgSwitcher>` no topo do `_app` (header), sincroniza `localStorage.active_org` + cookie `org_id` (lido por server fns).
-- Hook `useActiveOrg()` substitui `usePtCompany()`. Toda server fn passa a aceitar/inferir `org_id`.
-- Guard no `_app.tsx`: se sem orgs → redirect para `/onboarding`.
-
-## 5. Entitlements por plano (liberação por módulo)
-
-- Constante `MODULES = ['rh','pdi','entrevistas','candidatos','ponto','relatorios','jornada-avancada','ia-assistente']`.
-- Sidebar e rotas consultam `useEntitlements()` que chama `getOrgEntitlements()` (server fn). Itens fora do plano ficam ocultos ou com badge "Upgrade".
-- Rota `/admin/billing` (admin only): mostra plano atual, módulos ativos, botão de upgrade (sem gateway de pagamento agora — apenas registro).
-- Server fns checam `org_has_module(org_id, 'ponto')` antes de operar e retornam 403 amigável.
-- RLS adicional em tabelas-chave: `USING (... AND org_has_module(org_id, 'ponto'))` para travar dados também no banco.
-
-## 6. UI por módulo
-
-- **Sidebar**: passa a renderizar grupos dinamicamente conforme entitlements + role. `OrgSwitcher` no header.
-- **RH (`/admin/*`)**: já existe, recebe `org_id` filter via context. Sem grandes mudanças visuais; só a RLS muda.
-- **Ponto (`/pt/*`)**: remove seletor de empresa próprio (passa a usar o global). Remove `PtCompanyProvider`.
-- **Configurações** (`/admin/settings`): aba "Empresa" passa a editar `orgs` (com revalidação Receita), aba "Plano & Módulos", aba "Administradores" (CRUD `org_members` admin/rh).
-- **Candidatos contratados → colaborador**: ao "contratar" cria `employees` com `org_id` ativo (já existe fluxo, só passa a respeitar o tenant).
-
-## 7. Migração de dados (script idempotente)
-
-Migration SQL faz nesta ordem:
-
-1. Cria `orgs`, `org_members`, `org_plans`, `org_module_entitlements` + GRANTs + RLS + helpers.
-2. Insere 1 `org` "Default" copiando de `company_settings` (ou placeholder se vazio).
-3. Insere `org_members` para cada `user_roles` (mapeia `rh→rh+admin`, `gestor→gestor`, `colaborador→colaborador`).
-4. `ALTER TABLE ... ADD COLUMN org_id` em todas as tabelas de domínio com default temporário = id da org Default; depois `SET NOT NULL` e remove default.
-5. Funde `pt_employees` em `employees` (insere as linhas que ainda não existem, casa por `cpf`/`user_id`). Atualiza FKs em `pt_punches`, `pt_schedules`, etc.
-6. Reescreve todas as policies RLS antigas para usar `has_org_role(auth.uid(), org_id, ...)`.
-7. Cria view `pt_companies` apontando para `orgs` (compat com código atual durante deploy).
-
-## 8. Fora de escopo desta iteração
-
-- Gateway de pagamento real (Stripe) para upgrade de plano.
-- Auto-provisionamento de subdomínio por org.
-- Convites por e-mail (vai por link/CPF como já existe).
-- Auditoria global unificada (hoje só `pt_audit_log`).
-
-## 9. Estimativa
-
-3 iterações grandes:
-
-1. **Esta**: migration + helpers + onboarding + OrgSwitcher + entitlements + sidebar dinâmica + ajuste das telas do Ponto para usar org global. RH continua funcionando (RLS via org Default).
-2. Reescrita das policies RH para multi-tenant real + unificação `employees` ↔ `pt_employees` + tela de billing.
-3. Telas refinadas de Plano, Administradores, Auditoria unificada, validações de limite (max_employees etc.).
+1. **Ponto = Colaboradores** — eliminar cadastro duplicado em `pt_employees`. Todo funcionário do módulo Ponto passa a ser um registro de `employees` da organização ativa, com campos específicos do Ponto (filial, escala, jornada semanal, matrícula, CPF) anexados ao mesmo registro.
+2. **Organograma editável** em RH › Colaboradores — visualização hierárquica (manager_id) com drag-and-drop para reassociar gestor, criar/editar nó inline, expandir/recolher.
+3. **Fluxograma por processo** em RH › Processos por cargo — cada `role_processes` ganha um diagrama de etapas (nós + conexões) editável, com layout profissional e exportável.
 
 ---
 
-## Perguntas antes de executar
+## 1. Unificar Funcionários do Ponto com Colaboradores
 
-1. **Validação Receita**: posso usar **BrasilAPI** (público, sem chave)? Senão você prefere ReceitaWS pago / outro provedor?
-2. **Org Default no backfill**: quero criar a org com **seu CNPJ** (você me dá) ou só "Empresa Default — atualizar depois"? Sem isso a primeira org fica com dados placeholder.
-3. **Planos iniciais**: confirma estes 4 planos? `free` (RH básico), `starter` (RH+PDI+Entrevistas), `pro` (+ Ponto + Candidatos), `enterprise` (tudo + IA avançada).
-4. **Compat Ponto**: posso deletar `pt_companies`/`pt_company_members` (substituídas por `orgs`/`org_members`) já nesta migration, ou prefere manter como view por 1 release para segurança?
+### Banco
+- Adicionar a `employees` os campos que hoje vivem em `pt_employees`:
+  - `cpf text`, `registration text`, `branch_id uuid` (→ pt_branches), `schedule_id uuid` (→ pt_schedules), `weekly_hours numeric default 44`, `contract_type text default 'CLT'`.
+- Migrar dados existentes de `pt_employees` para `employees` (match por `user_id` + `org_id`; quando não houver, criar `employees` correspondente).
+- Substituir FKs de `pt_punches.employee_id`, `pt_anomalies.employee_id` para apontarem para `employees.id`.
+- Manter `pt_employees` como **view** somente-leitura sobre `employees` (compatibilidade temporária) ou remover após migração das funções.
+- Trigger: ao inserir em `org_members` com role colaborador/gestor/rh/admin, garantir registro em `employees` (já existe sync parcial; estender para preencher defaults do Ponto).
+
+### Server functions
+- Atualizar `pt.functions.ts`:
+  - `ptListEmployees` → consulta `employees` + join `profiles` (nome) + `pt_branches` + `pt_schedules`, filtrado por `org_id` ativo.
+  - `ptUpsertEmployee` → grava em `employees` (campos do ponto) em vez de `pt_employees`.
+  - `ptGetMirror`, `ptPunch` etc → resolver employee via `employees.user_id = auth.uid()`.
+- Remover tela "Funcionários" duplicada do Ponto ou transformá-la em **visão filtrada** de Colaboradores com edição apenas dos campos do Ponto (filial, escala, horas).
+
+### UI
+- `/pt/funcionarios` passa a listar `employees` da org. Botão "Novo" redireciona para `/admin/people` (cadastro completo). Edição inline só dos campos do Ponto.
+- `/admin/people` ganha aba/seção "Ponto" no diálogo de edição com filial, escala, jornada semanal, matrícula, CPF.
+
+---
+
+## 2. Organograma editável (RH › Colaboradores)
+
+### Tecnologia
+- Biblioteca: **@xyflow/react** (React Flow) — padrão de mercado para diagramas, suporta drag-and-drop, layout automático, custom nodes.
+- Layout hierárquico automático via **dagre** (ou `elkjs`) para posicionar nós a partir de `manager_id`.
+
+### Funcionalidades
+- Nova aba/rota: `/admin/people/organograma` (ou toggle "Lista | Organograma" em `/admin/people`).
+- Cada nó = card com foto/iniciais, nome, cargo, departamento.
+- Arrastar nó sobre outro → reassocia `manager_id` (confirmação + chamada server `updateEmployeeFn`).
+- Botão "+" em cada nó → cria subordinado direto (abre diálogo já existente com `manager_id` pré-preenchido).
+- Clique no nó → painel lateral com detalhes e ações (editar, excluir, ver perfil).
+- Expand/collapse de ramos, zoom, mini-mapa, exportar PNG.
+- Filtros: por departamento, por nível hierárquico.
+
+### Server
+- Reusar `list_team_directory` (já retorna manager_id) — adicionar campo `avatar_url` do profile.
+- Nova função `setEmployeeManager({ employeeId, managerId })` com validação anti-ciclo.
+
+---
+
+## 3. Fluxograma por Processo (RH › Processos por cargo)
+
+### Modelo
+- `role_processes.steps` já é `jsonb`. Evoluir o schema do JSON para:
+  ```
+  { nodes: [{id, type:'start'|'task'|'decision'|'end', label, description, owner}],
+    edges: [{id, source, target, label?, condition?}] }
+  ```
+- Manter retrocompat: se `steps` for array simples (formato atual), converter para nodes lineares na leitura.
+
+### UI — editor visual
+- Componente `<ProcessFlowEditor processId>` com **@xyflow/react**:
+  - Paleta lateral: Início, Tarefa, Decisão, Fim.
+  - Arrastar para o canvas, conectar com handles, editar label/descrição/responsável no painel lateral.
+  - Auto-layout (dagre) com botão "Organizar".
+  - Validações: 1 início, ≥1 fim, sem nós órfãos.
+  - Salvar (debounced) via `processes.functions.ts`.
+- Visualização read-only para gestores/colaboradores (mesmo canvas, sem edição).
+- Exportar PNG/SVG.
+
+### Server
+- Estender `processes.functions.ts`:
+  - `getProcessFlow({ processId })`
+  - `saveProcessFlow({ processId, nodes, edges })` (RH only).
+
+### Onde aparece
+- Em `/admin/processes` lista de processos → botão "Fluxograma" abre o editor em modal grande ou rota dedicada `/admin/processes/$id/flow`.
+- Em `/me/processes/$id` (visão colaborador): fluxograma read-only.
+
+---
+
+## Detalhes técnicos
+
+### Dependências novas
+- `@xyflow/react` (React Flow v12)
+- `dagre` ou `@dagrejs/dagre` para layout hierárquico
+- `html-to-image` para exportar PNG (opcional)
+
+### Migrations (ordem)
+1. ALTER `employees` ADD COLUMN cpf, registration, branch_id, schedule_id, weekly_hours, contract_type.
+2. Backfill: `INSERT/UPDATE employees FROM pt_employees` por (user_id, org_id).
+3. ALTER `pt_punches`, `pt_anomalies`: trocar FK para `employees(id)` (com mapping table temporária).
+4. DROP `pt_employees` (ou converter em view).
+5. Atualizar `pt_companies` sync trigger se necessário.
+
+### Riscos
+- Migração de `pt_employees → employees` precisa preservar IDs referenciados em `pt_punches`. Estratégia: criar coluna `employees.legacy_pt_id` temporária para mapeamento, depois atualizar FKs e dropar.
+- React Flow adiciona ~150kb gz; aceitável.
+
+### Fora de escopo desta iteração
+- Versionamento histórico do organograma e dos fluxogramas (snapshots).
+- Importar/exportar BPMN.
+- Aprovação multi-step de mudanças no organograma.
+
+---
+
+## Entregáveis
+
+1. Migration unificando employees + Ponto, backfill, atualização de FKs.
+2. Server functions do Ponto reescritas para usar `employees`.
+3. Tela `/pt/funcionarios` simplificada (visão filtrada) + diálogo do colaborador com seção Ponto em `/admin/people`.
+4. Rota/aba `/admin/people` com toggle Lista ↔ Organograma usando React Flow + dagre, drag-and-drop reassociando gestor.
+5. Editor de fluxograma em `/admin/processes/$id/flow` (RH edita, demais visualizam), persistindo em `role_processes.steps`.
