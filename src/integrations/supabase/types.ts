@@ -246,42 +246,66 @@ export type Database = {
       employees: {
         Row: {
           active: boolean
+          branch_id: string | null
           career_goals: string | null
+          contract_type: string | null
+          cpf: string | null
           created_at: string
           department_id: string | null
+          full_name: string | null
           hire_date: string | null
           id: string
+          legacy_pt_employee_id: string | null
           manager_id: string | null
           org_id: string
+          registration: string | null
           role_id: string | null
+          schedule_id: string | null
           updated_at: string
           user_id: string | null
+          weekly_hours: number | null
         }
         Insert: {
           active?: boolean
+          branch_id?: string | null
           career_goals?: string | null
+          contract_type?: string | null
+          cpf?: string | null
           created_at?: string
           department_id?: string | null
+          full_name?: string | null
           hire_date?: string | null
           id?: string
+          legacy_pt_employee_id?: string | null
           manager_id?: string | null
           org_id?: string
+          registration?: string | null
           role_id?: string | null
+          schedule_id?: string | null
           updated_at?: string
           user_id?: string | null
+          weekly_hours?: number | null
         }
         Update: {
           active?: boolean
+          branch_id?: string | null
           career_goals?: string | null
+          contract_type?: string | null
+          cpf?: string | null
           created_at?: string
           department_id?: string | null
+          full_name?: string | null
           hire_date?: string | null
           id?: string
+          legacy_pt_employee_id?: string | null
           manager_id?: string | null
           org_id?: string
+          registration?: string | null
           role_id?: string | null
+          schedule_id?: string | null
           updated_at?: string
           user_id?: string | null
+          weekly_hours?: number | null
         }
         Relationships: [
           {
@@ -1716,6 +1740,10 @@ export type Database = {
       pt_is_member: {
         Args: { _company: string; _user: string }
         Returns: boolean
+      }
+      set_employee_manager: {
+        Args: { _employee_id: string; _manager_id: string }
+        Returns: undefined
       }
     }
     Enums: {
