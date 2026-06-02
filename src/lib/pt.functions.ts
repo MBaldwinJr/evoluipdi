@@ -148,19 +148,45 @@ export const ptUpsertSchedule = createServerFn({ method: "POST" })
     return row;
   });
 
-// ---------------- Employees ----------------
+// ---------------- Employees (unified with `employees`) ----------------
+
+async function fetchEmployeeWithRefs(orgId: string, filter: (q: any) => any) {
+  const baseQ = filter(
+    supabaseAdmin
+      .from("employees")
+      .select("id, user_id, org_id, full_name, cpf, registration, branch_id, schedule_id, weekly_hours, contract_type, hire_date, active, manager_id, role_id, profile:profiles(full_name), role:roles_catalog(title)")
+      .eq("org_id", orgId),
+  );
+  const { data, error } = await baseQ;
+  if (error) throw new Error(error.message);
+  const rows: any[] = Array.isArray(data) ? data : data ? [data] : [];
+  const branchIds = Array.from(new Set(rows.map((r) => r.branch_id).filter(Boolean)));
+  const schedIds = Array.from(new Set(rows.map((r) => r.schedule_id).filter(Boolean)));
+  const [{ data: branches }, { data: schedules }] = await Promise.all([
+    branchIds.length
+      ? supabaseAdmin.from("pt_branches").select("id, name, lat, lng, geofence_radius_m").in("id", branchIds)
+      : Promise.resolve({ data: [] as any[] }),
+    schedIds.length
+      ? supabaseAdmin.from("pt_schedules").select("*").in("id", schedIds)
+      : Promise.resolve({ data: [] as any[] }),
+  ]);
+  const bMap = new Map((branches ?? []).map((b: any) => [b.id, b]));
+  const sMap = new Map((schedules ?? []).map((s: any) => [s.id, s]));
+  return rows.map((r) => ({
+    ...r,
+    full_name: r.full_name || r.profile?.full_name || "—",
+    role_title: r.role?.title ?? null,
+    branch: r.branch_id ? bMap.get(r.branch_id) ?? null : null,
+    schedule: r.schedule_id ? sMap.get(r.schedule_id) ?? null : null,
+  }));
+}
 
 export const ptListEmployees = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ company_id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     await ptAssertMember(context.userId, data.company_id);
-    const { data: rows, error } = await supabaseAdmin
-      .from("pt_employees")
-      .select("*, branch:pt_branches(id, name), schedule:pt_schedules(id, name)")
-      .eq("company_id", data.company_id)
-      .order("full_name");
-    if (error) throw new Error(error.message);
+    const rows = await fetchEmployeeWithRefs(data.company_id, (q) => q.order("full_name"));
     return rows;
   });
 
@@ -186,13 +212,14 @@ export const ptUpsertEmployee = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await ptAssertRole(context.userId, data.company_id, [...RH_ROLES]);
-    const { id, ...rest } = data;
+    const { id, company_id, role_title: _ignored, ...rest } = data;
+    const payload: Record<string, unknown> = { ...rest, org_id: company_id };
     const q = id
-      ? supabaseAdmin.from("pt_employees").update(rest).eq("id", id).select("*").single()
-      : supabaseAdmin.from("pt_employees").insert(rest).select("*").single();
+      ? supabaseAdmin.from("employees").update(payload).eq("id", id).select("*").single()
+      : supabaseAdmin.from("employees").insert(payload).select("*").single();
     const { data: row, error } = await q;
     if (error) throw new Error(error.message);
-    await ptAuditLog({ companyId: data.company_id, actorId: context.userId, action: id ? "employee.update" : "employee.create", targetTable: "pt_employees", targetId: row.id, after: row });
+    await ptAuditLog({ companyId: company_id, actorId: context.userId, action: id ? "employee.update" : "employee.create", targetTable: "employees", targetId: row.id, after: row });
     return row;
   });
 
@@ -201,14 +228,8 @@ export const ptGetMyEmployee = createServerFn({ method: "GET" })
   .inputValidator((input) => z.object({ company_id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     await ptAssertMember(context.userId, data.company_id);
-    const { data: emp, error } = await supabaseAdmin
-      .from("pt_employees")
-      .select("*, branch:pt_branches(*), schedule:pt_schedules(*)")
-      .eq("company_id", data.company_id)
-      .eq("user_id", context.userId)
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    return emp;
+    const rows = await fetchEmployeeWithRefs(data.company_id, (q) => q.eq("user_id", context.userId).limit(1));
+    return rows[0] ?? null;
   });
 
 // ---------------- Punches ----------------
