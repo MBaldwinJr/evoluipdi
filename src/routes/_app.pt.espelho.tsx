@@ -33,7 +33,12 @@ function MirrorPage() {
       </div>
 
       {q.isLoading && <div>Carregando...</div>}
-      {q.data && (
+      {q.data && (q.data as any).missing && (
+        <Card><CardContent className="py-8 text-sm text-muted-foreground">
+          Você ainda não está cadastrado como funcionário nesta empresa. Peça ao RH para adicioná-lo em Funcionários.
+        </CardContent></Card>
+      )}
+      {q.data && !(q.data as any).missing && (
         <>
           <div className="grid gap-3 md:grid-cols-5">
             {[
