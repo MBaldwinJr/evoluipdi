@@ -345,7 +345,14 @@ export const ptGetMirror = createServerFn({ method: "GET" })
     if (!employee_id) {
       const { data: emp } = await supabaseAdmin
         .from("pt_employees").select("id").eq("company_id", data.company_id).eq("user_id", context.userId).maybeSingle();
-      if (!emp) throw new Error("Funcionário não encontrado");
+      if (!emp) {
+        return {
+          employee: null as any,
+          days: [],
+          totals: { worked_min: 0, expected_min: 0, late_min: 0, extra_min_50: 0, extra_min_100: 0, night_min: 0, balance_min: 0 },
+          missing: true as const,
+        };
+      }
       employee_id = emp.id;
     } else {
       await ptAssertRole(context.userId, data.company_id, [...MGR_ROLES]);
