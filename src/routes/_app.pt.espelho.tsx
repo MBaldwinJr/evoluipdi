@@ -39,6 +39,7 @@ function MirrorPage() {
         </CardContent></Card>
       )}
       {q.data && !(q.data as any).missing && (
+        <>
           <div className="grid gap-3 md:grid-cols-5">
             {[
               { label: "Trabalhado", val: q.data.totals.worked_min },
