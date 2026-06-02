@@ -251,14 +251,20 @@ export const ptRegisterPunch = createServerFn({ method: "POST" })
     await ptAssertMember(context.userId, data.company_id);
 
     // find my employee
-    const { data: emp, error: empErr } = await supabaseAdmin
-      .from("pt_employees")
-      .select("id, branch_id, branch:pt_branches(id, lat, lng, geofence_radius_m)")
-      .eq("company_id", data.company_id)
+    const { data: empBase, error: empErr } = await supabaseAdmin
+      .from("employees")
+      .select("id, branch_id")
+      .eq("org_id", data.company_id)
       .eq("user_id", context.userId)
       .maybeSingle();
     if (empErr) throw new Error(empErr.message);
-    if (!emp) throw new Error("Você não está cadastrado como funcionário nesta empresa.");
+    if (!empBase) throw new Error("Você não está cadastrado como funcionário nesta empresa.");
+    let emp: { id: string; branch_id: string | null; branch: { id: string; lat: number | null; lng: number | null; geofence_radius_m: number | null } | null } = { ...empBase, branch: null };
+    if (empBase.branch_id) {
+      const { data: br } = await supabaseAdmin
+        .from("pt_branches").select("id, lat, lng, geofence_radius_m").eq("id", empBase.branch_id).maybeSingle();
+      emp.branch = br as any;
+    }
 
     // company config for blocking
     const { data: company } = await supabaseAdmin
