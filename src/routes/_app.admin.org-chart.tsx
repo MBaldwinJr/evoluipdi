@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/auth";
 import { OrgChart } from "@/components/org-chart";
 import { ArrowLeft } from "lucide-react";
 
-export const Route = createFileRoute("/_app/admin/people/organograma")({ component: OrgPage });
+export const Route = createFileRoute("/_app/admin/org-chart")({ component: OrgPage });
 
 function OrgPage() {
   const { isRH } = useAuth();
