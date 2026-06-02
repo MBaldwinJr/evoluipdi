@@ -370,9 +370,9 @@ export const ptGetMirror = createServerFn({ method: "GET" })
     await ptAssertMember(context.userId, data.company_id);
     let employee_id = data.employee_id;
     if (!employee_id) {
-      const { data: emp } = await supabaseAdmin
-        .from("pt_employees").select("id").eq("company_id", data.company_id).eq("user_id", context.userId).maybeSingle();
-      if (!emp) {
+      const { data: e0 } = await supabaseAdmin
+        .from("employees").select("id").eq("org_id", data.company_id).eq("user_id", context.userId).maybeSingle();
+      if (!e0) {
         return {
           employee: null as any,
           days: [],
@@ -380,16 +380,25 @@ export const ptGetMirror = createServerFn({ method: "GET" })
           missing: true as const,
         };
       }
-      employee_id = emp.id;
+      employee_id = e0.id;
     } else {
       await ptAssertRole(context.userId, data.company_id, [...MGR_ROLES]);
     }
 
-    const { data: emp, error: empErr } = await supabaseAdmin
-      .from("pt_employees")
-      .select("*, schedule:pt_schedules(*)")
+    const { data: empRow, error: empErr } = await supabaseAdmin
+      .from("employees")
+      .select("id, full_name, schedule_id, profile:profiles(full_name), role:roles_catalog(title)")
       .eq("id", employee_id).single();
     if (empErr) throw new Error(empErr.message);
+    const { data: schedRow } = empRow.schedule_id
+      ? await supabaseAdmin.from("pt_schedules").select("*").eq("id", empRow.schedule_id).maybeSingle()
+      : { data: null as any };
+    const emp: any = {
+      ...empRow,
+      full_name: empRow.full_name || (empRow as any).profile?.full_name || "—",
+      role_title: (empRow as any).role?.title ?? null,
+      schedule: schedRow,
+    };
 
     const [y, m] = data.month.split("-").map(Number);
     const start = new Date(Date.UTC(y, m - 1, 1));
