@@ -15,7 +15,7 @@ function FlowPage() {
   const { processId } = Route.useParams();
   const { isRH } = useAuth();
   const qc = useQueryClient();
-  const navigate = useNavigate();
+  
   const getFn = useServerFn(getProcessFlow);
   const saveFn = useServerFn(saveProcessFlow);
 
