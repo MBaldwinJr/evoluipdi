@@ -342,7 +342,7 @@ export const ptListMyTodayPunches = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     await ptAssertMember(context.userId, data.company_id);
     const { data: emp } = await supabaseAdmin
-      .from("pt_employees").select("id").eq("company_id", data.company_id).eq("user_id", context.userId).maybeSingle();
+      .from("employees").select("id").eq("org_id", data.company_id).eq("user_id", context.userId).maybeSingle();
     if (!emp) return [];
     const start = new Date(); start.setHours(0, 0, 0, 0);
     const end = new Date(); end.setHours(23, 59, 59, 999);
