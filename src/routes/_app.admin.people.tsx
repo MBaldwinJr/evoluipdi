@@ -58,7 +58,7 @@ function AdminPeople() {
       <PageHeader title="Colaboradores" description="Cadastre, vincule a cargos e gestores" action={
         <div className="flex gap-2">
           <Button asChild variant="outline">
-            <Link to="/admin/people/organograma">Organograma</Link>
+            <Link to="/admin/org-chart">Organograma</Link>
           </Button>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild><Button><Plus className="mr-2 h-4 w-4" />Novo colaborador</Button></DialogTrigger>
