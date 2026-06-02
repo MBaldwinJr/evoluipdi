@@ -148,19 +148,45 @@ export const ptUpsertSchedule = createServerFn({ method: "POST" })
     return row;
   });
 
-// ---------------- Employees ----------------
+// ---------------- Employees (unified with `employees`) ----------------
+
+async function fetchEmployeeWithRefs(orgId: string, filter: (q: any) => any) {
+  const baseQ = filter(
+    supabaseAdmin
+      .from("employees")
+      .select("id, user_id, org_id, full_name, cpf, registration, branch_id, schedule_id, weekly_hours, contract_type, hire_date, active, manager_id, role_id, profile:profiles(full_name), role:roles_catalog(title)")
+      .eq("org_id", orgId),
+  );
+  const { data, error } = await baseQ;
+  if (error) throw new Error(error.message);
+  const rows: any[] = Array.isArray(data) ? data : data ? [data] : [];
+  const branchIds = Array.from(new Set(rows.map((r) => r.branch_id).filter(Boolean)));
+  const schedIds = Array.from(new Set(rows.map((r) => r.schedule_id).filter(Boolean)));
+  const [{ data: branches }, { data: schedules }] = await Promise.all([
+    branchIds.length
+      ? supabaseAdmin.from("pt_branches").select("id, name, lat, lng, geofence_radius_m").in("id", branchIds)
+      : Promise.resolve({ data: [] as any[] }),
+    schedIds.length
+      ? supabaseAdmin.from("pt_schedules").select("*").in("id", schedIds)
+      : Promise.resolve({ data: [] as any[] }),
+  ]);
+  const bMap = new Map((branches ?? []).map((b: any) => [b.id, b]));
+  const sMap = new Map((schedules ?? []).map((s: any) => [s.id, s]));
+  return rows.map((r) => ({
+    ...r,
+    full_name: r.full_name || r.profile?.full_name || "—",
+    role_title: r.role?.title ?? null,
+    branch: r.branch_id ? bMap.get(r.branch_id) ?? null : null,
+    schedule: r.schedule_id ? sMap.get(r.schedule_id) ?? null : null,
+  }));
+}
 
 export const ptListEmployees = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ company_id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     await ptAssertMember(context.userId, data.company_id);
-    const { data: rows, error } = await supabaseAdmin
-      .from("pt_employees")
-      .select("*, branch:pt_branches(id, name), schedule:pt_schedules(id, name)")
-      .eq("company_id", data.company_id)
-      .order("full_name");
-    if (error) throw new Error(error.message);
+    const rows = await fetchEmployeeWithRefs(data.company_id, (q) => q.order("full_name"));
     return rows;
   });
 
@@ -186,13 +212,14 @@ export const ptUpsertEmployee = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await ptAssertRole(context.userId, data.company_id, [...RH_ROLES]);
-    const { id, ...rest } = data;
+    const { id, company_id, role_title: _ignored, ...rest } = data;
+    const payload = { ...rest, org_id: company_id };
     const q = id
-      ? supabaseAdmin.from("pt_employees").update(rest).eq("id", id).select("*").single()
-      : supabaseAdmin.from("pt_employees").insert(rest).select("*").single();
+      ? supabaseAdmin.from("employees").update(payload).eq("id", id).select("*").single()
+      : supabaseAdmin.from("employees").insert(payload).select("*").single();
     const { data: row, error } = await q;
     if (error) throw new Error(error.message);
-    await ptAuditLog({ companyId: data.company_id, actorId: context.userId, action: id ? "employee.update" : "employee.create", targetTable: "pt_employees", targetId: row.id, after: row });
+    await ptAuditLog({ companyId: company_id, actorId: context.userId, action: id ? "employee.update" : "employee.create", targetTable: "employees", targetId: row.id, after: row });
     return row;
   });
 
@@ -201,14 +228,8 @@ export const ptGetMyEmployee = createServerFn({ method: "GET" })
   .inputValidator((input) => z.object({ company_id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     await ptAssertMember(context.userId, data.company_id);
-    const { data: emp, error } = await supabaseAdmin
-      .from("pt_employees")
-      .select("*, branch:pt_branches(*), schedule:pt_schedules(*)")
-      .eq("company_id", data.company_id)
-      .eq("user_id", context.userId)
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    return emp;
+    const rows = await fetchEmployeeWithRefs(data.company_id, (q) => q.eq("user_id", context.userId).limit(1));
+    return rows[0] ?? null;
   });
 
 // ---------------- Punches ----------------
@@ -230,14 +251,20 @@ export const ptRegisterPunch = createServerFn({ method: "POST" })
     await ptAssertMember(context.userId, data.company_id);
 
     // find my employee
-    const { data: emp, error: empErr } = await supabaseAdmin
-      .from("pt_employees")
-      .select("id, branch_id, branch:pt_branches(id, lat, lng, geofence_radius_m)")
-      .eq("company_id", data.company_id)
+    const { data: empBase, error: empErr } = await supabaseAdmin
+      .from("employees")
+      .select("id, branch_id")
+      .eq("org_id", data.company_id)
       .eq("user_id", context.userId)
       .maybeSingle();
     if (empErr) throw new Error(empErr.message);
-    if (!emp) throw new Error("Você não está cadastrado como funcionário nesta empresa.");
+    if (!empBase) throw new Error("Você não está cadastrado como funcionário nesta empresa.");
+    let emp: { id: string; branch_id: string | null; branch: { id: string; lat: number | null; lng: number | null; geofence_radius_m: number | null } | null } = { ...empBase, branch: null };
+    if (empBase.branch_id) {
+      const { data: br } = await supabaseAdmin
+        .from("pt_branches").select("id, lat, lng, geofence_radius_m").eq("id", empBase.branch_id).maybeSingle();
+      emp.branch = br as any;
+    }
 
     // company config for blocking
     const { data: company } = await supabaseAdmin
@@ -315,7 +342,7 @@ export const ptListMyTodayPunches = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     await ptAssertMember(context.userId, data.company_id);
     const { data: emp } = await supabaseAdmin
-      .from("pt_employees").select("id").eq("company_id", data.company_id).eq("user_id", context.userId).maybeSingle();
+      .from("employees").select("id").eq("org_id", data.company_id).eq("user_id", context.userId).maybeSingle();
     if (!emp) return [];
     const start = new Date(); start.setHours(0, 0, 0, 0);
     const end = new Date(); end.setHours(23, 59, 59, 999);
@@ -343,9 +370,9 @@ export const ptGetMirror = createServerFn({ method: "GET" })
     await ptAssertMember(context.userId, data.company_id);
     let employee_id = data.employee_id;
     if (!employee_id) {
-      const { data: emp } = await supabaseAdmin
-        .from("pt_employees").select("id").eq("company_id", data.company_id).eq("user_id", context.userId).maybeSingle();
-      if (!emp) {
+      const { data: e0 } = await supabaseAdmin
+        .from("employees").select("id").eq("org_id", data.company_id).eq("user_id", context.userId).maybeSingle();
+      if (!e0) {
         return {
           employee: null as any,
           days: [],
@@ -353,16 +380,25 @@ export const ptGetMirror = createServerFn({ method: "GET" })
           missing: true as const,
         };
       }
-      employee_id = emp.id;
+      employee_id = e0.id;
     } else {
       await ptAssertRole(context.userId, data.company_id, [...MGR_ROLES]);
     }
 
-    const { data: emp, error: empErr } = await supabaseAdmin
-      .from("pt_employees")
-      .select("*, schedule:pt_schedules(*)")
+    const { data: empRow, error: empErr } = await supabaseAdmin
+      .from("employees")
+      .select("id, full_name, schedule_id, profile:profiles(full_name), role:roles_catalog(title)")
       .eq("id", employee_id).single();
     if (empErr) throw new Error(empErr.message);
+    const { data: schedRow } = empRow.schedule_id
+      ? await supabaseAdmin.from("pt_schedules").select("*").eq("id", empRow.schedule_id).maybeSingle()
+      : { data: null as any };
+    const emp: any = {
+      ...empRow,
+      full_name: empRow.full_name || (empRow as any).profile?.full_name || "—",
+      role_title: (empRow as any).role?.title ?? null,
+      schedule: schedRow,
+    };
 
     const [y, m] = data.month.split("-").map(Number);
     const start = new Date(Date.UTC(y, m - 1, 1));
@@ -429,7 +465,7 @@ export const ptGetDashboard = createServerFn({ method: "GET" })
     const start = new Date(); start.setHours(0, 0, 0, 0);
     const end = new Date(); end.setHours(23, 59, 59, 999);
     const [employees, todayPunches, anomalies] = await Promise.all([
-      supabaseAdmin.from("pt_employees").select("id, active").eq("company_id", data.company_id),
+      supabaseAdmin.from("employees").select("id, active").eq("org_id", data.company_id),
       supabaseAdmin.from("pt_punches").select("id, employee_id, kind, anomaly_flags, inside_geofence")
         .eq("company_id", data.company_id)
         .gte("ts", start.toISOString()).lte("ts", end.toISOString()),

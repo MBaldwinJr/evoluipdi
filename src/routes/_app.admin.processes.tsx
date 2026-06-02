@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -205,7 +205,10 @@ function ProcessesPage() {
                         ))}
                       </ol>
                       {p.success_criteria && <p className="text-sm"><strong>Critério de sucesso: </strong>{p.success_criteria}</p>}
-                      <div className="flex gap-2 no-print">
+                      <div className="flex flex-wrap gap-2 no-print">
+                        <Link to="/admin/process-flow/$processId" params={{ processId: p.id }}>
+                          <Button variant="default" size="sm"><Sparkles className="mr-2 h-4 w-4" />Fluxograma</Button>
+                        </Link>
                         <ProcessEditor roleId={selRole} existing={p} onSaved={() => qc.invalidateQueries({ queryKey: ["role-processes"] })}>
                           <Button variant="outline" size="sm"><Pencil className="mr-2 h-4 w-4" />Editar</Button>
                         </ProcessEditor>

@@ -31,10 +31,12 @@ import { Route as AppAdminRolesRouteImport } from './routes/_app.admin.roles'
 import { Route as AppAdminReportsRouteImport } from './routes/_app.admin.reports'
 import { Route as AppAdminProcessesRouteImport } from './routes/_app.admin.processes'
 import { Route as AppAdminPeopleRouteImport } from './routes/_app.admin.people'
+import { Route as AppAdminOrgChartRouteImport } from './routes/_app.admin.org-chart'
 import { Route as AppAdminInterviewsReviewRouteImport } from './routes/_app.admin.interviews-review'
 import { Route as AppAdminInterviewsRouteImport } from './routes/_app.admin.interviews'
 import { Route as AppAdminCandidatesRouteImport } from './routes/_app.admin.candidates'
 import { Route as ApiPublicCandidateTokenRouteImport } from './routes/api/public/candidate.$token'
+import { Route as AppAdminProcessFlowProcessIdRouteImport } from './routes/_app.admin.process-flow.$processId'
 
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
@@ -145,6 +147,11 @@ const AppAdminPeopleRoute = AppAdminPeopleRouteImport.update({
   path: '/admin/people',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAdminOrgChartRoute = AppAdminOrgChartRouteImport.update({
+  id: '/admin/org-chart',
+  path: '/admin/org-chart',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAdminInterviewsReviewRoute =
   AppAdminInterviewsReviewRouteImport.update({
     id: '/admin/interviews-review',
@@ -166,6 +173,12 @@ const ApiPublicCandidateTokenRoute = ApiPublicCandidateTokenRouteImport.update({
   path: '/api/public/candidate/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppAdminProcessFlowProcessIdRoute =
+  AppAdminProcessFlowProcessIdRouteImport.update({
+    id: '/admin/process-flow/$processId',
+    path: '/admin/process-flow/$processId',
+    getParentRoute: () => AppRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -176,6 +189,7 @@ export interface FileRoutesByFullPath {
   '/admin/candidates': typeof AppAdminCandidatesRoute
   '/admin/interviews': typeof AppAdminInterviewsRoute
   '/admin/interviews-review': typeof AppAdminInterviewsReviewRoute
+  '/admin/org-chart': typeof AppAdminOrgChartRoute
   '/admin/people': typeof AppAdminPeopleRoute
   '/admin/processes': typeof AppAdminProcessesRoute
   '/admin/reports': typeof AppAdminReportsRoute
@@ -192,6 +206,7 @@ export interface FileRoutesByFullPath {
   '/me/': typeof AppMeIndexRoute
   '/pt/': typeof AppPtIndexRoute
   '/team/': typeof AppTeamIndexRoute
+  '/admin/process-flow/$processId': typeof AppAdminProcessFlowProcessIdRoute
   '/api/public/candidate/$token': typeof ApiPublicCandidateTokenRoute
 }
 export interface FileRoutesByTo {
@@ -202,6 +217,7 @@ export interface FileRoutesByTo {
   '/admin/candidates': typeof AppAdminCandidatesRoute
   '/admin/interviews': typeof AppAdminInterviewsRoute
   '/admin/interviews-review': typeof AppAdminInterviewsReviewRoute
+  '/admin/org-chart': typeof AppAdminOrgChartRoute
   '/admin/people': typeof AppAdminPeopleRoute
   '/admin/processes': typeof AppAdminProcessesRoute
   '/admin/reports': typeof AppAdminReportsRoute
@@ -218,6 +234,7 @@ export interface FileRoutesByTo {
   '/me': typeof AppMeIndexRoute
   '/pt': typeof AppPtIndexRoute
   '/team': typeof AppTeamIndexRoute
+  '/admin/process-flow/$processId': typeof AppAdminProcessFlowProcessIdRoute
   '/api/public/candidate/$token': typeof ApiPublicCandidateTokenRoute
 }
 export interface FileRoutesById {
@@ -231,6 +248,7 @@ export interface FileRoutesById {
   '/_app/admin/candidates': typeof AppAdminCandidatesRoute
   '/_app/admin/interviews': typeof AppAdminInterviewsRoute
   '/_app/admin/interviews-review': typeof AppAdminInterviewsReviewRoute
+  '/_app/admin/org-chart': typeof AppAdminOrgChartRoute
   '/_app/admin/people': typeof AppAdminPeopleRoute
   '/_app/admin/processes': typeof AppAdminProcessesRoute
   '/_app/admin/reports': typeof AppAdminReportsRoute
@@ -247,6 +265,7 @@ export interface FileRoutesById {
   '/_app/me/': typeof AppMeIndexRoute
   '/_app/pt/': typeof AppPtIndexRoute
   '/_app/team/': typeof AppTeamIndexRoute
+  '/_app/admin/process-flow/$processId': typeof AppAdminProcessFlowProcessIdRoute
   '/api/public/candidate/$token': typeof ApiPublicCandidateTokenRoute
 }
 export interface FileRouteTypes {
@@ -260,6 +279,7 @@ export interface FileRouteTypes {
     | '/admin/candidates'
     | '/admin/interviews'
     | '/admin/interviews-review'
+    | '/admin/org-chart'
     | '/admin/people'
     | '/admin/processes'
     | '/admin/reports'
@@ -276,6 +296,7 @@ export interface FileRouteTypes {
     | '/me/'
     | '/pt/'
     | '/team/'
+    | '/admin/process-flow/$processId'
     | '/api/public/candidate/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -286,6 +307,7 @@ export interface FileRouteTypes {
     | '/admin/candidates'
     | '/admin/interviews'
     | '/admin/interviews-review'
+    | '/admin/org-chart'
     | '/admin/people'
     | '/admin/processes'
     | '/admin/reports'
@@ -302,6 +324,7 @@ export interface FileRouteTypes {
     | '/me'
     | '/pt'
     | '/team'
+    | '/admin/process-flow/$processId'
     | '/api/public/candidate/$token'
   id:
     | '__root__'
@@ -314,6 +337,7 @@ export interface FileRouteTypes {
     | '/_app/admin/candidates'
     | '/_app/admin/interviews'
     | '/_app/admin/interviews-review'
+    | '/_app/admin/org-chart'
     | '/_app/admin/people'
     | '/_app/admin/processes'
     | '/_app/admin/reports'
@@ -330,6 +354,7 @@ export interface FileRouteTypes {
     | '/_app/me/'
     | '/_app/pt/'
     | '/_app/team/'
+    | '/_app/admin/process-flow/$processId'
     | '/api/public/candidate/$token'
   fileRoutesById: FileRoutesById
 }
@@ -498,6 +523,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminPeopleRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/admin/org-chart': {
+      id: '/_app/admin/org-chart'
+      path: '/admin/org-chart'
+      fullPath: '/admin/org-chart'
+      preLoaderRoute: typeof AppAdminOrgChartRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/admin/interviews-review': {
       id: '/_app/admin/interviews-review'
       path: '/admin/interviews-review'
@@ -525,6 +557,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/public/candidate/$token'
       preLoaderRoute: typeof ApiPublicCandidateTokenRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_app/admin/process-flow/$processId': {
+      id: '/_app/admin/process-flow/$processId'
+      path: '/admin/process-flow/$processId'
+      fullPath: '/admin/process-flow/$processId'
+      preLoaderRoute: typeof AppAdminProcessFlowProcessIdRouteImport
+      parentRoute: typeof AppRoute
     }
   }
 }
@@ -554,6 +593,7 @@ interface AppRouteChildren {
   AppAdminCandidatesRoute: typeof AppAdminCandidatesRoute
   AppAdminInterviewsRoute: typeof AppAdminInterviewsRoute
   AppAdminInterviewsReviewRoute: typeof AppAdminInterviewsReviewRoute
+  AppAdminOrgChartRoute: typeof AppAdminOrgChartRoute
   AppAdminPeopleRoute: typeof AppAdminPeopleRoute
   AppAdminProcessesRoute: typeof AppAdminProcessesRoute
   AppAdminReportsRoute: typeof AppAdminReportsRoute
@@ -564,6 +604,7 @@ interface AppRouteChildren {
   AppTeamIdRoute: typeof AppTeamIdRoute
   AppMeIndexRoute: typeof AppMeIndexRoute
   AppTeamIndexRoute: typeof AppTeamIndexRoute
+  AppAdminProcessFlowProcessIdRoute: typeof AppAdminProcessFlowProcessIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -571,6 +612,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAdminCandidatesRoute: AppAdminCandidatesRoute,
   AppAdminInterviewsRoute: AppAdminInterviewsRoute,
   AppAdminInterviewsReviewRoute: AppAdminInterviewsReviewRoute,
+  AppAdminOrgChartRoute: AppAdminOrgChartRoute,
   AppAdminPeopleRoute: AppAdminPeopleRoute,
   AppAdminProcessesRoute: AppAdminProcessesRoute,
   AppAdminReportsRoute: AppAdminReportsRoute,
@@ -581,6 +623,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppTeamIdRoute: AppTeamIdRoute,
   AppMeIndexRoute: AppMeIndexRoute,
   AppTeamIndexRoute: AppTeamIndexRoute,
+  AppAdminProcessFlowProcessIdRoute: AppAdminProcessFlowProcessIdRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

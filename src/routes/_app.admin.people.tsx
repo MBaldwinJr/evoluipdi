@@ -56,10 +56,15 @@ function AdminPeople() {
   return (
     <>
       <PageHeader title="Colaboradores" description="Cadastre, vincule a cargos e gestores" action={
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild><Button><Plus className="mr-2 h-4 w-4" />Novo colaborador</Button></DialogTrigger>
-          <NewPersonDialog roles={roles} depts={depts} managers={managers as any} onCreated={() => { setOpen(false); qc.invalidateQueries(); }} />
-        </Dialog>
+        <div className="flex gap-2">
+          <Button asChild variant="outline">
+            <Link to="/admin/org-chart">Organograma</Link>
+          </Button>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild><Button><Plus className="mr-2 h-4 w-4" />Novo colaborador</Button></DialogTrigger>
+            <NewPersonDialog roles={roles} depts={depts} managers={managers as any} onCreated={() => { setOpen(false); qc.invalidateQueries(); }} />
+          </Dialog>
+        </div>
       } />
       {people.length === 0 ? <EmptyState title="Nenhum colaborador" description="Comece criando seu primeiro colaborador." /> : (
         <div className="grid gap-3 md:grid-cols-2">
