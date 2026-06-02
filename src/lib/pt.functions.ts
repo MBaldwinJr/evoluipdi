@@ -465,7 +465,7 @@ export const ptGetDashboard = createServerFn({ method: "GET" })
     const start = new Date(); start.setHours(0, 0, 0, 0);
     const end = new Date(); end.setHours(23, 59, 59, 999);
     const [employees, todayPunches, anomalies] = await Promise.all([
-      supabaseAdmin.from("pt_employees").select("id, active").eq("company_id", data.company_id),
+      supabaseAdmin.from("employees").select("id, active").eq("org_id", data.company_id),
       supabaseAdmin.from("pt_punches").select("id, employee_id, kind, anomaly_flags, inside_geofence")
         .eq("company_id", data.company_id)
         .gte("ts", start.toISOString()).lte("ts", end.toISOString()),
