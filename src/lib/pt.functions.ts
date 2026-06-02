@@ -213,7 +213,7 @@ export const ptUpsertEmployee = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await ptAssertRole(context.userId, data.company_id, [...RH_ROLES]);
     const { id, company_id, role_title: _ignored, ...rest } = data;
-    const payload: Record<string, unknown> = { ...rest, org_id: company_id };
+    const payload = { ...rest, org_id: company_id };
     const q = id
       ? supabaseAdmin.from("employees").update(payload).eq("id", id).select("*").single()
       : supabaseAdmin.from("employees").insert(payload).select("*").single();
