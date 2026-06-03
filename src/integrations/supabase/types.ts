@@ -684,6 +684,39 @@ export type Database = {
           },
         ]
       }
+      leads: {
+        Row: {
+          company: string | null
+          created_at: string
+          email: string
+          id: string
+          message: string | null
+          name: string
+          phone: string | null
+          source: string | null
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          message?: string | null
+          name: string
+          phone?: string | null
+          source?: string | null
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string | null
+          name?: string
+          phone?: string | null
+          source?: string | null
+        }
+        Relationships: []
+      }
       learning_logs: {
         Row: {
           content: string | null
@@ -805,6 +838,48 @@ export type Database = {
           },
         ]
       }
+      org_subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean
+          created_at: string
+          current_period_end: string | null
+          id: string
+          interval: string | null
+          org_id: string
+          plan_code: Database["public"]["Enums"]["plan_code"]
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          interval?: string | null
+          org_id: string
+          plan_code?: Database["public"]["Enums"]["plan_code"]
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          interval?: string | null
+          org_id?: string
+          plan_code?: Database["public"]["Enums"]["plan_code"]
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       orgs: {
         Row: {
           block_outside_geofence: boolean
@@ -821,6 +896,7 @@ export type Database = {
           status: Database["public"]["Enums"]["org_status"]
           timezone: string
           trade_name: string | null
+          trial_ends_at: string
           updated_at: string
         }
         Insert: {
@@ -838,6 +914,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["org_status"]
           timezone?: string
           trade_name?: string | null
+          trial_ends_at?: string
           updated_at?: string
         }
         Update: {
@@ -855,6 +932,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["org_status"]
           timezone?: string
           trade_name?: string | null
+          trial_ends_at?: string
           updated_at?: string
         }
         Relationships: []
@@ -1727,6 +1805,7 @@ export type Database = {
         Args: { _module: string; _org: string }
         Returns: boolean
       }
+      org_is_active: { Args: { _org_id: string }; Returns: boolean }
       orgs_for_user: { Args: { _user: string }; Returns: string[] }
       pt_companies_for_user: { Args: { _user: string }; Returns: string[] }
       pt_has_role: {
