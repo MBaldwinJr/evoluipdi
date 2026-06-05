@@ -78,6 +78,7 @@ function AppLayout() {
                 Plano: <span className="font-medium text-foreground">{ent?.plan_code ?? "free"}</span>
               </div>
             </header>
+            <TrialBanner orgId={activeId!} />
             <main className="flex-1 overflow-auto p-6">
               <Outlet />
             </main>
@@ -86,6 +87,46 @@ function AppLayout() {
       </SidebarProvider>
     </OrgProvider>
   );
+}
+
+function TrialBanner({ orgId }: { orgId: string }) {
+  const statusFn = useServerFn(billingGetStatus);
+  const { data } = useQuery({
+    queryKey: ["billing", "banner", orgId],
+    queryFn: () => statusFn({ data: { org_id: orgId } }),
+    enabled: !!orgId,
+    staleTime: 5 * 60 * 1000,
+  });
+  if (!data) return null;
+  if (data.subscription?.status === "active") return null;
+
+  if (data.is_expired) {
+    return (
+      <div className="flex items-center gap-3 border-b border-destructive/30 bg-destructive/10 px-4 py-2 text-sm">
+        <AlertTriangle className="h-4 w-4 text-destructive" />
+        <span>Seu período de teste expirou. Assine um plano para continuar usando.</span>
+        <Button asChild size="sm" variant="destructive" className="ml-auto">
+          <Link to="/billing">Ver planos</Link>
+        </Button>
+      </div>
+    );
+  }
+
+  if (data.is_in_trial) {
+    const urgent = data.trial_days_left <= 3;
+    return (
+      <div className={`flex items-center gap-3 border-b px-4 py-2 text-sm ${urgent ? "border-amber-500/30 bg-amber-500/10" : "border-primary/30 bg-primary/5"}`}>
+        <Sparkles className="h-4 w-4 text-primary" />
+        <span>
+          {urgent ? "Atenção: " : ""}Você está em período de teste — <strong>{data.trial_days_left} dia(s)</strong> restantes.
+        </span>
+        <Button asChild size="sm" variant={urgent ? "default" : "outline"} className="ml-auto">
+          <Link to="/billing">Assinar agora</Link>
+        </Button>
+      </div>
+    );
+  }
+  return null;
 }
 
 function OrgHeaderSwitcher({ orgs, activeId }: { orgs: Org[]; activeId: string }) {
