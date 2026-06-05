@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useNavigate, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -6,10 +6,12 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { orgListMine, orgGetEntitlements } from "@/lib/org.functions";
+import { billingGetStatus } from "@/lib/billing.functions";
 import { OrgProvider, type Org } from "@/lib/org-context";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
-import { Building2 } from "lucide-react";
+import { Building2, Sparkles, AlertTriangle } from "lucide-react";
 
 export const Route = createFileRoute("/_app")({
   beforeLoad: async () => {
