@@ -3,7 +3,7 @@ import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter, useSidebar,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, User, MessageSquare, Target, Users, Briefcase, ListChecks, FileText, Settings, LogOut, Sparkles, ClipboardCheck, UserPlus, BookOpen, Clock } from "lucide-react";
+import { LayoutDashboard, User, MessageSquare, Target, Users, Briefcase, ListChecks, FileText, Settings, LogOut, Sparkles, ClipboardCheck, UserPlus, BookOpen, Clock, CreditCard } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useOrg } from "@/lib/org-context";
 import { Button } from "@/components/ui/button";
@@ -35,7 +35,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const path = useRouterState({ select: (r) => r.location.pathname });
   const { isRH, isGestor, signOut, user } = useAuth();
-  const { hasModule } = useOrg();
+  const { hasModule, isAdmin } = useOrg();
   const isActive = (u: string) => path === u || path.startsWith(u + "/");
   const showPonto = hasModule("ponto");
   const showRH = isRH && hasModule("rh");
@@ -118,6 +118,21 @@ export function AppSidebar() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Conta</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive("/billing")}>
+                    <Link to="/billing"><CreditCard /><span>Faturamento</span></Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
