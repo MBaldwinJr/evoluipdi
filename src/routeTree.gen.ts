@@ -9,12 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RecursosRouteImport } from './routes/recursos'
+import { Route as PrecosRouteImport } from './routes/precos'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ContatoRouteImport } from './routes/contato'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CandidatoTokenRouteImport } from './routes/candidato.$token'
 import { Route as AppPtRouteImport } from './routes/_app.pt'
+import { Route as AppBillingRouteImport } from './routes/_app.billing'
 import { Route as AppTeamIndexRouteImport } from './routes/_app.team.index'
 import { Route as AppPtIndexRouteImport } from './routes/_app.pt.index'
 import { Route as AppMeIndexRouteImport } from './routes/_app.me.index'
@@ -38,6 +42,16 @@ import { Route as AppAdminCandidatesRouteImport } from './routes/_app.admin.cand
 import { Route as ApiPublicCandidateTokenRouteImport } from './routes/api/public/candidate.$token'
 import { Route as AppAdminProcessFlowProcessIdRouteImport } from './routes/_app.admin.process-flow.$processId'
 
+const RecursosRoute = RecursosRouteImport.update({
+  id: '/recursos',
+  path: '/recursos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrecosRoute = PrecosRouteImport.update({
+  id: '/precos',
+  path: '/precos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
@@ -46,6 +60,11 @@ const OnboardingRoute = OnboardingRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContatoRoute = ContatoRouteImport.update({
+  id: '/contato',
+  path: '/contato',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppRoute = AppRouteImport.update({
@@ -65,6 +84,11 @@ const CandidatoTokenRoute = CandidatoTokenRouteImport.update({
 const AppPtRoute = AppPtRouteImport.update({
   id: '/pt',
   path: '/pt',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppBillingRoute = AppBillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
   getParentRoute: () => AppRoute,
 } as any)
 const AppTeamIndexRoute = AppTeamIndexRouteImport.update({
@@ -182,8 +206,12 @@ const AppAdminProcessFlowProcessIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/contato': typeof ContatoRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/precos': typeof PrecosRoute
+  '/recursos': typeof RecursosRoute
+  '/billing': typeof AppBillingRoute
   '/pt': typeof AppPtRouteWithChildren
   '/candidato/$token': typeof CandidatoTokenRoute
   '/admin/candidates': typeof AppAdminCandidatesRoute
@@ -211,8 +239,12 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/contato': typeof ContatoRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/precos': typeof PrecosRoute
+  '/recursos': typeof RecursosRoute
+  '/billing': typeof AppBillingRoute
   '/candidato/$token': typeof CandidatoTokenRoute
   '/admin/candidates': typeof AppAdminCandidatesRoute
   '/admin/interviews': typeof AppAdminInterviewsRoute
@@ -241,8 +273,12 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
+  '/contato': typeof ContatoRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/precos': typeof PrecosRoute
+  '/recursos': typeof RecursosRoute
+  '/_app/billing': typeof AppBillingRoute
   '/_app/pt': typeof AppPtRouteWithChildren
   '/candidato/$token': typeof CandidatoTokenRoute
   '/_app/admin/candidates': typeof AppAdminCandidatesRoute
@@ -272,8 +308,12 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/contato'
     | '/login'
     | '/onboarding'
+    | '/precos'
+    | '/recursos'
+    | '/billing'
     | '/pt'
     | '/candidato/$token'
     | '/admin/candidates'
@@ -301,8 +341,12 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/contato'
     | '/login'
     | '/onboarding'
+    | '/precos'
+    | '/recursos'
+    | '/billing'
     | '/candidato/$token'
     | '/admin/candidates'
     | '/admin/interviews'
@@ -330,8 +374,12 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_app'
+    | '/contato'
     | '/login'
     | '/onboarding'
+    | '/precos'
+    | '/recursos'
+    | '/_app/billing'
     | '/_app/pt'
     | '/candidato/$token'
     | '/_app/admin/candidates'
@@ -361,14 +409,31 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
+  ContatoRoute: typeof ContatoRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
+  PrecosRoute: typeof PrecosRoute
+  RecursosRoute: typeof RecursosRoute
   CandidatoTokenRoute: typeof CandidatoTokenRoute
   ApiPublicCandidateTokenRoute: typeof ApiPublicCandidateTokenRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/recursos': {
+      id: '/recursos'
+      path: '/recursos'
+      fullPath: '/recursos'
+      preLoaderRoute: typeof RecursosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/precos': {
+      id: '/precos'
+      path: '/precos'
+      fullPath: '/precos'
+      preLoaderRoute: typeof PrecosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/onboarding': {
       id: '/onboarding'
       path: '/onboarding'
@@ -381,6 +446,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contato': {
+      id: '/contato'
+      path: '/contato'
+      fullPath: '/contato'
+      preLoaderRoute: typeof ContatoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app': {
@@ -409,6 +481,13 @@ declare module '@tanstack/react-router' {
       path: '/pt'
       fullPath: '/pt'
       preLoaderRoute: typeof AppPtRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/billing': {
+      id: '/_app/billing'
+      path: '/billing'
+      fullPath: '/billing'
+      preLoaderRoute: typeof AppBillingRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/team/': {
@@ -589,6 +668,7 @@ const AppPtRouteChildren: AppPtRouteChildren = {
 const AppPtRouteWithChildren = AppPtRoute._addFileChildren(AppPtRouteChildren)
 
 interface AppRouteChildren {
+  AppBillingRoute: typeof AppBillingRoute
   AppPtRoute: typeof AppPtRouteWithChildren
   AppAdminCandidatesRoute: typeof AppAdminCandidatesRoute
   AppAdminInterviewsRoute: typeof AppAdminInterviewsRoute
@@ -608,6 +688,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppBillingRoute: AppBillingRoute,
   AppPtRoute: AppPtRouteWithChildren,
   AppAdminCandidatesRoute: AppAdminCandidatesRoute,
   AppAdminInterviewsRoute: AppAdminInterviewsRoute,
@@ -631,8 +712,11 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
+  ContatoRoute: ContatoRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
+  PrecosRoute: PrecosRoute,
+  RecursosRoute: RecursosRoute,
   CandidatoTokenRoute: CandidatoTokenRoute,
   ApiPublicCandidateTokenRoute: ApiPublicCandidateTokenRoute,
 }
