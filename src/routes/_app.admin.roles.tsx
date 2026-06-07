@@ -30,16 +30,30 @@ function AdminRoles() {
   const [autoGen, setAutoGen] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [selRole, setSelRole] = useState<string>("");
+  const [deptSearch, setDeptSearch] = useState("");
+  const [roleSearch, setRoleSearch] = useState("");
+  const [roleDeptFilter, setRoleDeptFilter] = useState("all");
   const generateContent = useServerFn(generateRoleContentFn);
 
   const { data: depts = [] } = useQuery({ queryKey: ["depts"], queryFn: async () => (await supabase.from("departments").select("*").order("name")).data ?? [] });
-  const { data: roles = [] } = useQuery({ queryKey: ["roles"], queryFn: async () => (await supabase.from("roles_catalog").select("*, department:departments(name)").order("title")).data ?? [] });
+  const { data: roles = [] } = useQuery({ queryKey: ["roles"], queryFn: async () => (await supabase.from("roles_catalog").select("*, department:departments(id, name)").order("title")).data ?? [] });
   const { data: items = [] } = useQuery({
     queryKey: ["rcf", selRole], enabled: !!selRole,
     queryFn: async () => (await supabase.from("rcf_items").select("*").eq("role_id", selRole).order("sort_order")).data ?? [],
   });
 
   if (!isRH) return <EmptyState title="Acesso restrito" description="Apenas RH." />;
+
+  const dq = deptSearch.trim().toLowerCase();
+  const filteredDepts = depts.filter((d: any) => !dq || d.name.toLowerCase().includes(dq));
+  const rq = roleSearch.trim().toLowerCase();
+  const filteredRoles = roles.filter((r: any) => {
+    if (roleDeptFilter === "_none" && r.department_id) return false;
+    if (roleDeptFilter !== "all" && roleDeptFilter !== "_none" && r.department_id !== roleDeptFilter) return false;
+    if (rq && !(r.title ?? "").toLowerCase().includes(rq)) return false;
+    return true;
+  });
+
 
   const addDept = async () => {
     if (!newDept) return;
