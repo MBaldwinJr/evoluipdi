@@ -82,9 +82,29 @@ function AdminPeople() {
           </Dialog>
         </div>
       } />
-      {people.length === 0 ? <EmptyState title="Nenhum colaborador" description="Comece criando seu primeiro colaborador." /> : (
+      <div className="mb-4 flex flex-wrap gap-2">
+        <Input placeholder="Buscar por nome ou e-mail…" value={search} onChange={(e) => setSearch(e.target.value)} className="w-64" />
+        <Select value={roleFilter} onValueChange={setRoleFilter}>
+          <SelectTrigger className="w-52"><SelectValue placeholder="Cargo" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os cargos</SelectItem>
+            <SelectItem value="_none">Sem cargo</SelectItem>
+            {roles.map((r: any) => <SelectItem key={r.id} value={r.id}>{r.title}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={deptFilter} onValueChange={setDeptFilter}>
+          <SelectTrigger className="w-52"><SelectValue placeholder="Setor" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os setores</SelectItem>
+            <SelectItem value="_none">Sem setor</SelectItem>
+            {depts.map((d: any) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <p className="ml-auto self-center text-xs text-muted-foreground">{filteredPeople.length} de {people.length}</p>
+      </div>
+      {filteredPeople.length === 0 ? <EmptyState title="Nenhum colaborador" description="Ajuste os filtros ou cadastre um novo colaborador." /> : (
         <div className="grid gap-3 md:grid-cols-2">
-          {people.map((p: any) => (
+          {filteredPeople.map((p: any) => (
             <Card key={p.id}><CardContent className="pt-6 space-y-2">
               <div className="flex justify-between"><p className="font-medium">{p.profile?.full_name || p.profile?.email}</p>
                 <Badge variant="secondary">{p.role?.title ?? "Sem cargo"}</Badge></div>
