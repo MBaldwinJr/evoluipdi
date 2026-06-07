@@ -35,6 +35,9 @@ function AdminPeople() {
   const { isRH } = useAuth();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [deptFilter, setDeptFilter] = useState("all");
   const { data: people = [] } = useQuery({
     queryKey: ["admin-people"], enabled: isRH,
     queryFn: async () => (await supabase.from("employees").select("id, user_id, hire_date, role_id, department_id, profile:profiles!employees_user_id_profiles_fkey(full_name, email), role:roles_catalog(id, title), department:departments(id, name)")).data ?? [],
@@ -52,6 +55,19 @@ function AdminPeople() {
   });
 
   if (!isRH) return <EmptyState title="Acesso restrito" description="Apenas o RH pode acessar esta área." />;
+
+  const q = search.trim().toLowerCase();
+  const filteredPeople = people.filter((p: any) => {
+    if (roleFilter === "_none" && p.role_id) return false;
+    if (roleFilter !== "all" && roleFilter !== "_none" && p.role_id !== roleFilter) return false;
+    if (deptFilter === "_none" && p.department_id) return false;
+    if (deptFilter !== "all" && deptFilter !== "_none" && p.department_id !== deptFilter) return false;
+    if (q) {
+      const hay = `${p.profile?.full_name ?? ""} ${p.profile?.email ?? ""}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
 
   return (
     <>
