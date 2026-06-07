@@ -31,6 +31,9 @@ function ProcessesPage() {
   const [genBusy, setGenBusy] = useState(false);
   const [genAllBusy, setGenAllBusy] = useState(false);
   const [companyOpen, setCompanyOpen] = useState(false);
+  const [roleSearch, setRoleSearch] = useState("");
+  const [deptFilter, setDeptFilter] = useState("all");
+  const [coverageFilter, setCoverageFilter] = useState("all");
 
   const generate = useServerFn(generateProcessesFn);
   const generateAll = useServerFn(generateAllMissingProcessesFn);
@@ -45,7 +48,7 @@ function ProcessesPage() {
   const { data: roles = [] } = useQuery({
     queryKey: ["roles-with-counts"],
     queryFn: async () => {
-      const { data: rs } = await supabase.from("roles_catalog").select("id, title, department:departments(name)").order("title");
+      const { data: rs } = await supabase.from("roles_catalog").select("id, title, department_id, department:departments(id, name)").order("title");
       const { data: ps } = await supabase.from("role_processes").select("role_id");
       const counts = new Map<string, number>();
       (ps ?? []).forEach((p: any) => counts.set(p.role_id, (counts.get(p.role_id) ?? 0) + 1));
