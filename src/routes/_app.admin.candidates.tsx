@@ -42,12 +42,16 @@ function CandidatesPage() {
   const qc = useQueryClient();
   const [openNew, setOpenNew] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [hireFilter, setHireFilter] = useState("all");
 
   const { data: list = [], isLoading } = useQuery({
     queryKey: ["candidate-invites"],
     queryFn: async () => (await supabase
       .from("candidate_invites")
-      .select("id, candidate_name, candidate_email, status, hire_status, created_at, submitted_at, analyzed_at, cv_uploaded_at, presential_done, token, role:roles_catalog(title)")
+      .select("id, candidate_name, candidate_email, status, hire_status, created_at, submitted_at, analyzed_at, cv_uploaded_at, presential_done, token, role:roles_catalog(id, title)")
       .order("created_at", { ascending: false })).data ?? [],
   });
 
@@ -67,6 +71,22 @@ function CandidatesPage() {
     toast.success("Link copiado!");
   };
 
+  const roleOptions = Array.from(
+    new Map(list.map((c: any) => c.role).filter(Boolean).map((r: any) => [r.id, r])).values()
+  ) as any[];
+
+  const q = search.trim().toLowerCase();
+  const filtered = list.filter((c: any) => {
+    if (roleFilter !== "all" && c.role?.id !== roleFilter) return false;
+    if (statusFilter !== "all" && c.status !== statusFilter) return false;
+    if (hireFilter !== "all" && c.hire_status !== hireFilter) return false;
+    if (q) {
+      const hay = `${c.candidate_name ?? ""} ${c.candidate_email ?? ""}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
   return (
     <>
       <PageHeader
@@ -80,10 +100,36 @@ function CandidatesPage() {
         }
       />
 
+      <div className="mb-4 flex flex-wrap gap-2">
+        <Input placeholder="Buscar por nome ou e-mail…" value={search} onChange={(e) => setSearch(e.target.value)} className="w-64" />
+        <Select value={roleFilter} onValueChange={setRoleFilter}>
+          <SelectTrigger className="w-52"><SelectValue placeholder="Cargo" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os cargos</SelectItem>
+            {roleOptions.map((r) => <SelectItem key={r.id} value={r.id}>{r.title}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-48"><SelectValue placeholder="Status resposta" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os status</SelectItem>
+            {Object.entries(STATUS_LABEL).map(([v, l]) => <SelectItem key={v} value={v}>{l.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={hireFilter} onValueChange={setHireFilter}>
+          <SelectTrigger className="w-48"><SelectValue placeholder="Contratação" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Toda contratação</SelectItem>
+            {Object.entries(HIRE_LABEL).map(([v, l]) => <SelectItem key={v} value={v}>{l.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <p className="ml-auto self-center text-xs text-muted-foreground">{filtered.length} de {list.length}</p>
+      </div>
+
       {isLoading ? <p className="text-sm text-muted-foreground">Carregando…</p> :
-       list.length === 0 ? <EmptyState title="Nenhum candidato" description="Crie um convite para começar." /> : (
+       filtered.length === 0 ? <EmptyState title="Nenhum candidato" description="Ajuste os filtros ou crie um convite." /> : (
         <div className="grid gap-3 md:grid-cols-2">
-          {list.map((c: any) => {
+          {filtered.map((c: any) => {
             const st = STATUS_LABEL[c.status] ?? { label: c.status, variant: "secondary" };
             const hs = HIRE_LABEL[c.hire_status] ?? { label: c.hire_status, variant: "secondary" };
             return (

@@ -30,16 +30,30 @@ function AdminRoles() {
   const [autoGen, setAutoGen] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [selRole, setSelRole] = useState<string>("");
+  const [deptSearch, setDeptSearch] = useState("");
+  const [roleSearch, setRoleSearch] = useState("");
+  const [roleDeptFilter, setRoleDeptFilter] = useState("all");
   const generateContent = useServerFn(generateRoleContentFn);
 
   const { data: depts = [] } = useQuery({ queryKey: ["depts"], queryFn: async () => (await supabase.from("departments").select("*").order("name")).data ?? [] });
-  const { data: roles = [] } = useQuery({ queryKey: ["roles"], queryFn: async () => (await supabase.from("roles_catalog").select("*, department:departments(name)").order("title")).data ?? [] });
+  const { data: roles = [] } = useQuery({ queryKey: ["roles"], queryFn: async () => (await supabase.from("roles_catalog").select("*, department:departments(id, name)").order("title")).data ?? [] });
   const { data: items = [] } = useQuery({
     queryKey: ["rcf", selRole], enabled: !!selRole,
     queryFn: async () => (await supabase.from("rcf_items").select("*").eq("role_id", selRole).order("sort_order")).data ?? [],
   });
 
   if (!isRH) return <EmptyState title="Acesso restrito" description="Apenas RH." />;
+
+  const dq = deptSearch.trim().toLowerCase();
+  const filteredDepts = depts.filter((d: any) => !dq || d.name.toLowerCase().includes(dq));
+  const rq = roleSearch.trim().toLowerCase();
+  const filteredRoles = roles.filter((r: any) => {
+    if (roleDeptFilter === "_none" && r.department_id) return false;
+    if (roleDeptFilter !== "all" && roleDeptFilter !== "_none" && r.department_id !== roleDeptFilter) return false;
+    if (rq && !(r.title ?? "").toLowerCase().includes(rq)) return false;
+    return true;
+  });
+
 
   const addDept = async () => {
     if (!newDept) return;
@@ -87,10 +101,12 @@ function AdminRoles() {
               <Input value={newDept} onChange={(e) => setNewDept(e.target.value)} placeholder="Novo setor" />
               <Button onClick={addDept}>Adicionar</Button>
             </div>
+            <Input value={deptSearch} onChange={(e) => setDeptSearch(e.target.value)} placeholder="Buscar setor…" className="h-8" />
             <ul className="space-y-1 text-sm">
-              {depts.map((d: any) => (
+              {filteredDepts.map((d: any) => (
                 <DeptRow key={d.id} dept={d} onChanged={() => qc.invalidateQueries({ queryKey: ["depts"] })} />
               ))}
+              {filteredDepts.length === 0 && <li className="text-xs text-muted-foreground">Nenhum setor encontrado.</li>}
             </ul>
           </CardContent>
         </Card>
@@ -112,8 +128,19 @@ function AdminRoles() {
                 {generating ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Gerando…</> : "Adicionar cargo"}
               </Button>
             </div>
+            <div className="flex gap-2 pt-2">
+              <Input value={roleSearch} onChange={(e) => setRoleSearch(e.target.value)} placeholder="Buscar cargo…" className="h-8" />
+              <Select value={roleDeptFilter} onValueChange={setRoleDeptFilter}>
+                <SelectTrigger className="h-8 w-44"><SelectValue placeholder="Setor" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os setores</SelectItem>
+                  <SelectItem value="_none">Sem setor</SelectItem>
+                  {depts.map((d: any) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
             <ul className="space-y-1 text-sm">
-              {roles.map((r: any) => (
+              {filteredRoles.map((r: any) => (
                 <RoleRow
                   key={r.id}
                   role={r}
@@ -126,6 +153,7 @@ function AdminRoles() {
                   }}
                 />
               ))}
+              {filteredRoles.length === 0 && <li className="text-xs text-muted-foreground">Nenhum cargo encontrado.</li>}
             </ul>
           </CardContent>
         </Card>

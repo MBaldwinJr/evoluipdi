@@ -31,6 +31,9 @@ function ProcessesPage() {
   const [genBusy, setGenBusy] = useState(false);
   const [genAllBusy, setGenAllBusy] = useState(false);
   const [companyOpen, setCompanyOpen] = useState(false);
+  const [roleSearch, setRoleSearch] = useState("");
+  const [deptFilter, setDeptFilter] = useState("all");
+  const [coverageFilter, setCoverageFilter] = useState("all");
 
   const generate = useServerFn(generateProcessesFn);
   const generateAll = useServerFn(generateAllMissingProcessesFn);
@@ -45,7 +48,7 @@ function ProcessesPage() {
   const { data: roles = [] } = useQuery({
     queryKey: ["roles-with-counts"],
     queryFn: async () => {
-      const { data: rs } = await supabase.from("roles_catalog").select("id, title, department:departments(name)").order("title");
+      const { data: rs } = await supabase.from("roles_catalog").select("id, title, department_id, department:departments(id, name)").order("title");
       const { data: ps } = await supabase.from("role_processes").select("role_id");
       const counts = new Map<string, number>();
       (ps ?? []).forEach((p: any) => counts.set(p.role_id, (counts.get(p.role_id) ?? 0) + 1));
@@ -127,9 +130,41 @@ function ProcessesPage() {
       <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
         <Card className="no-print h-fit">
           <CardHeader><CardTitle className="text-base">Cargos</CardTitle></CardHeader>
-          <CardContent className="space-y-1">
-            {roles.length === 0 && <p className="text-sm text-muted-foreground">Nenhum cargo cadastrado.</p>}
-            {roles.map((r: any) => (
+          <CardContent className="space-y-2">
+            <Input placeholder="Buscar cargo…" value={roleSearch} onChange={(e) => setRoleSearch(e.target.value)} className="h-8" />
+            <div className="flex gap-2">
+              <Select value={deptFilter} onValueChange={setDeptFilter}>
+                <SelectTrigger className="h-8"><SelectValue placeholder="Setor" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os setores</SelectItem>
+                  <SelectItem value="_none">Sem setor</SelectItem>
+                  {Array.from(new Map(roles.map((r: any) => r.department).filter((d: any) => d?.id).map((d: any) => [d.id, d])).values()).map((d: any) => (
+                    <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={coverageFilter} onValueChange={setCoverageFilter}>
+                <SelectTrigger className="h-8 w-36"><SelectValue placeholder="Processos" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="with">Com processos</SelectItem>
+                  <SelectItem value="without">Sem processos</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {(() => {
+              const q = roleSearch.trim().toLowerCase();
+              const list = roles.filter((r: any) => {
+                if (deptFilter === "_none" && r.department_id) return false;
+                if (deptFilter !== "all" && deptFilter !== "_none" && r.department_id !== deptFilter) return false;
+                if (coverageFilter === "with" && (r.count ?? 0) === 0) return false;
+                if (coverageFilter === "without" && (r.count ?? 0) > 0) return false;
+                if (q && !(r.title ?? "").toLowerCase().includes(q)) return false;
+                return true;
+              });
+              if (roles.length === 0) return <p className="text-sm text-muted-foreground">Nenhum cargo cadastrado.</p>;
+              if (list.length === 0) return <p className="text-sm text-muted-foreground">Nenhum cargo encontrado.</p>;
+              return list.map((r: any) => (
               <button key={r.id} onClick={() => setSelRole(r.id)}
                 className={`w-full rounded-md border px-3 py-2 text-left text-sm transition ${selRole === r.id ? "border-primary bg-primary/5" : "hover:bg-muted"}`}>
                 <div className="flex items-center justify-between gap-2">
@@ -140,7 +175,8 @@ function ProcessesPage() {
                   <Badge variant={r.count ? "default" : "outline"}>{r.count}</Badge>
                 </div>
               </button>
-            ))}
+            ));
+            })()}
           </CardContent>
         </Card>
 

@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, EmptyState } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -25,36 +26,60 @@ function ReviewInterviews() {
   const { isRH, isGestor } = useAuth();
   const qc = useQueryClient();
   const [kindFilter, setKindFilter] = useState<string>("all");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [search, setSearch] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
 
   const { data: interviews = [], isLoading } = useQuery({
     queryKey: ["applied-interviews"],
     queryFn: async () => (await supabase
       .from("interviews")
-      .select("id, kind, occurred_at, notes, overall_level, employee:employees(id, profile:profiles(full_name, email), role:roles_catalog(title))")
+      .select("id, kind, occurred_at, notes, overall_level, employee:employees(id, profile:profiles(full_name, email), role:roles_catalog(id, title))")
       .order("occurred_at", { ascending: false })
       .limit(200)).data ?? [],
   });
 
   if (!isRH && !isGestor) return <EmptyState title="Acesso restrito" description="Apenas RH ou gestores." />;
 
-  const filtered = interviews.filter((i: any) => kindFilter === "all" || i.kind === kindFilter);
+  const roleOptions = Array.from(
+    new Map(interviews.map((i: any) => i.employee?.role).filter(Boolean).map((r: any) => [r.id, r])).values()
+  ) as any[];
+
+  const q = search.trim().toLowerCase();
+  const filtered = interviews.filter((i: any) => {
+    if (kindFilter !== "all" && i.kind !== kindFilter) return false;
+    if (roleFilter !== "all" && i.employee?.role?.id !== roleFilter) return false;
+    if (q) {
+      const name = (i.employee?.profile?.full_name ?? i.employee?.profile?.email ?? "").toLowerCase();
+      if (!name.includes(q)) return false;
+    }
+    return true;
+  });
 
   return (
     <>
       <PageHeader
         title="Entrevistas aplicadas"
         description="Revise entrevistas registradas e gere análises com IA."
-        action={
-          <Select value={kindFilter} onValueChange={setKindFilter}>
-            <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os tipos</SelectItem>
-              {Object.entries(KIND_LABEL).map(([k, l]) => <SelectItem key={k} value={k}>{l}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        }
       />
+      <div className="mb-4 flex flex-wrap gap-2">
+        <Input placeholder="Buscar por colaborador…" value={search} onChange={(e) => setSearch(e.target.value)} className="w-60" />
+        <Select value={kindFilter} onValueChange={setKindFilter}>
+          <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os tipos</SelectItem>
+            {Object.entries(KIND_LABEL).map(([k, l]) => <SelectItem key={k} value={k}>{l}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={roleFilter} onValueChange={setRoleFilter}>
+          <SelectTrigger className="w-52"><SelectValue placeholder="Cargo" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os cargos</SelectItem>
+            {roleOptions.map((r) => <SelectItem key={r.id} value={r.id}>{r.title}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <p className="ml-auto self-center text-xs text-muted-foreground">{filtered.length} de {interviews.length}</p>
+      </div>
 
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Carregando…</p>

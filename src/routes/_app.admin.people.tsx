@@ -35,6 +35,9 @@ function AdminPeople() {
   const { isRH } = useAuth();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [deptFilter, setDeptFilter] = useState("all");
   const { data: people = [] } = useQuery({
     queryKey: ["admin-people"], enabled: isRH,
     queryFn: async () => (await supabase.from("employees").select("id, user_id, hire_date, role_id, department_id, profile:profiles!employees_user_id_profiles_fkey(full_name, email), role:roles_catalog(id, title), department:departments(id, name)")).data ?? [],
@@ -53,6 +56,19 @@ function AdminPeople() {
 
   if (!isRH) return <EmptyState title="Acesso restrito" description="Apenas o RH pode acessar esta área." />;
 
+  const q = search.trim().toLowerCase();
+  const filteredPeople = people.filter((p: any) => {
+    if (roleFilter === "_none" && p.role_id) return false;
+    if (roleFilter !== "all" && roleFilter !== "_none" && p.role_id !== roleFilter) return false;
+    if (deptFilter === "_none" && p.department_id) return false;
+    if (deptFilter !== "all" && deptFilter !== "_none" && p.department_id !== deptFilter) return false;
+    if (q) {
+      const hay = `${p.profile?.full_name ?? ""} ${p.profile?.email ?? ""}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
   return (
     <>
       <PageHeader title="Colaboradores" description="Cadastre, vincule a cargos e gestores" action={
@@ -66,9 +82,29 @@ function AdminPeople() {
           </Dialog>
         </div>
       } />
-      {people.length === 0 ? <EmptyState title="Nenhum colaborador" description="Comece criando seu primeiro colaborador." /> : (
+      <div className="mb-4 flex flex-wrap gap-2">
+        <Input placeholder="Buscar por nome ou e-mail…" value={search} onChange={(e) => setSearch(e.target.value)} className="w-64" />
+        <Select value={roleFilter} onValueChange={setRoleFilter}>
+          <SelectTrigger className="w-52"><SelectValue placeholder="Cargo" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os cargos</SelectItem>
+            <SelectItem value="_none">Sem cargo</SelectItem>
+            {roles.map((r: any) => <SelectItem key={r.id} value={r.id}>{r.title}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={deptFilter} onValueChange={setDeptFilter}>
+          <SelectTrigger className="w-52"><SelectValue placeholder="Setor" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os setores</SelectItem>
+            <SelectItem value="_none">Sem setor</SelectItem>
+            {depts.map((d: any) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <p className="ml-auto self-center text-xs text-muted-foreground">{filteredPeople.length} de {people.length}</p>
+      </div>
+      {filteredPeople.length === 0 ? <EmptyState title="Nenhum colaborador" description="Ajuste os filtros ou cadastre um novo colaborador." /> : (
         <div className="grid gap-3 md:grid-cols-2">
-          {people.map((p: any) => (
+          {filteredPeople.map((p: any) => (
             <Card key={p.id}><CardContent className="pt-6 space-y-2">
               <div className="flex justify-between"><p className="font-medium">{p.profile?.full_name || p.profile?.email}</p>
                 <Badge variant="secondary">{p.role?.title ?? "Sem cargo"}</Badge></div>

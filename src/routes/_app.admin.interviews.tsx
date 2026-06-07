@@ -36,11 +36,14 @@ function AdminInterviews() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [expanded, setExpanded] = useState<any>(null);
+  const [search, setSearch] = useState("");
+  const [kindFilter, setKindFilter] = useState("all");
+  const [roleFilter, setRoleFilter] = useState("all");
 
   const { data: roles = [] } = useQuery({ queryKey: ["roles-cat"], queryFn: async () => (await supabase.from("roles_catalog").select("id, title")).data ?? [] });
   const { data: templates = [] } = useQuery({
     queryKey: ["templates"],
-    queryFn: async () => (await supabase.from("interview_templates").select("*, role:roles_catalog(title)").order("created_at", { ascending: false })).data ?? [],
+    queryFn: async () => (await supabase.from("interview_templates").select("*, role:roles_catalog(id, title)").order("created_at", { ascending: false })).data ?? [],
   });
 
   if (!isRH) return <EmptyState title="Acesso restrito" description="Apenas RH." />;
@@ -51,6 +54,15 @@ function AdminInterviews() {
     toast.success("Roteiro removido");
     qc.invalidateQueries({ queryKey: ["templates"] });
   };
+
+  const q = search.trim().toLowerCase();
+  const filteredTemplates = templates.filter((t: any) => {
+    if (kindFilter !== "all" && t.kind !== kindFilter) return false;
+    if (roleFilter === "_none" && t.role_id) return false;
+    if (roleFilter !== "all" && roleFilter !== "_none" && t.role_id !== roleFilter) return false;
+    if (q && !(t.title ?? "").toLowerCase().includes(q)) return false;
+    return true;
+  });
 
   return (
     <>
@@ -67,11 +79,31 @@ function AdminInterviews() {
 
       <CoverageSection />
 
-      {templates.length === 0 ? (
-        <EmptyState title="Nenhum roteiro criado" description="Crie seu primeiro roteiro de entrevista." />
+      <div className="mb-4 flex flex-wrap gap-2">
+        <Input placeholder="Buscar por título…" value={search} onChange={(e) => setSearch(e.target.value)} className="w-60" />
+        <Select value={kindFilter} onValueChange={setKindFilter}>
+          <SelectTrigger className="w-44"><SelectValue placeholder="Tipo" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os tipos</SelectItem>
+            {KINDS.map(k => <SelectItem key={k.value} value={k.value}>{k.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={roleFilter} onValueChange={setRoleFilter}>
+          <SelectTrigger className="w-52"><SelectValue placeholder="Cargo" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os cargos</SelectItem>
+            <SelectItem value="_none">Sem cargo (genérico)</SelectItem>
+            {roles.map((r: any) => <SelectItem key={r.id} value={r.id}>{r.title}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <p className="ml-auto self-center text-xs text-muted-foreground">{filteredTemplates.length} de {templates.length}</p>
+      </div>
+
+      {filteredTemplates.length === 0 ? (
+        <EmptyState title="Nenhum roteiro encontrado" description="Ajuste os filtros ou crie um novo roteiro." />
       ) : (
         <div className="grid gap-3 md:grid-cols-2">
-          {templates.map((t: any) => {
+          {filteredTemplates.map((t: any) => {
             const qs = Array.isArray(t.questions) ? t.questions : [];
             return (
               <Card key={t.id}>
