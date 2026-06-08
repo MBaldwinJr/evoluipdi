@@ -24,6 +24,24 @@ export const orgListMine = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
+
+    // Super-admin: see every org
+    const { data: superRow } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId!)
+      .eq("role", "super_admin")
+      .maybeSingle();
+
+    if (superRow) {
+      const { data: allOrgs, error } = await supabase
+        .from("orgs")
+        .select("id, legal_name, trade_name, cnpj, status, timezone, block_outside_geofence")
+        .order("created_at", { ascending: false });
+      if (error) throw new Error(error.message);
+      return (allOrgs ?? []).map((o: any) => ({ ...o, roles: ["admin", "rh", "super_admin"] }));
+    }
+
     const { data: members, error } = await supabase
       .from("org_members")
       .select("org_id, role, orgs:org_id (id, legal_name, trade_name, cnpj, status, timezone, block_outside_geofence)")
