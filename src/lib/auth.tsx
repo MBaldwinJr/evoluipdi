@@ -11,6 +11,7 @@ export interface AuthState {
   roles: AppRole[];
   isRH: boolean;
   isGestor: boolean;
+  isSuperAdmin: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   refreshRoles: () => Promise<void>;
