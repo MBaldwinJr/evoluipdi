@@ -34,7 +34,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const path = useRouterState({ select: (r) => r.location.pathname });
-  const { isRH, isGestor, signOut, user } = useAuth();
+  const { isRH, isGestor, isSuperAdmin, signOut, user } = useAuth();
   const { hasModule, isAdmin } = useOrg();
   const isActive = (u: string) => path === u || path.startsWith(u + "/");
   const showPonto = hasModule("ponto");
