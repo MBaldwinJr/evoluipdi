@@ -1787,6 +1787,7 @@ export type Database = {
         Args: { _employee_id: string; _user_id: string }
         Returns: boolean
       }
+      is_super_admin: { Args: { _user: string }; Returns: boolean }
       list_team_directory: {
         Args: never
         Returns: {
@@ -1828,7 +1829,7 @@ export type Database = {
     Enums: {
       action_category: "pratica" | "troca" | "formal"
       action_status: "pendente" | "em_andamento" | "concluida" | "cancelada"
-      app_role: "colaborador" | "gestor" | "rh"
+      app_role: "colaborador" | "gestor" | "rh" | "super_admin"
       feedback_kind: "informal" | "formal"
       gap_severity: "baixa" | "media" | "alta"
       interview_kind:
@@ -2007,7 +2008,7 @@ export const Constants = {
     Enums: {
       action_category: ["pratica", "troca", "formal"],
       action_status: ["pendente", "em_andamento", "concluida", "cancelada"],
-      app_role: ["colaborador", "gestor", "rh"],
+      app_role: ["colaborador", "gestor", "rh", "super_admin"],
       feedback_kind: ["informal", "formal"],
       gap_severity: ["baixa", "media", "alta"],
       interview_kind: [

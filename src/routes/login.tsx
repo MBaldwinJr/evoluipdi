@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -54,7 +54,10 @@ function LoginPage() {
               {busy ? "Entrando..." : "Entrar"}
             </Button>
             <p className="text-center text-xs text-muted-foreground">
-              O acesso é criado pelo RH. Procure seu RH se ainda não tem conta.
+              Não tem conta? <Link to="/signup" className="text-primary hover:underline">Criar conta grátis</Link>
+            </p>
+            <p className="text-center text-xs text-muted-foreground">
+              Colaboradores: o acesso é criado pelo RH da sua empresa.
             </p>
           </form>
         </CardContent>
