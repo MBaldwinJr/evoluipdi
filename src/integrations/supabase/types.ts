@@ -1787,6 +1787,7 @@ export type Database = {
         Args: { _employee_id: string; _user_id: string }
         Returns: boolean
       }
+      is_super_admin: { Args: { _user: string }; Returns: boolean }
       list_team_directory: {
         Args: never
         Returns: {
