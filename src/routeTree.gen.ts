@@ -18,6 +18,7 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CandidatoTokenRouteImport } from './routes/candidato.$token'
 import { Route as AppPtRouteImport } from './routes/_app.pt'
+import { Route as AppPlatformRouteImport } from './routes/_app.platform'
 import { Route as AppBillingRouteImport } from './routes/_app.billing'
 import { Route as AppTeamIndexRouteImport } from './routes/_app.team.index'
 import { Route as AppPtIndexRouteImport } from './routes/_app.pt.index'
@@ -84,6 +85,11 @@ const CandidatoTokenRoute = CandidatoTokenRouteImport.update({
 const AppPtRoute = AppPtRouteImport.update({
   id: '/pt',
   path: '/pt',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPlatformRoute = AppPlatformRouteImport.update({
+  id: '/platform',
+  path: '/platform',
   getParentRoute: () => AppRoute,
 } as any)
 const AppBillingRoute = AppBillingRouteImport.update({
@@ -212,6 +218,7 @@ export interface FileRoutesByFullPath {
   '/precos': typeof PrecosRoute
   '/recursos': typeof RecursosRoute
   '/billing': typeof AppBillingRoute
+  '/platform': typeof AppPlatformRoute
   '/pt': typeof AppPtRouteWithChildren
   '/candidato/$token': typeof CandidatoTokenRoute
   '/admin/candidates': typeof AppAdminCandidatesRoute
@@ -245,6 +252,7 @@ export interface FileRoutesByTo {
   '/precos': typeof PrecosRoute
   '/recursos': typeof RecursosRoute
   '/billing': typeof AppBillingRoute
+  '/platform': typeof AppPlatformRoute
   '/candidato/$token': typeof CandidatoTokenRoute
   '/admin/candidates': typeof AppAdminCandidatesRoute
   '/admin/interviews': typeof AppAdminInterviewsRoute
@@ -279,6 +287,7 @@ export interface FileRoutesById {
   '/precos': typeof PrecosRoute
   '/recursos': typeof RecursosRoute
   '/_app/billing': typeof AppBillingRoute
+  '/_app/platform': typeof AppPlatformRoute
   '/_app/pt': typeof AppPtRouteWithChildren
   '/candidato/$token': typeof CandidatoTokenRoute
   '/_app/admin/candidates': typeof AppAdminCandidatesRoute
@@ -314,6 +323,7 @@ export interface FileRouteTypes {
     | '/precos'
     | '/recursos'
     | '/billing'
+    | '/platform'
     | '/pt'
     | '/candidato/$token'
     | '/admin/candidates'
@@ -347,6 +357,7 @@ export interface FileRouteTypes {
     | '/precos'
     | '/recursos'
     | '/billing'
+    | '/platform'
     | '/candidato/$token'
     | '/admin/candidates'
     | '/admin/interviews'
@@ -380,6 +391,7 @@ export interface FileRouteTypes {
     | '/precos'
     | '/recursos'
     | '/_app/billing'
+    | '/_app/platform'
     | '/_app/pt'
     | '/candidato/$token'
     | '/_app/admin/candidates'
@@ -481,6 +493,13 @@ declare module '@tanstack/react-router' {
       path: '/pt'
       fullPath: '/pt'
       preLoaderRoute: typeof AppPtRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/platform': {
+      id: '/_app/platform'
+      path: '/platform'
+      fullPath: '/platform'
+      preLoaderRoute: typeof AppPlatformRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/billing': {
@@ -669,6 +688,7 @@ const AppPtRouteWithChildren = AppPtRoute._addFileChildren(AppPtRouteChildren)
 
 interface AppRouteChildren {
   AppBillingRoute: typeof AppBillingRoute
+  AppPlatformRoute: typeof AppPlatformRoute
   AppPtRoute: typeof AppPtRouteWithChildren
   AppAdminCandidatesRoute: typeof AppAdminCandidatesRoute
   AppAdminInterviewsRoute: typeof AppAdminInterviewsRoute
@@ -689,6 +709,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppBillingRoute: AppBillingRoute,
+  AppPlatformRoute: AppPlatformRoute,
   AppPtRoute: AppPtRouteWithChildren,
   AppAdminCandidatesRoute: AppAdminCandidatesRoute,
   AppAdminInterviewsRoute: AppAdminInterviewsRoute,
