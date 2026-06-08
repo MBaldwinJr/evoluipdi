@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as RecursosRouteImport } from './routes/recursos'
 import { Route as PrecosRouteImport } from './routes/precos'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
@@ -43,6 +44,11 @@ import { Route as AppAdminCandidatesRouteImport } from './routes/_app.admin.cand
 import { Route as ApiPublicCandidateTokenRouteImport } from './routes/api/public/candidate.$token'
 import { Route as AppAdminProcessFlowProcessIdRouteImport } from './routes/_app.admin.process-flow.$processId'
 
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RecursosRoute = RecursosRouteImport.update({
   id: '/recursos',
   path: '/recursos',
@@ -217,6 +223,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/precos': typeof PrecosRoute
   '/recursos': typeof RecursosRoute
+  '/signup': typeof SignupRoute
   '/billing': typeof AppBillingRoute
   '/platform': typeof AppPlatformRoute
   '/pt': typeof AppPtRouteWithChildren
@@ -251,6 +258,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/precos': typeof PrecosRoute
   '/recursos': typeof RecursosRoute
+  '/signup': typeof SignupRoute
   '/billing': typeof AppBillingRoute
   '/platform': typeof AppPlatformRoute
   '/candidato/$token': typeof CandidatoTokenRoute
@@ -286,6 +294,7 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/precos': typeof PrecosRoute
   '/recursos': typeof RecursosRoute
+  '/signup': typeof SignupRoute
   '/_app/billing': typeof AppBillingRoute
   '/_app/platform': typeof AppPlatformRoute
   '/_app/pt': typeof AppPtRouteWithChildren
@@ -322,6 +331,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/precos'
     | '/recursos'
+    | '/signup'
     | '/billing'
     | '/platform'
     | '/pt'
@@ -356,6 +366,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/precos'
     | '/recursos'
+    | '/signup'
     | '/billing'
     | '/platform'
     | '/candidato/$token'
@@ -390,6 +401,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/precos'
     | '/recursos'
+    | '/signup'
     | '/_app/billing'
     | '/_app/platform'
     | '/_app/pt'
@@ -426,12 +438,20 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   PrecosRoute: typeof PrecosRoute
   RecursosRoute: typeof RecursosRoute
+  SignupRoute: typeof SignupRoute
   CandidatoTokenRoute: typeof CandidatoTokenRoute
   ApiPublicCandidateTokenRoute: typeof ApiPublicCandidateTokenRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/recursos': {
       id: '/recursos'
       path: '/recursos'
@@ -738,9 +758,20 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   PrecosRoute: PrecosRoute,
   RecursosRoute: RecursosRoute,
+  SignupRoute: SignupRoute,
   CandidatoTokenRoute: CandidatoTokenRoute,
   ApiPublicCandidateTokenRoute: ApiPublicCandidateTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
