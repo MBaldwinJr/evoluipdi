@@ -141,6 +141,9 @@ export const orgCreateFromCnpj = createServerFn({ method: "POST" })
       .insert({ org_id: created.id, user_id: userId!, role: "admin" });
     if (memErr) throw new Error(memErr.message);
 
+    // Ensure global RH role so the creator has full access to RH features in their own org
+    await supabase.from("user_roles").insert({ user_id: userId!, role: "rh" });
+
     // Initial plan
     const { error: planErr } = await supabase
       .from("org_plans")
