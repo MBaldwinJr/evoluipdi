@@ -24,7 +24,7 @@ async function getCompanyContext() {
   return { cnae, cnaeDesc, segment, name };
 }
 
-export async function generateProcessesForRole(args: { roleId: string; replace?: boolean }) {
+export async function generateProcessesForRole(args: { roleId: string; replace?: boolean; orgId: string }) {
   const { data: role } = await supabaseAdmin
     .from("roles_catalog")
     .select("id, title, summary, department:departments(name), rcf_items(title, kind, expected_level)")
@@ -41,6 +41,7 @@ Cargo: ${(role as any).title}
 Setor: ${(role as any).department?.name ?? "—"}
 Resumo: ${(role as any).summary ?? "—"}
 RCF do cargo: ${JSON.stringify((role as any).rcf_items ?? [], null, 2)}`;
+
 
   const result = await callAIJson<{ processes: GeneratedProcess[] }>({
     system: `Você é especialista em manuais operacionais (POPs) para empresas do varejo de materiais de construção no Brasil. Gere de 5 a 8 processos completos "como fazer", específicos para o cargo informado, totalmente aderentes ao CNAE da empresa. Use linguagem clara, instrutiva e prática (estilo manual passo a passo). Cada processo deve ter 6 a 12 etapas detalhadas, com o "como fazer" de cada uma (não apenas o que fazer). Considere realidades do setor: atendimento de balcão, vendas técnicas, separação/expedição, estoque, recebimento de mercadorias, conferência, montagem de orçamentos, pós-venda, entregas, etc. Português do Brasil.`,
@@ -84,7 +85,7 @@ RCF do cargo: ${JSON.stringify((role as any).rcf_items ?? [], null, 2)}`;
   });
 
   if (args.replace) {
-    await supabaseAdmin.from("role_processes").delete().eq("role_id", args.roleId);
+    await supabaseAdmin.from("role_processes").delete().eq("role_id", args.roleId).eq("org_id", args.orgId);
   }
 
   const rows = (result.processes ?? []).map((p, idx) => ({
@@ -95,6 +96,7 @@ RCF do cargo: ${JSON.stringify((role as any).rcf_items ?? [], null, 2)}`;
     tools: p.tools,
     success_criteria: p.success_criteria,
     sort_order: idx,
+    org_id: args.orgId,
   }));
   if (rows.length) {
     const { error } = await supabaseAdmin.from("role_processes").insert(rows);
@@ -103,15 +105,16 @@ RCF do cargo: ${JSON.stringify((role as any).rcf_items ?? [], null, 2)}`;
   return { ok: true, count: rows.length };
 }
 
-export async function generateProcessesForAllMissing() {
-  const { data: roles } = await supabaseAdmin.from("roles_catalog").select("id");
-  const { data: existing } = await supabaseAdmin.from("role_processes").select("role_id");
+export async function generateProcessesForAllMissing(orgId: string) {
+  const { data: roles } = await supabaseAdmin.from("roles_catalog").select("id").eq("org_id", orgId);
+  const { data: existing } = await supabaseAdmin.from("role_processes").select("role_id").eq("org_id", orgId);
   const have = new Set((existing ?? []).map((r: any) => r.role_id));
   const missing = (roles ?? []).filter((r: any) => !have.has(r.id));
   let total = 0;
   for (const r of missing) {
-    const res = await generateProcessesForRole({ roleId: (r as any).id });
+    const res = await generateProcessesForRole({ roleId: (r as any).id, orgId });
     total += res.count;
   }
   return { ok: true, rolesProcessed: missing.length, processesCreated: total };
 }
+

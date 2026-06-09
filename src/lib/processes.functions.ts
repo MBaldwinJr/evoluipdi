@@ -2,8 +2,10 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertRH } from "./admin.server";
+import { getUserOrgId } from "./org.server";
 import { generateProcessesForRole, generateProcessesForAllMissing } from "./processes.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+
 
 export const generateProcessesFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -12,15 +14,18 @@ export const generateProcessesFn = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertRH(context.userId);
-    return generateProcessesForRole(data);
+    const orgId = await getUserOrgId(context.userId);
+    return generateProcessesForRole({ ...data, orgId });
   });
 
 export const generateAllMissingProcessesFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertRH(context.userId);
-    return generateProcessesForAllMissing();
+    const orgId = await getUserOrgId(context.userId);
+    return generateProcessesForAllMissing(orgId);
   });
+
 
 const stepSchema = z.object({ title: z.string().min(1).max(300), how: z.string().min(1).max(4000) });
 
@@ -52,6 +57,7 @@ export const upsertProcessFn = createServerFn({ method: "POST" })
       if (error) throw new Error(error.message);
       return { ok: true, id: data.id };
     }
+    const orgId = await getUserOrgId(context.userId);
     const { data: ins, error } = await supabaseAdmin.from("role_processes").insert({
       role_id: data.roleId,
       title: data.title,
@@ -60,7 +66,9 @@ export const upsertProcessFn = createServerFn({ method: "POST" })
       success_criteria: data.success_criteria ?? null,
       steps: data.steps,
       sort_order: data.sort_order ?? 0,
+      org_id: orgId,
     }).select("id").single();
+
     if (error) throw new Error(error.message);
     return { ok: true, id: ins!.id };
   });
