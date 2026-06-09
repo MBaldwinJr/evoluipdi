@@ -105,3 +105,167 @@ export const suggestGapsFromEmployee = createServerFn({ method: "POST" })
       },
     });
   });
+
+// 4) Gerar PDI completo automaticamente a partir dos gaps abertos
+export const generateFullPdiFromGaps = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({
+      employeeId: z.string().uuid(),
+      horizon: z.enum(["curto", "medio", "longo"]).optional(),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const ok = await canAccessEmployee(context.userId, data.employeeId);
+    if (!ok) throw new Error("Acesso negado a este colaborador");
+
+    // Garante que existam gaps; se não, gera via IA primeiro
+    let { data: gaps } = await supabaseAdmin
+      .from("gaps")
+      .select("id, title, severity, justification, root_cause")
+      .eq("employee_id", data.employeeId)
+      .eq("resolved", false);
+
+    if (!gaps || gaps.length === 0) {
+      const empCtx = await getEmployeeAiContext(data.employeeId);
+      const suggested = await callAIJson<{
+        gaps: Array<{ title: string; severity: "baixa" | "media" | "alta"; justification: string; root_cause: string }>;
+      }>({
+        system:
+          "Você é especialista em desenvolvimento humano. Cruze o RCF do cargo com avaliações, feedbacks e entrevistas para identificar de 3 a 5 gaps prioritários. Aplique os 5 porquês para a causa-raiz. Português do Brasil, factual.",
+        user: `Contexto do colaborador:\n${empCtx}`,
+        toolName: "suggest_gaps",
+        toolDescription: "Gaps prioritários com causa-raiz",
+        parameters: {
+          type: "object",
+          properties: {
+            gaps: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  title: { type: "string" },
+                  severity: { type: "string", enum: ["baixa", "media", "alta"] },
+                  justification: { type: "string" },
+                  root_cause: { type: "string" },
+                },
+                required: ["title", "severity", "justification", "root_cause"],
+              },
+            },
+          },
+          required: ["gaps"],
+        },
+      });
+      const rows = (suggested.gaps ?? []).map((g) => ({
+        employee_id: data.employeeId,
+        title: g.title,
+        severity: g.severity,
+        justification: g.justification,
+        root_cause: g.root_cause,
+        source: "IA",
+      }));
+      if (rows.length) {
+        const { data: inserted } = await supabaseAdmin.from("gaps").insert(rows).select("id, title, severity, justification, root_cause");
+        gaps = inserted ?? [];
+      }
+    }
+
+    if (!gaps || gaps.length === 0) {
+      throw new Error("Não há gaps suficientes para gerar um PDI. Registre avaliações, feedbacks ou entrevistas primeiro.");
+    }
+
+    const ctx = await getEmployeeAiContext(data.employeeId);
+    const gapsTxt = gaps.map((g, i) => `${i + 1}) ${g.title} [${g.severity}] — ${g.justification ?? ""} | Causa-raiz: ${g.root_cause ?? ""}`).join("\n");
+
+    const plan = await callAIJson<{
+      objective: string;
+      horizon: "curto" | "medio" | "longo";
+      points: Array<{
+        gap_title: string;
+        description: string;
+        success_criteria: string;
+        actions: Array<{ category: "pratica" | "troca" | "formal"; description: string }>;
+      }>;
+    }>({
+      system:
+        "Você é especialista em PDI (Plano de Desenvolvimento Individual). Gere um PDI completo, coerente e acionável a partir dos gaps prioritários do colaborador. Para cada gap, crie 1 ponto de desenvolvimento com critério de sucesso mensurável e 5 ações no modelo 70-20-10 (3 prática, 1 troca, 1 formal). Objetivo geral curto, inspirador e ligado ao cargo. Português do Brasil, específico, sem generalidades.",
+      user: `Contexto do colaborador:\n${ctx}\n\nGaps prioritários:\n${gapsTxt}\n\nHorizonte preferido: ${data.horizon ?? "medio"}`,
+      toolName: "generate_pdi",
+      toolDescription: "PDI completo com objetivo, pontos e ações 70-20-10",
+      parameters: {
+        type: "object",
+        properties: {
+          objective: { type: "string" },
+          horizon: { type: "string", enum: ["curto", "medio", "longo"] },
+          points: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                gap_title: { type: "string", description: "Título exato do gap relacionado" },
+                description: { type: "string" },
+                success_criteria: { type: "string" },
+                actions: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      category: { type: "string", enum: ["pratica", "troca", "formal"] },
+                      description: { type: "string" },
+                    },
+                    required: ["category", "description"],
+                  },
+                },
+              },
+              required: ["gap_title", "description", "success_criteria", "actions"],
+            },
+          },
+        },
+        required: ["objective", "horizon", "points"],
+      },
+    });
+
+    // Insere PDI
+    const { data: pdi, error: pdiErr } = await supabaseAdmin
+      .from("pdis")
+      .insert({
+        employee_id: data.employeeId,
+        objective: plan.objective,
+        horizon: plan.horizon ?? data.horizon ?? "medio",
+        status: "rascunho",
+      })
+      .select("id")
+      .single();
+    if (pdiErr || !pdi) throw new Error(`Falha ao criar PDI: ${pdiErr?.message}`);
+
+    const gapByTitle = new Map(gaps.map((g) => [g.title.trim().toLowerCase(), g.id]));
+    let pointsCreated = 0;
+    let actionsCreated = 0;
+
+    for (const pt of plan.points ?? []) {
+      const gapId = gapByTitle.get((pt.gap_title ?? "").trim().toLowerCase()) ?? null;
+      const { data: point, error: ptErr } = await supabaseAdmin
+        .from("pdi_development_points")
+        .insert({
+          pdi_id: pdi.id,
+          gap_id: gapId,
+          description: pt.description,
+          success_criteria: pt.success_criteria,
+        })
+        .select("id")
+        .single();
+      if (ptErr || !point) continue;
+      pointsCreated++;
+      const actionRows = (pt.actions ?? []).map((a) => ({
+        development_point_id: point.id,
+        category: a.category,
+        description: a.description,
+      }));
+      if (actionRows.length) {
+        const { error: aErr } = await supabaseAdmin.from("pdi_actions").insert(actionRows);
+        if (!aErr) actionsCreated += actionRows.length;
+      }
+    }
+
+    return { pdiId: pdi.id, pointsCreated, actionsCreated, gapsUsed: gaps.length };
+  });

@@ -15,8 +15,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Sparkles, CheckCircle2, Plus, Trash2, ChevronDown, ChevronRight } from "lucide-react";
-import { suggestPdiActions, suggestGapsFromEmployee } from "@/lib/ai.functions";
+import { Sparkles, CheckCircle2, Plus, Trash2, ChevronDown, ChevronRight, Wand2 } from "lucide-react";
+import { suggestPdiActions, suggestGapsFromEmployee, generateFullPdiFromGaps } from "@/lib/ai.functions";
 
 export const Route = createFileRoute("/_app/me/pdi")({
   component: MyPdiPage,
@@ -26,6 +26,7 @@ function MyPdiPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [genBusy, setGenBusy] = useState(false);
 
   const { data: emp } = useQuery({
     queryKey: ["me-emp", user?.id], enabled: !!user,
@@ -46,21 +47,45 @@ function MyPdiPage() {
     );
   }
 
+  const generateByAI = async () => {
+    setGenBusy(true);
+    try {
+      const r = await generateFullPdiFromGaps({ data: { employeeId: emp.id } });
+      toast.success("PDI gerado pela IA", {
+        description: `${r.pointsCreated} pontos · ${r.actionsCreated} ações · ${r.gapsUsed} gaps usados`,
+      });
+      qc.invalidateQueries({ queryKey: ["me-pdis"] });
+      qc.invalidateQueries({ queryKey: ["me-gaps", emp.id] });
+    } catch (e: any) {
+      toast.error("Não foi possível gerar o PDI", { description: e?.message });
+    } finally {
+      setGenBusy(false);
+    }
+  };
+
   return (
     <>
       <PageHeader
         title="Meu PDI"
         description="Plano de Desenvolvimento Individual em 4 etapas: objetivo → gaps → pontos de desenvolvimento → ações 70-20-10"
         action={
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild><Button><Plus className="mr-2 h-4 w-4" />Novo PDI</Button></DialogTrigger>
-            <NewPdiDialog employeeId={emp.id} onCreated={() => { setOpen(false); qc.invalidateQueries({ queryKey: ["me-pdis"] }); }} />
-          </Dialog>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={generateByAI} disabled={genBusy} className="shadow-elegant">
+              <Wand2 className="mr-2 h-4 w-4" />{genBusy ? "Gerando com IA..." : "Gerar PDI por IA"}
+            </Button>
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild><Button className="bg-gradient-primary text-primary-foreground shadow-elegant hover:opacity-95"><Plus className="mr-2 h-4 w-4" />Novo PDI</Button></DialogTrigger>
+              <NewPdiDialog employeeId={emp.id} onCreated={() => { setOpen(false); qc.invalidateQueries({ queryKey: ["me-pdis"] }); }} />
+            </Dialog>
+          </div>
         }
       />
 
       {pdis.length === 0 ? (
-        <EmptyState title="Nenhum PDI ainda" description="Crie seu primeiro PDI definindo um objetivo claro de desenvolvimento." />
+        <EmptyState
+          title="Nenhum PDI ainda"
+          description="Gere um PDI automaticamente com IA a partir dos seus gaps, ou crie manualmente definindo um objetivo."
+        />
       ) : (
         <div className="space-y-6">
           {pdis.map((p: any) => <PdiCard key={p.id} pdi={p} employeeId={emp.id} />)}
