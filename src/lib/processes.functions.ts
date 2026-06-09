@@ -14,15 +14,18 @@ export const generateProcessesFn = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertRH(context.userId);
-    return generateProcessesForRole(data);
+    const orgId = await getUserOrgId(context.userId);
+    return generateProcessesForRole({ ...data, orgId });
   });
 
 export const generateAllMissingProcessesFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertRH(context.userId);
-    return generateProcessesForAllMissing();
+    const orgId = await getUserOrgId(context.userId);
+    return generateProcessesForAllMissing(orgId);
   });
+
 
 const stepSchema = z.object({ title: z.string().min(1).max(300), how: z.string().min(1).max(4000) });
 
