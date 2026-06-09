@@ -15,6 +15,7 @@ import { Route as PrecosRouteImport } from './routes/precos'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ContatoRouteImport } from './routes/contato'
+import { Route as AcceptInviteRouteImport } from './routes/accept-invite'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CandidatoTokenRouteImport } from './routes/candidato.$token'
@@ -38,6 +39,7 @@ import { Route as AppAdminReportsRouteImport } from './routes/_app.admin.reports
 import { Route as AppAdminProcessesRouteImport } from './routes/_app.admin.processes'
 import { Route as AppAdminPeopleRouteImport } from './routes/_app.admin.people'
 import { Route as AppAdminOrgChartRouteImport } from './routes/_app.admin.org-chart'
+import { Route as AppAdminInvitesRouteImport } from './routes/_app.admin.invites'
 import { Route as AppAdminInterviewsReviewRouteImport } from './routes/_app.admin.interviews-review'
 import { Route as AppAdminInterviewsRouteImport } from './routes/_app.admin.interviews'
 import { Route as AppAdminCandidatesRouteImport } from './routes/_app.admin.candidates'
@@ -72,6 +74,11 @@ const LoginRoute = LoginRouteImport.update({
 const ContatoRoute = ContatoRouteImport.update({
   id: '/contato',
   path: '/contato',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AcceptInviteRoute = AcceptInviteRouteImport.update({
+  id: '/accept-invite',
+  path: '/accept-invite',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppRoute = AppRouteImport.update({
@@ -188,6 +195,11 @@ const AppAdminOrgChartRoute = AppAdminOrgChartRouteImport.update({
   path: '/admin/org-chart',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAdminInvitesRoute = AppAdminInvitesRouteImport.update({
+  id: '/admin/invites',
+  path: '/admin/invites',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAdminInterviewsReviewRoute =
   AppAdminInterviewsReviewRouteImport.update({
     id: '/admin/interviews-review',
@@ -218,6 +230,7 @@ const AppAdminProcessFlowProcessIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/accept-invite': typeof AcceptInviteRoute
   '/contato': typeof ContatoRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
@@ -231,6 +244,7 @@ export interface FileRoutesByFullPath {
   '/admin/candidates': typeof AppAdminCandidatesRoute
   '/admin/interviews': typeof AppAdminInterviewsRoute
   '/admin/interviews-review': typeof AppAdminInterviewsReviewRoute
+  '/admin/invites': typeof AppAdminInvitesRoute
   '/admin/org-chart': typeof AppAdminOrgChartRoute
   '/admin/people': typeof AppAdminPeopleRoute
   '/admin/processes': typeof AppAdminProcessesRoute
@@ -253,6 +267,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/accept-invite': typeof AcceptInviteRoute
   '/contato': typeof ContatoRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
@@ -265,6 +280,7 @@ export interface FileRoutesByTo {
   '/admin/candidates': typeof AppAdminCandidatesRoute
   '/admin/interviews': typeof AppAdminInterviewsRoute
   '/admin/interviews-review': typeof AppAdminInterviewsReviewRoute
+  '/admin/invites': typeof AppAdminInvitesRoute
   '/admin/org-chart': typeof AppAdminOrgChartRoute
   '/admin/people': typeof AppAdminPeopleRoute
   '/admin/processes': typeof AppAdminProcessesRoute
@@ -289,6 +305,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
+  '/accept-invite': typeof AcceptInviteRoute
   '/contato': typeof ContatoRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
@@ -302,6 +319,7 @@ export interface FileRoutesById {
   '/_app/admin/candidates': typeof AppAdminCandidatesRoute
   '/_app/admin/interviews': typeof AppAdminInterviewsRoute
   '/_app/admin/interviews-review': typeof AppAdminInterviewsReviewRoute
+  '/_app/admin/invites': typeof AppAdminInvitesRoute
   '/_app/admin/org-chart': typeof AppAdminOrgChartRoute
   '/_app/admin/people': typeof AppAdminPeopleRoute
   '/_app/admin/processes': typeof AppAdminProcessesRoute
@@ -326,6 +344,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/accept-invite'
     | '/contato'
     | '/login'
     | '/onboarding'
@@ -339,6 +358,7 @@ export interface FileRouteTypes {
     | '/admin/candidates'
     | '/admin/interviews'
     | '/admin/interviews-review'
+    | '/admin/invites'
     | '/admin/org-chart'
     | '/admin/people'
     | '/admin/processes'
@@ -361,6 +381,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/accept-invite'
     | '/contato'
     | '/login'
     | '/onboarding'
@@ -373,6 +394,7 @@ export interface FileRouteTypes {
     | '/admin/candidates'
     | '/admin/interviews'
     | '/admin/interviews-review'
+    | '/admin/invites'
     | '/admin/org-chart'
     | '/admin/people'
     | '/admin/processes'
@@ -396,6 +418,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_app'
+    | '/accept-invite'
     | '/contato'
     | '/login'
     | '/onboarding'
@@ -409,6 +432,7 @@ export interface FileRouteTypes {
     | '/_app/admin/candidates'
     | '/_app/admin/interviews'
     | '/_app/admin/interviews-review'
+    | '/_app/admin/invites'
     | '/_app/admin/org-chart'
     | '/_app/admin/people'
     | '/_app/admin/processes'
@@ -433,6 +457,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
+  AcceptInviteRoute: typeof AcceptInviteRoute
   ContatoRoute: typeof ContatoRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
@@ -485,6 +510,13 @@ declare module '@tanstack/react-router' {
       path: '/contato'
       fullPath: '/contato'
       preLoaderRoute: typeof ContatoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/accept-invite': {
+      id: '/accept-invite'
+      path: '/accept-invite'
+      fullPath: '/accept-invite'
+      preLoaderRoute: typeof AcceptInviteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app': {
@@ -648,6 +680,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminOrgChartRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/admin/invites': {
+      id: '/_app/admin/invites'
+      path: '/admin/invites'
+      fullPath: '/admin/invites'
+      preLoaderRoute: typeof AppAdminInvitesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/admin/interviews-review': {
       id: '/_app/admin/interviews-review'
       path: '/admin/interviews-review'
@@ -713,6 +752,7 @@ interface AppRouteChildren {
   AppAdminCandidatesRoute: typeof AppAdminCandidatesRoute
   AppAdminInterviewsRoute: typeof AppAdminInterviewsRoute
   AppAdminInterviewsReviewRoute: typeof AppAdminInterviewsReviewRoute
+  AppAdminInvitesRoute: typeof AppAdminInvitesRoute
   AppAdminOrgChartRoute: typeof AppAdminOrgChartRoute
   AppAdminPeopleRoute: typeof AppAdminPeopleRoute
   AppAdminProcessesRoute: typeof AppAdminProcessesRoute
@@ -734,6 +774,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAdminCandidatesRoute: AppAdminCandidatesRoute,
   AppAdminInterviewsRoute: AppAdminInterviewsRoute,
   AppAdminInterviewsReviewRoute: AppAdminInterviewsReviewRoute,
+  AppAdminInvitesRoute: AppAdminInvitesRoute,
   AppAdminOrgChartRoute: AppAdminOrgChartRoute,
   AppAdminPeopleRoute: AppAdminPeopleRoute,
   AppAdminProcessesRoute: AppAdminProcessesRoute,
@@ -753,6 +794,7 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
+  AcceptInviteRoute: AcceptInviteRoute,
   ContatoRoute: ContatoRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
@@ -765,13 +807,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

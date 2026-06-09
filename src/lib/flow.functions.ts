@@ -26,7 +26,8 @@ export type FlowDoc = { nodes: FlowNode[]; edges: FlowEdge[] };
 export const getProcessFlow = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ processId: z.string().uuid() }).parse(d))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    await assertRH(context.userId);
     const { data: row, error } = await supabaseAdmin
       .from("role_processes").select("id, title, steps, objective, success_criteria, tools").eq("id", data.processId).maybeSingle();
     if (error) throw new Error(error.message);
