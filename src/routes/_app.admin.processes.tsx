@@ -76,8 +76,11 @@ function ProcessesPage() {
   const handleGenerateAll = async () => {
     setGenAllBusy(true);
     try {
-      const r = await generateAll({});
-      toast.success(`${r.processesCreated} processos gerados em ${r.rolesProcessed} cargos`);
+      const r = (await generateAll()) as { processesCreated?: number; rolesProcessed?: number } | undefined;
+      const created = r?.processesCreated ?? 0;
+      const rolesDone = r?.rolesProcessed ?? 0;
+      if (rolesDone === 0) toast.success("Nenhum cargo pendente — todos já possuem processos.");
+      else toast.success(`${created} processos gerados em ${rolesDone} cargos`);
       qc.invalidateQueries({ queryKey: ["role-processes"] });
       qc.invalidateQueries({ queryKey: ["roles-with-counts"] });
     } catch (e: any) { toast.error(e.message); } finally { setGenAllBusy(false); }
