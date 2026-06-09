@@ -54,6 +54,7 @@ export const upsertProcessFn = createServerFn({ method: "POST" })
       if (error) throw new Error(error.message);
       return { ok: true, id: data.id };
     }
+    const orgId = await getUserOrgId(context.userId);
     const { data: ins, error } = await supabaseAdmin.from("role_processes").insert({
       role_id: data.roleId,
       title: data.title,
@@ -62,7 +63,9 @@ export const upsertProcessFn = createServerFn({ method: "POST" })
       success_criteria: data.success_criteria ?? null,
       steps: data.steps,
       sort_order: data.sort_order ?? 0,
+      org_id: orgId,
     }).select("id").single();
+
     if (error) throw new Error(error.message);
     return { ok: true, id: ins!.id };
   });
