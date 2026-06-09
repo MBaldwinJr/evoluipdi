@@ -496,6 +496,9 @@ export const ptGetSelfieUrl = createServerFn({ method: "GET" })
   .inputValidator((input) => z.object({ company_id: z.string().uuid(), path: z.string() }).parse(input))
   .handler(async ({ data, context }) => {
     await ptAssertRole(context.userId, data.company_id, [...MGR_ROLES]);
+    if (!data.path.startsWith(`${data.company_id}/`)) {
+      throw new Error("Acesso negado: caminho fora da empresa");
+    }
     const { data: signed, error } = await supabaseAdmin.storage.from("pt-selfies").createSignedUrl(data.path, 300);
     if (error) throw new Error(error.message);
     return { url: signed.signedUrl };

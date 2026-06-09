@@ -185,8 +185,23 @@ export const orgUpdatePlan = createServerFn({ method: "POST" })
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
-    const { supabase } = context;
-    // Deactivate current plan
+    const { supabase, userId } = context;
+    // Verify caller is admin/rh of the target org (or super-admin)
+    const { data: mem } = await supabase
+      .from("org_members")
+      .select("role")
+      .eq("org_id", data.org_id)
+      .eq("user_id", userId!)
+      .maybeSingle();
+    const { data: sa } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId!)
+      .eq("role", "super_admin")
+      .maybeSingle();
+    if (!sa && (!mem || !["admin", "rh"].includes((mem as any).role))) {
+      throw new Error("Acesso negado: apenas admin/RH da empresa pode alterar o plano");
+    }
     await supabase.from("org_plans").update({ active: false }).eq("org_id", data.org_id).eq("active", true);
     const { error } = await supabase.from("org_plans").insert({
       org_id: data.org_id,

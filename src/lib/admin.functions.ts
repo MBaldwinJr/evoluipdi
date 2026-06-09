@@ -25,6 +25,7 @@ export const setEmployeeManagerFn = createServerFn({ method: "POST" })
 export const listOrgChartFn = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    await assertRH(context.userId);
     // pick first org of user
     const { data: m } = await supabaseAdmin
       .from("org_members").select("org_id").eq("user_id", context.userId).order("created_at").limit(1).maybeSingle();
