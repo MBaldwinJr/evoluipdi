@@ -30,19 +30,23 @@ function SignupPage() {
         data: { full_name: fullName },
       },
     });
-    setBusy(false);
     if (error) {
+      setBusy(false);
       toast.error("Não foi possível criar a conta", { description: error.message });
       return;
     }
-    if (data.session) {
-      toast.success("Conta criada — vamos cadastrar sua empresa");
-      navigate({ to: "/onboarding" });
-    } else {
-      toast.success("Confirme seu e-mail para continuar", {
-        description: "Enviamos um link para ativar sua conta.",
-      });
+    // Auto-confirm está ativo: garantir sessão fazendo login se necessário
+    if (!data.session) {
+      const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+      if (signInErr) {
+        setBusy(false);
+        toast.error("Conta criada, mas falha ao entrar", { description: signInErr.message });
+        return;
+      }
     }
+    setBusy(false);
+    toast.success("Conta criada — vamos cadastrar sua empresa");
+    navigate({ to: "/onboarding" });
   };
 
   return (
