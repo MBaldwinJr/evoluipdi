@@ -281,6 +281,7 @@ function JobArtsPage() {
                 salary={salary}
                 benefits={Array.isArray(job.benefits) ? job.benefits : []}
                 publicUrl={publicUrl}
+                logoUrl={logoUrl}
               />
             </div>
           </div>
