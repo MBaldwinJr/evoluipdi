@@ -41,7 +41,7 @@ function OnboardingPage() {
   const handleCreate = async () => {
     setLoading(true);
     try {
-      const res = await createFn({ data: { cnpj, plan_code: plan } });
+      const res = await createFn({ data: { cnpj, plan_code: plan, payload: lookup?.payload } });
       if (typeof window !== "undefined") localStorage.setItem("active_org_id", res.id);
       toast.success("Empresa cadastrada com sucesso");
       window.location.href = "/me";
