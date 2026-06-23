@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -35,16 +34,15 @@ export function TalentFormDialog({
 }) {
   const save = useServerFn(upsertTalent);
   const [saving, setSaving] = useState(false);
-  const form = useForm<TalentInput>({
-    resolver: zodResolver(talentSchema),
-    values: initial ?? emptyTalent,
-  });
-  const { register, handleSubmit, watch, setValue, formState: { errors } } = form;
+  const form = useForm<TalentInput>({ values: initial ?? emptyTalent });
+  const { register, handleSubmit, watch, setValue } = form;
 
-  const onSubmit = handleSubmit(async (data) => {
+  const onSubmit = handleSubmit(async (raw) => {
+    const parsed = talentSchema.safeParse(raw);
+    if (!parsed.success) { toast.error(parsed.error.issues[0]?.message ?? "Inválido"); return; }
     setSaving(true);
     try {
-      await save({ data });
+      await save({ data: parsed.data });
       toast.success("Candidato salvo");
       onSaved();
     } catch (e) {
