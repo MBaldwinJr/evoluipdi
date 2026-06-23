@@ -143,6 +143,7 @@ export const orgCreateFromCnpj = createServerFn({ method: "POST" })
       cnpj: z.string().min(11),
       plan_code: z.enum(["free", "starter", "pro", "enterprise"]).default("pro"),
       timezone: z.string().default("America/Sao_Paulo"),
+      payload: z.any().optional(),
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
@@ -150,7 +151,8 @@ export const orgCreateFromCnpj = createServerFn({ method: "POST" })
     const digits = data.cnpj.replace(/\D/g, "");
     if (digits.length !== 14) throw new Error("CNPJ inválido (14 dígitos)");
 
-    const j = await fetchCnpjReceita(digits);
+    const j = data.payload ?? (await fetchCnpjReceita(digits));
+
 
     const code = j.cnae_fiscal ? String(j.cnae_fiscal) : "";
     const formattedCnae = code.length === 7 ? `${code.slice(0, 4)}-${code.slice(4, 5)}/${code.slice(5, 7)}` : code;
