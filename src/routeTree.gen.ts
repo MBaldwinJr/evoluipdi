@@ -44,6 +44,7 @@ import { Route as AppAdminInvitesRouteImport } from './routes/_app.admin.invites
 import { Route as AppAdminInterviewsReviewRouteImport } from './routes/_app.admin.interviews-review'
 import { Route as AppAdminInterviewsRouteImport } from './routes/_app.admin.interviews'
 import { Route as AppAdminCandidatesRouteImport } from './routes/_app.admin.candidates'
+import { Route as AppAdminTalentIndexRouteImport } from './routes/_app.admin.talent.index'
 import { Route as ApiPublicCandidateTokenRouteImport } from './routes/api/public/candidate.$token'
 import { Route as AppAdminProcessFlowProcessIdRouteImport } from './routes/_app.admin.process-flow.$processId'
 
@@ -222,6 +223,11 @@ const AppAdminCandidatesRoute = AppAdminCandidatesRouteImport.update({
   path: '/admin/candidates',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAdminTalentIndexRoute = AppAdminTalentIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppAdminTalentRoute,
+} as any)
 const ApiPublicCandidateTokenRoute = ApiPublicCandidateTokenRouteImport.update({
   id: '/api/public/candidate/$token',
   path: '/api/public/candidate/$token',
@@ -257,7 +263,7 @@ export interface FileRoutesByFullPath {
   '/admin/reports': typeof AppAdminReportsRoute
   '/admin/roles': typeof AppAdminRolesRoute
   '/admin/settings': typeof AppAdminSettingsRoute
-  '/admin/talent': typeof AppAdminTalentRoute
+  '/admin/talent': typeof AppAdminTalentRouteWithChildren
   '/me/feedbacks': typeof AppMeFeedbacksRoute
   '/me/pdi': typeof AppMePdiRoute
   '/pt/dashboard': typeof AppPtDashboardRoute
@@ -271,6 +277,7 @@ export interface FileRoutesByFullPath {
   '/team/': typeof AppTeamIndexRoute
   '/admin/process-flow/$processId': typeof AppAdminProcessFlowProcessIdRoute
   '/api/public/candidate/$token': typeof ApiPublicCandidateTokenRoute
+  '/admin/talent/': typeof AppAdminTalentIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -294,7 +301,6 @@ export interface FileRoutesByTo {
   '/admin/reports': typeof AppAdminReportsRoute
   '/admin/roles': typeof AppAdminRolesRoute
   '/admin/settings': typeof AppAdminSettingsRoute
-  '/admin/talent': typeof AppAdminTalentRoute
   '/me/feedbacks': typeof AppMeFeedbacksRoute
   '/me/pdi': typeof AppMePdiRoute
   '/pt/dashboard': typeof AppPtDashboardRoute
@@ -308,6 +314,7 @@ export interface FileRoutesByTo {
   '/team': typeof AppTeamIndexRoute
   '/admin/process-flow/$processId': typeof AppAdminProcessFlowProcessIdRoute
   '/api/public/candidate/$token': typeof ApiPublicCandidateTokenRoute
+  '/admin/talent': typeof AppAdminTalentIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -334,7 +341,7 @@ export interface FileRoutesById {
   '/_app/admin/reports': typeof AppAdminReportsRoute
   '/_app/admin/roles': typeof AppAdminRolesRoute
   '/_app/admin/settings': typeof AppAdminSettingsRoute
-  '/_app/admin/talent': typeof AppAdminTalentRoute
+  '/_app/admin/talent': typeof AppAdminTalentRouteWithChildren
   '/_app/me/feedbacks': typeof AppMeFeedbacksRoute
   '/_app/me/pdi': typeof AppMePdiRoute
   '/_app/pt/dashboard': typeof AppPtDashboardRoute
@@ -348,6 +355,7 @@ export interface FileRoutesById {
   '/_app/team/': typeof AppTeamIndexRoute
   '/_app/admin/process-flow/$processId': typeof AppAdminProcessFlowProcessIdRoute
   '/api/public/candidate/$token': typeof ApiPublicCandidateTokenRoute
+  '/_app/admin/talent/': typeof AppAdminTalentIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -388,6 +396,7 @@ export interface FileRouteTypes {
     | '/team/'
     | '/admin/process-flow/$processId'
     | '/api/public/candidate/$token'
+    | '/admin/talent/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -411,7 +420,6 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/roles'
     | '/admin/settings'
-    | '/admin/talent'
     | '/me/feedbacks'
     | '/me/pdi'
     | '/pt/dashboard'
@@ -425,6 +433,7 @@ export interface FileRouteTypes {
     | '/team'
     | '/admin/process-flow/$processId'
     | '/api/public/candidate/$token'
+    | '/admin/talent'
   id:
     | '__root__'
     | '/'
@@ -464,6 +473,7 @@ export interface FileRouteTypes {
     | '/_app/team/'
     | '/_app/admin/process-flow/$processId'
     | '/api/public/candidate/$token'
+    | '/_app/admin/talent/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -727,6 +737,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminCandidatesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/admin/talent/': {
+      id: '/_app/admin/talent/'
+      path: '/'
+      fullPath: '/admin/talent/'
+      preLoaderRoute: typeof AppAdminTalentIndexRouteImport
+      parentRoute: typeof AppAdminTalentRoute
+    }
     '/api/public/candidate/$token': {
       id: '/api/public/candidate/$token'
       path: '/api/public/candidate/$token'
@@ -764,6 +781,18 @@ const AppPtRouteChildren: AppPtRouteChildren = {
 
 const AppPtRouteWithChildren = AppPtRoute._addFileChildren(AppPtRouteChildren)
 
+interface AppAdminTalentRouteChildren {
+  AppAdminTalentIndexRoute: typeof AppAdminTalentIndexRoute
+}
+
+const AppAdminTalentRouteChildren: AppAdminTalentRouteChildren = {
+  AppAdminTalentIndexRoute: AppAdminTalentIndexRoute,
+}
+
+const AppAdminTalentRouteWithChildren = AppAdminTalentRoute._addFileChildren(
+  AppAdminTalentRouteChildren,
+)
+
 interface AppRouteChildren {
   AppBillingRoute: typeof AppBillingRoute
   AppPlatformRoute: typeof AppPlatformRoute
@@ -778,7 +807,7 @@ interface AppRouteChildren {
   AppAdminReportsRoute: typeof AppAdminReportsRoute
   AppAdminRolesRoute: typeof AppAdminRolesRoute
   AppAdminSettingsRoute: typeof AppAdminSettingsRoute
-  AppAdminTalentRoute: typeof AppAdminTalentRoute
+  AppAdminTalentRoute: typeof AppAdminTalentRouteWithChildren
   AppMeFeedbacksRoute: typeof AppMeFeedbacksRoute
   AppMePdiRoute: typeof AppMePdiRoute
   AppTeamIdRoute: typeof AppTeamIdRoute
@@ -801,7 +830,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAdminReportsRoute: AppAdminReportsRoute,
   AppAdminRolesRoute: AppAdminRolesRoute,
   AppAdminSettingsRoute: AppAdminSettingsRoute,
-  AppAdminTalentRoute: AppAdminTalentRoute,
+  AppAdminTalentRoute: AppAdminTalentRouteWithChildren,
   AppMeFeedbacksRoute: AppMeFeedbacksRoute,
   AppMePdiRoute: AppMePdiRoute,
   AppTeamIdRoute: AppTeamIdRoute,
