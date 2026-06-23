@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Loader2, Sparkles, Trash2 } from "lucide-react";
+import { Loader2, Sparkles, Trash2, UserCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle,
@@ -20,7 +20,7 @@ import {
   APPLICATION_STAGES, APPLICATION_STAGE_LABEL, type ApplicationStage,
 } from "@/lib/talent-pool.types";
 import {
-  updateApplication, deleteApplication, scoreApplicationAI, moveApplication,
+  updateApplication, deleteApplication, scoreApplicationAI, moveApplication, admitApplication,
 } from "@/lib/talent-pool.functions";
 
 export function ApplicationDrawer({
@@ -36,12 +36,14 @@ export function ApplicationDrawer({
   const move = useServerFn(moveApplication);
   const del = useServerFn(deleteApplication);
   const score = useServerFn(scoreApplicationAI);
+  const admit = useServerFn(admitApplication);
 
   const [notes, setNotes] = useState("");
   const [rating, setRating] = useState<number | "">("");
   const [reason, setReason] = useState("");
   const [scoring, setScoring] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [admitting, setAdmitting] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["application", applicationId],
@@ -110,6 +112,20 @@ export function ApplicationDrawer({
       onOpenChange(false);
       onChanged();
     } catch (e) { toast.error(e instanceof Error ? e.message : "Erro"); }
+  };
+
+  const onAdmit = async () => {
+    if (!data) return;
+    if (!confirm(`Admitir ${data.talent?.full_name ?? "candidato"} como colaborador?`)) return;
+    setAdmitting(true);
+    try {
+      const res = await admit({ data: { application_id: data.id } });
+      toast.success("Admissão concluída");
+      qc.invalidateQueries({ queryKey: ["application", data.id] });
+      onChanged();
+      return res;
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Erro"); }
+    finally { setAdmitting(false); }
   };
 
   return (
@@ -187,11 +203,17 @@ export function ApplicationDrawer({
               </div>
             )}
 
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button onClick={onSave} disabled={saving}>
                 {saving && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
                 Salvar alterações
               </Button>
+              {data.stage !== "rejected" && (
+                <Button variant="default" className="bg-emerald-600 hover:bg-emerald-700" onClick={onAdmit} disabled={admitting}>
+                  {admitting ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <UserCheck className="mr-1 h-4 w-4" />}
+                  Admitir 1-clique
+                </Button>
+              )}
               <Button variant="ghost" className="text-destructive" onClick={onDelete}>
                 <Trash2 className="mr-1 h-4 w-4" />Remover
               </Button>

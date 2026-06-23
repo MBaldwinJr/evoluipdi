@@ -169,3 +169,53 @@ export const scoreApplicationAI = createServerFn({ method: "POST" })
 
     return { score, summary: result.summary };
   });
+
+// ---------- ADMISSÃO 1-CLIQUE ----------
+export const admitApplication = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({
+      application_id: z.string().uuid(),
+      hire_date: z.string().optional(),
+      contract_type: z.string().optional(),
+      weekly_hours: z.coerce.number().optional(),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const orgId = await getUserOrgId(userId);
+
+    const { data: app, error } = await supabase
+      .from("applications")
+      .select("id, stage, job:jobs(id,title,role_id,department_id,employment_type), talent:talent_pool(id,full_name)")
+      .eq("id", data.application_id)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!app?.job || !app?.talent) throw new Error("Candidatura não encontrada");
+
+    const { data: emp, error: empErr } = await supabase
+      .from("employees")
+      .insert({
+        org_id: orgId,
+        full_name: app.talent.full_name,
+        role_id: app.job.role_id ?? null,
+        department_id: app.job.department_id ?? null,
+        hire_date: data.hire_date ?? new Date().toISOString().slice(0, 10),
+        contract_type: data.contract_type ?? (app.job.employment_type ?? "CLT").toString().toUpperCase(),
+        weekly_hours: data.weekly_hours ?? 44,
+        active: true,
+      })
+      .select("id")
+      .single();
+    if (empErr) throw new Error(empErr.message);
+
+    await supabase.from("applications").update({ stage: "hired" }).eq("id", data.application_id);
+    await supabase.from("application_events").insert({
+      org_id: orgId, application_id: data.application_id,
+      event_type: "admitted",
+      payload: { employee_id: emp.id },
+      created_by: userId,
+    });
+
+    return { employee_id: emp.id };
+  });
