@@ -51,27 +51,28 @@ export const upsertPositionKpi = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => positionKpiSchema.parse(d))
   .handler(async ({ data, context }) => {
-    const { supabase } = context;
+    const { supabase, userId } = context;
+    const orgId = await getUserOrgId(userId);
     if (data.id) {
       const { id, ...rest } = data;
       const { error } = await supabase.from("position_kpis").update(rest).eq("id", id);
       if (error) throw new Error(error.message);
       return { id };
     }
-    // upsert by (org_id, role_id) — org_id set by trigger
+    const { id: _ignore, ...insert } = data;
     const { data: existing } = await supabase
       .from("position_kpis")
       .select("id")
       .eq("role_id", data.role_id)
       .maybeSingle();
     if (existing) {
-      const { error } = await supabase.from("position_kpis").update(data).eq("id", existing.id);
+      const { error } = await supabase.from("position_kpis").update(insert).eq("id", existing.id);
       if (error) throw new Error(error.message);
       return { id: existing.id };
     }
     const { data: row, error } = await supabase
       .from("position_kpis")
-      .insert(data)
+      .insert({ ...insert, org_id: orgId })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
