@@ -56,6 +56,7 @@ import { Route as AppAdminTalentPoolRouteImport } from './routes/_app.admin.tale
 import { Route as AppAdminTalentOnboardingRouteImport } from './routes/_app.admin.talent.onboarding'
 import { Route as AppAdminTalentKpisRouteImport } from './routes/_app.admin.talent.kpis'
 import { Route as AppAdminTalentJobsRouteImport } from './routes/_app.admin.talent.jobs'
+import { Route as AppAdminTalentInterviewsRouteImport } from './routes/_app.admin.talent.interviews'
 import { Route as AppAdminProcessFlowProcessIdRouteImport } from './routes/_app.admin.process-flow.$processId'
 import { Route as AppAdminTalentJobsJobIdKanbanRouteImport } from './routes/_app.admin.talent.jobs_.$jobId.kanban'
 import { Route as AppAdminTalentJobsJobIdArtsRouteImport } from './routes/_app.admin.talent.jobs_.$jobId.arts'
@@ -296,6 +297,12 @@ const AppAdminTalentJobsRoute = AppAdminTalentJobsRouteImport.update({
   path: '/jobs',
   getParentRoute: () => AppAdminTalentRoute,
 } as any)
+const AppAdminTalentInterviewsRoute =
+  AppAdminTalentInterviewsRouteImport.update({
+    id: '/interviews',
+    path: '/interviews',
+    getParentRoute: () => AppAdminTalentRoute,
+  } as any)
 const AppAdminProcessFlowProcessIdRoute =
   AppAdminProcessFlowProcessIdRouteImport.update({
     id: '/admin/process-flow/$processId',
@@ -355,6 +362,7 @@ export interface FileRoutesByFullPath {
   '/pt/': typeof AppPtIndexRoute
   '/team/': typeof AppTeamIndexRoute
   '/admin/process-flow/$processId': typeof AppAdminProcessFlowProcessIdRoute
+  '/admin/talent/interviews': typeof AppAdminTalentInterviewsRoute
   '/admin/talent/jobs': typeof AppAdminTalentJobsRoute
   '/admin/talent/kpis': typeof AppAdminTalentKpisRoute
   '/admin/talent/onboarding': typeof AppAdminTalentOnboardingRoute
@@ -403,6 +411,7 @@ export interface FileRoutesByTo {
   '/pt': typeof AppPtIndexRoute
   '/team': typeof AppTeamIndexRoute
   '/admin/process-flow/$processId': typeof AppAdminProcessFlowProcessIdRoute
+  '/admin/talent/interviews': typeof AppAdminTalentInterviewsRoute
   '/admin/talent/jobs': typeof AppAdminTalentJobsRoute
   '/admin/talent/kpis': typeof AppAdminTalentKpisRoute
   '/admin/talent/onboarding': typeof AppAdminTalentOnboardingRoute
@@ -456,6 +465,7 @@ export interface FileRoutesById {
   '/_app/pt/': typeof AppPtIndexRoute
   '/_app/team/': typeof AppTeamIndexRoute
   '/_app/admin/process-flow/$processId': typeof AppAdminProcessFlowProcessIdRoute
+  '/_app/admin/talent/interviews': typeof AppAdminTalentInterviewsRoute
   '/_app/admin/talent/jobs': typeof AppAdminTalentJobsRoute
   '/_app/admin/talent/kpis': typeof AppAdminTalentKpisRoute
   '/_app/admin/talent/onboarding': typeof AppAdminTalentOnboardingRoute
@@ -509,6 +519,7 @@ export interface FileRouteTypes {
     | '/pt/'
     | '/team/'
     | '/admin/process-flow/$processId'
+    | '/admin/talent/interviews'
     | '/admin/talent/jobs'
     | '/admin/talent/kpis'
     | '/admin/talent/onboarding'
@@ -557,6 +568,7 @@ export interface FileRouteTypes {
     | '/pt'
     | '/team'
     | '/admin/process-flow/$processId'
+    | '/admin/talent/interviews'
     | '/admin/talent/jobs'
     | '/admin/talent/kpis'
     | '/admin/talent/onboarding'
@@ -609,6 +621,7 @@ export interface FileRouteTypes {
     | '/_app/pt/'
     | '/_app/team/'
     | '/_app/admin/process-flow/$processId'
+    | '/_app/admin/talent/interviews'
     | '/_app/admin/talent/jobs'
     | '/_app/admin/talent/kpis'
     | '/_app/admin/talent/onboarding'
@@ -968,6 +981,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminTalentJobsRouteImport
       parentRoute: typeof AppAdminTalentRoute
     }
+    '/_app/admin/talent/interviews': {
+      id: '/_app/admin/talent/interviews'
+      path: '/interviews'
+      fullPath: '/admin/talent/interviews'
+      preLoaderRoute: typeof AppAdminTalentInterviewsRouteImport
+      parentRoute: typeof AppAdminTalentRoute
+    }
     '/_app/admin/process-flow/$processId': {
       id: '/_app/admin/process-flow/$processId'
       path: '/admin/process-flow/$processId'
@@ -1013,6 +1033,7 @@ const AppPtRouteChildren: AppPtRouteChildren = {
 const AppPtRouteWithChildren = AppPtRoute._addFileChildren(AppPtRouteChildren)
 
 interface AppAdminTalentRouteChildren {
+  AppAdminTalentInterviewsRoute: typeof AppAdminTalentInterviewsRoute
   AppAdminTalentJobsRoute: typeof AppAdminTalentJobsRoute
   AppAdminTalentKpisRoute: typeof AppAdminTalentKpisRoute
   AppAdminTalentOnboardingRoute: typeof AppAdminTalentOnboardingRoute
@@ -1025,6 +1046,7 @@ interface AppAdminTalentRouteChildren {
 }
 
 const AppAdminTalentRouteChildren: AppAdminTalentRouteChildren = {
+  AppAdminTalentInterviewsRoute: AppAdminTalentInterviewsRoute,
   AppAdminTalentJobsRoute: AppAdminTalentJobsRoute,
   AppAdminTalentKpisRoute: AppAdminTalentKpisRoute,
   AppAdminTalentOnboardingRoute: AppAdminTalentOnboardingRoute,

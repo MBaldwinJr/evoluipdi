@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { Briefcase, Target, FileText, BarChart3, Settings, Users, ClipboardCheck } from "lucide-react";
+import { Briefcase, Target, FileText, BarChart3, Settings, Users, ClipboardCheck, CalendarDays } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_app/admin/talent")({ component: TalentLayout });
@@ -8,6 +8,7 @@ const tabs = [
   { to: "/admin/talent", label: "Dashboard", icon: BarChart3, exact: true },
   { to: "/admin/talent/jobs", label: "Vagas", icon: Briefcase },
   { to: "/admin/talent/pool", label: "Banco de Talentos", icon: Users },
+  { to: "/admin/talent/interviews", label: "Entrevistas", icon: CalendarDays },
   { to: "/admin/talent/onboarding", label: "Onboarding", icon: ClipboardCheck },
   { to: "/admin/talent/kpis", label: "KPIs dos Cargos", icon: Target },
   { to: "/admin/talent/templates", label: "Templates", icon: FileText },
