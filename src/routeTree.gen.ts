@@ -47,6 +47,7 @@ import { Route as AppAdminCandidatesRouteImport } from './routes/_app.admin.cand
 import { Route as AppAdminTalentIndexRouteImport } from './routes/_app.admin.talent.index'
 import { Route as ApiPublicCandidateTokenRouteImport } from './routes/api/public/candidate.$token'
 import { Route as AppAdminTalentSettingsRouteImport } from './routes/_app.admin.talent.settings'
+import { Route as AppAdminTalentJobsRouteImport } from './routes/_app.admin.talent.jobs'
 import { Route as AppAdminProcessFlowProcessIdRouteImport } from './routes/_app.admin.process-flow.$processId'
 
 const SignupRoute = SignupRouteImport.update({
@@ -239,6 +240,11 @@ const AppAdminTalentSettingsRoute = AppAdminTalentSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AppAdminTalentRoute,
 } as any)
+const AppAdminTalentJobsRoute = AppAdminTalentJobsRouteImport.update({
+  id: '/jobs',
+  path: '/jobs',
+  getParentRoute: () => AppAdminTalentRoute,
+} as any)
 const AppAdminProcessFlowProcessIdRoute =
   AppAdminProcessFlowProcessIdRouteImport.update({
     id: '/admin/process-flow/$processId',
@@ -282,6 +288,7 @@ export interface FileRoutesByFullPath {
   '/pt/': typeof AppPtIndexRoute
   '/team/': typeof AppTeamIndexRoute
   '/admin/process-flow/$processId': typeof AppAdminProcessFlowProcessIdRoute
+  '/admin/talent/jobs': typeof AppAdminTalentJobsRoute
   '/admin/talent/settings': typeof AppAdminTalentSettingsRoute
   '/api/public/candidate/$token': typeof ApiPublicCandidateTokenRoute
   '/admin/talent/': typeof AppAdminTalentIndexRoute
@@ -320,6 +327,7 @@ export interface FileRoutesByTo {
   '/pt': typeof AppPtIndexRoute
   '/team': typeof AppTeamIndexRoute
   '/admin/process-flow/$processId': typeof AppAdminProcessFlowProcessIdRoute
+  '/admin/talent/jobs': typeof AppAdminTalentJobsRoute
   '/admin/talent/settings': typeof AppAdminTalentSettingsRoute
   '/api/public/candidate/$token': typeof ApiPublicCandidateTokenRoute
   '/admin/talent': typeof AppAdminTalentIndexRoute
@@ -362,6 +370,7 @@ export interface FileRoutesById {
   '/_app/pt/': typeof AppPtIndexRoute
   '/_app/team/': typeof AppTeamIndexRoute
   '/_app/admin/process-flow/$processId': typeof AppAdminProcessFlowProcessIdRoute
+  '/_app/admin/talent/jobs': typeof AppAdminTalentJobsRoute
   '/_app/admin/talent/settings': typeof AppAdminTalentSettingsRoute
   '/api/public/candidate/$token': typeof ApiPublicCandidateTokenRoute
   '/_app/admin/talent/': typeof AppAdminTalentIndexRoute
@@ -404,6 +413,7 @@ export interface FileRouteTypes {
     | '/pt/'
     | '/team/'
     | '/admin/process-flow/$processId'
+    | '/admin/talent/jobs'
     | '/admin/talent/settings'
     | '/api/public/candidate/$token'
     | '/admin/talent/'
@@ -442,6 +452,7 @@ export interface FileRouteTypes {
     | '/pt'
     | '/team'
     | '/admin/process-flow/$processId'
+    | '/admin/talent/jobs'
     | '/admin/talent/settings'
     | '/api/public/candidate/$token'
     | '/admin/talent'
@@ -483,6 +494,7 @@ export interface FileRouteTypes {
     | '/_app/pt/'
     | '/_app/team/'
     | '/_app/admin/process-flow/$processId'
+    | '/_app/admin/talent/jobs'
     | '/_app/admin/talent/settings'
     | '/api/public/candidate/$token'
     | '/_app/admin/talent/'
@@ -770,6 +782,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminTalentSettingsRouteImport
       parentRoute: typeof AppAdminTalentRoute
     }
+    '/_app/admin/talent/jobs': {
+      id: '/_app/admin/talent/jobs'
+      path: '/jobs'
+      fullPath: '/admin/talent/jobs'
+      preLoaderRoute: typeof AppAdminTalentJobsRouteImport
+      parentRoute: typeof AppAdminTalentRoute
+    }
     '/_app/admin/process-flow/$processId': {
       id: '/_app/admin/process-flow/$processId'
       path: '/admin/process-flow/$processId'
@@ -801,11 +820,13 @@ const AppPtRouteChildren: AppPtRouteChildren = {
 const AppPtRouteWithChildren = AppPtRoute._addFileChildren(AppPtRouteChildren)
 
 interface AppAdminTalentRouteChildren {
+  AppAdminTalentJobsRoute: typeof AppAdminTalentJobsRoute
   AppAdminTalentSettingsRoute: typeof AppAdminTalentSettingsRoute
   AppAdminTalentIndexRoute: typeof AppAdminTalentIndexRoute
 }
 
 const AppAdminTalentRouteChildren: AppAdminTalentRouteChildren = {
+  AppAdminTalentJobsRoute: AppAdminTalentJobsRoute,
   AppAdminTalentSettingsRoute: AppAdminTalentSettingsRoute,
   AppAdminTalentIndexRoute: AppAdminTalentIndexRoute,
 }
