@@ -14,7 +14,8 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Plus, Pencil, Trash2, Loader2, Sparkles } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Sparkles, Kanban } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { EmptyState } from "@/components/page-header";
 import { JobStatusBadge } from "@/components/talent/job-status-badge";
