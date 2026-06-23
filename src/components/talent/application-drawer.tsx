@@ -22,6 +22,7 @@ import {
 import {
   updateApplication, deleteApplication, scoreApplicationAI, moveApplication, admitApplication,
 } from "@/lib/talent-pool.functions";
+import { InterviewScheduler } from "./interview-scheduler";
 
 export function ApplicationDrawer({
   applicationId, onOpenChange, onChanged,
