@@ -127,6 +127,11 @@ function JobsPage() {
                     <TableCell className="text-sm">{j.closing_date ?? "—"}</TableCell>
                     <TableCell><JobStatusBadge status={j.status} /></TableCell>
                     <TableCell className="text-right">
+                      <Button asChild variant="ghost" size="icon" title="Pipeline">
+                        <Link to="/admin/talent/jobs/$jobId/kanban" params={{ jobId: j.id }}>
+                          <Kanban className="h-4 w-4" />
+                        </Link>
+                      </Button>
                       <Button variant="ghost" size="icon" onClick={() => { setEditing({ ...j, role_id: j.role?.id ?? null, department_id: j.department?.id ?? null }); setOpen(true); }}>
                         <Pencil className="h-4 w-4" />
                       </Button>
