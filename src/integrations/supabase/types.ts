@@ -132,6 +132,71 @@ export type Database = {
           },
         ]
       }
+      candidate_interviews: {
+        Row: {
+          application_id: string
+          created_at: string
+          created_by: string | null
+          duration_min: number
+          id: string
+          interviewer_name: string | null
+          interviewer_user_id: string | null
+          location: string | null
+          meeting_url: string | null
+          mode: Database["public"]["Enums"]["candidate_interview_mode"]
+          notes: string | null
+          org_id: string
+          reminder_sent_at: string | null
+          scheduled_at: string
+          status: Database["public"]["Enums"]["candidate_interview_status"]
+          updated_at: string
+        }
+        Insert: {
+          application_id: string
+          created_at?: string
+          created_by?: string | null
+          duration_min?: number
+          id?: string
+          interviewer_name?: string | null
+          interviewer_user_id?: string | null
+          location?: string | null
+          meeting_url?: string | null
+          mode?: Database["public"]["Enums"]["candidate_interview_mode"]
+          notes?: string | null
+          org_id: string
+          reminder_sent_at?: string | null
+          scheduled_at: string
+          status?: Database["public"]["Enums"]["candidate_interview_status"]
+          updated_at?: string
+        }
+        Update: {
+          application_id?: string
+          created_at?: string
+          created_by?: string | null
+          duration_min?: number
+          id?: string
+          interviewer_name?: string | null
+          interviewer_user_id?: string | null
+          location?: string | null
+          meeting_url?: string | null
+          mode?: Database["public"]["Enums"]["candidate_interview_mode"]
+          notes?: string | null
+          org_id?: string
+          reminder_sent_at?: string | null
+          scheduled_at?: string
+          status?: Database["public"]["Enums"]["candidate_interview_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_interviews_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidate_invites: {
         Row: {
           analysis: Json | null
@@ -2436,6 +2501,12 @@ export type Database = {
         | "offer"
         | "hired"
         | "rejected"
+      candidate_interview_mode: "online" | "presencial" | "telefone"
+      candidate_interview_status:
+        | "scheduled"
+        | "completed"
+        | "cancelled"
+        | "no_show"
       employment_type:
         | "clt"
         | "pj"
@@ -2634,6 +2705,13 @@ export const Constants = {
         "offer",
         "hired",
         "rejected",
+      ],
+      candidate_interview_mode: ["online", "presencial", "telefone"],
+      candidate_interview_status: [
+        "scheduled",
+        "completed",
+        "cancelled",
+        "no_show",
       ],
       employment_type: [
         "clt",
