@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { callAIJson } from "./ai.server";
+import { getUserOrgId } from "./org.server";
 import {
   jobSchema,
   positionKpiSchema,
