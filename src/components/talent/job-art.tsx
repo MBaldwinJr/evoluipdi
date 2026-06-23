@@ -33,6 +33,7 @@ type Props = {
   salary?: string | null;
   benefits?: string[];
   publicUrl: string;
+  logoUrl?: string | null;
 };
 
 function formatCurrency(min: number | null, max: number | null) {
@@ -47,7 +48,7 @@ export { formatCurrency };
 
 export function JobArt({
   format, template, company, headline, subhead, cta,
-  location, workModel, salary, benefits = [], publicUrl,
+  location, workModel, salary, benefits = [], publicUrl, logoUrl,
 }: Props) {
   const { w, h } = FORMATS[format];
   const t = TEMPLATES[template];
@@ -122,9 +123,18 @@ export function JobArt({
         >
           Estamos contratando
         </div>
-        <div style={{ fontSize: 22, fontWeight: 600, color: t.muted, textAlign: "right", maxWidth: "50%" }}>
-          {company}
-        </div>
+        {logoUrl ? (
+          <img
+            src={logoUrl}
+            alt={company}
+            style={{ maxHeight: 90, maxWidth: 280, objectFit: "contain", display: "block" }}
+            crossOrigin="anonymous"
+          />
+        ) : (
+          <div style={{ fontSize: 22, fontWeight: 600, color: t.muted, textAlign: "right", maxWidth: "50%" }}>
+            {company}
+          </div>
+        )}
       </div>
 
       {/* Body */}

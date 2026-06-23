@@ -41,7 +41,24 @@ function JobArtsPage() {
   const [template, setTemplate] = useState<ArtTemplate>("corporativo");
   const [copy, setCopy] = useState<JobArtCopy | null>(null);
   const [loadingCopy, setLoadingCopy] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
+
+  function onLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Selecione uma imagem");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Logo deve ter até 2MB");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setLogoUrl(typeof reader.result === "string" ? reader.result : null);
+    reader.readAsDataURL(file);
+  }
 
   const { data: job, isLoading } = useQuery({
     queryKey: ["talent-job-arts", jobId],
@@ -169,6 +186,25 @@ function JobArtsPage() {
                   </SelectContent>
                 </Select>
               </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium">Logo da empresa</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={onLogoUpload}
+                    className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-md file:border-0 file:bg-muted file:px-3 file:py-1.5 file:text-sm file:font-medium hover:file:bg-muted/70"
+                  />
+                  {logoUrl && (
+                    <Button size="sm" variant="ghost" onClick={() => setLogoUrl(null)}>
+                      Remover
+                    </Button>
+                  )}
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Substitui o nome da empresa na arte. PNG transparente recomendado (até 2MB).
+                </p>
+              </div>
               <p className="text-xs text-muted-foreground">
                 QR Code aponta para: <span className="break-all text-foreground">{publicUrl}</span>
               </p>
@@ -245,6 +281,7 @@ function JobArtsPage() {
                 salary={salary}
                 benefits={Array.isArray(job.benefits) ? job.benefits : []}
                 publicUrl={publicUrl}
+                logoUrl={logoUrl}
               />
             </div>
           </div>
