@@ -191,6 +191,8 @@ export function ApplicationDrawer({
                 <p className="text-xs text-muted-foreground">Sem avaliação ainda.</p>
               )}
             </div>
+            <InterviewScheduler applicationId={data.id} />
+
 
             <div className="grid gap-1.5">
               <Label className="text-xs">Notas internas</Label>
