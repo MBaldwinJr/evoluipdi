@@ -57,6 +57,7 @@ import { Route as AppAdminTalentKpisRouteImport } from './routes/_app.admin.tale
 import { Route as AppAdminTalentJobsRouteImport } from './routes/_app.admin.talent.jobs'
 import { Route as AppAdminProcessFlowProcessIdRouteImport } from './routes/_app.admin.process-flow.$processId'
 import { Route as AppAdminTalentJobsJobIdKanbanRouteImport } from './routes/_app.admin.talent.jobs_.$jobId.kanban'
+import { Route as AppAdminTalentJobsJobIdArtsRouteImport } from './routes/_app.admin.talent.jobs_.$jobId.arts'
 
 const TrabalheConoscoRoute = TrabalheConoscoRouteImport.update({
   id: '/trabalhe-conosco',
@@ -300,6 +301,12 @@ const AppAdminTalentJobsJobIdKanbanRoute =
     path: '/jobs/$jobId/kanban',
     getParentRoute: () => AppAdminTalentRoute,
   } as any)
+const AppAdminTalentJobsJobIdArtsRoute =
+  AppAdminTalentJobsJobIdArtsRouteImport.update({
+    id: '/jobs_/$jobId/arts',
+    path: '/jobs/$jobId/arts',
+    getParentRoute: () => AppAdminTalentRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -348,6 +355,7 @@ export interface FileRoutesByFullPath {
   '/admin/talent/templates': typeof AppAdminTalentTemplatesRoute
   '/api/public/candidate/$token': typeof ApiPublicCandidateTokenRoute
   '/admin/talent/': typeof AppAdminTalentIndexRoute
+  '/admin/talent/jobs/$jobId/arts': typeof AppAdminTalentJobsJobIdArtsRoute
   '/admin/talent/jobs/$jobId/kanban': typeof AppAdminTalentJobsJobIdKanbanRoute
 }
 export interface FileRoutesByTo {
@@ -394,6 +402,7 @@ export interface FileRoutesByTo {
   '/admin/talent/templates': typeof AppAdminTalentTemplatesRoute
   '/api/public/candidate/$token': typeof ApiPublicCandidateTokenRoute
   '/admin/talent': typeof AppAdminTalentIndexRoute
+  '/admin/talent/jobs/$jobId/arts': typeof AppAdminTalentJobsJobIdArtsRoute
   '/admin/talent/jobs/$jobId/kanban': typeof AppAdminTalentJobsJobIdKanbanRoute
 }
 export interface FileRoutesById {
@@ -445,6 +454,7 @@ export interface FileRoutesById {
   '/_app/admin/talent/templates': typeof AppAdminTalentTemplatesRoute
   '/api/public/candidate/$token': typeof ApiPublicCandidateTokenRoute
   '/_app/admin/talent/': typeof AppAdminTalentIndexRoute
+  '/_app/admin/talent/jobs_/$jobId/arts': typeof AppAdminTalentJobsJobIdArtsRoute
   '/_app/admin/talent/jobs_/$jobId/kanban': typeof AppAdminTalentJobsJobIdKanbanRoute
 }
 export interface FileRouteTypes {
@@ -496,6 +506,7 @@ export interface FileRouteTypes {
     | '/admin/talent/templates'
     | '/api/public/candidate/$token'
     | '/admin/talent/'
+    | '/admin/talent/jobs/$jobId/arts'
     | '/admin/talent/jobs/$jobId/kanban'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -542,6 +553,7 @@ export interface FileRouteTypes {
     | '/admin/talent/templates'
     | '/api/public/candidate/$token'
     | '/admin/talent'
+    | '/admin/talent/jobs/$jobId/arts'
     | '/admin/talent/jobs/$jobId/kanban'
   id:
     | '__root__'
@@ -592,6 +604,7 @@ export interface FileRouteTypes {
     | '/_app/admin/talent/templates'
     | '/api/public/candidate/$token'
     | '/_app/admin/talent/'
+    | '/_app/admin/talent/jobs_/$jobId/arts'
     | '/_app/admin/talent/jobs_/$jobId/kanban'
   fileRoutesById: FileRoutesById
 }
@@ -949,6 +962,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminTalentJobsJobIdKanbanRouteImport
       parentRoute: typeof AppAdminTalentRoute
     }
+    '/_app/admin/talent/jobs_/$jobId/arts': {
+      id: '/_app/admin/talent/jobs_/$jobId/arts'
+      path: '/jobs/$jobId/arts'
+      fullPath: '/admin/talent/jobs/$jobId/arts'
+      preLoaderRoute: typeof AppAdminTalentJobsJobIdArtsRouteImport
+      parentRoute: typeof AppAdminTalentRoute
+    }
   }
 }
 
@@ -979,6 +999,7 @@ interface AppAdminTalentRouteChildren {
   AppAdminTalentSettingsRoute: typeof AppAdminTalentSettingsRoute
   AppAdminTalentTemplatesRoute: typeof AppAdminTalentTemplatesRoute
   AppAdminTalentIndexRoute: typeof AppAdminTalentIndexRoute
+  AppAdminTalentJobsJobIdArtsRoute: typeof AppAdminTalentJobsJobIdArtsRoute
   AppAdminTalentJobsJobIdKanbanRoute: typeof AppAdminTalentJobsJobIdKanbanRoute
 }
 
@@ -989,6 +1010,7 @@ const AppAdminTalentRouteChildren: AppAdminTalentRouteChildren = {
   AppAdminTalentSettingsRoute: AppAdminTalentSettingsRoute,
   AppAdminTalentTemplatesRoute: AppAdminTalentTemplatesRoute,
   AppAdminTalentIndexRoute: AppAdminTalentIndexRoute,
+  AppAdminTalentJobsJobIdArtsRoute: AppAdminTalentJobsJobIdArtsRoute,
   AppAdminTalentJobsJobIdKanbanRoute: AppAdminTalentJobsJobIdKanbanRoute,
 }
 

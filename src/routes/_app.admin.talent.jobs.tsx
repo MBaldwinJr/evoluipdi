@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Plus, Pencil, Trash2, Loader2, Sparkles, Kanban } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Sparkles, Kanban, Megaphone } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { EmptyState } from "@/components/page-header";
@@ -130,6 +130,11 @@ function JobsPage() {
                       <Button asChild variant="ghost" size="icon" title="Pipeline">
                         <Link to="/admin/talent/jobs/$jobId/kanban" params={{ jobId: j.id }}>
                           <Kanban className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                      <Button asChild variant="ghost" size="icon" title="Artes para redes sociais">
+                        <Link to="/admin/talent/jobs/$jobId/arts" params={{ jobId: j.id }}>
+                          <Megaphone className="h-4 w-4" />
                         </Link>
                       </Button>
                       <Button variant="ghost" size="icon" onClick={() => { setEditing({ ...j, role_id: j.role?.id ?? null, department_id: j.department?.id ?? null }); setOpen(true); }}>
