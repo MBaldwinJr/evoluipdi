@@ -46,6 +46,7 @@ import { Route as AppAdminInterviewsRouteImport } from './routes/_app.admin.inte
 import { Route as AppAdminCandidatesRouteImport } from './routes/_app.admin.candidates'
 import { Route as AppAdminTalentIndexRouteImport } from './routes/_app.admin.talent.index'
 import { Route as ApiPublicCandidateTokenRouteImport } from './routes/api/public/candidate.$token'
+import { Route as AppAdminTalentTemplatesRouteImport } from './routes/_app.admin.talent.templates'
 import { Route as AppAdminTalentSettingsRouteImport } from './routes/_app.admin.talent.settings'
 import { Route as AppAdminTalentKpisRouteImport } from './routes/_app.admin.talent.kpis'
 import { Route as AppAdminTalentJobsRouteImport } from './routes/_app.admin.talent.jobs'
@@ -236,6 +237,11 @@ const ApiPublicCandidateTokenRoute = ApiPublicCandidateTokenRouteImport.update({
   path: '/api/public/candidate/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppAdminTalentTemplatesRoute = AppAdminTalentTemplatesRouteImport.update({
+  id: '/templates',
+  path: '/templates',
+  getParentRoute: () => AppAdminTalentRoute,
+} as any)
 const AppAdminTalentSettingsRoute = AppAdminTalentSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -297,6 +303,7 @@ export interface FileRoutesByFullPath {
   '/admin/talent/jobs': typeof AppAdminTalentJobsRoute
   '/admin/talent/kpis': typeof AppAdminTalentKpisRoute
   '/admin/talent/settings': typeof AppAdminTalentSettingsRoute
+  '/admin/talent/templates': typeof AppAdminTalentTemplatesRoute
   '/api/public/candidate/$token': typeof ApiPublicCandidateTokenRoute
   '/admin/talent/': typeof AppAdminTalentIndexRoute
 }
@@ -337,6 +344,7 @@ export interface FileRoutesByTo {
   '/admin/talent/jobs': typeof AppAdminTalentJobsRoute
   '/admin/talent/kpis': typeof AppAdminTalentKpisRoute
   '/admin/talent/settings': typeof AppAdminTalentSettingsRoute
+  '/admin/talent/templates': typeof AppAdminTalentTemplatesRoute
   '/api/public/candidate/$token': typeof ApiPublicCandidateTokenRoute
   '/admin/talent': typeof AppAdminTalentIndexRoute
 }
@@ -381,6 +389,7 @@ export interface FileRoutesById {
   '/_app/admin/talent/jobs': typeof AppAdminTalentJobsRoute
   '/_app/admin/talent/kpis': typeof AppAdminTalentKpisRoute
   '/_app/admin/talent/settings': typeof AppAdminTalentSettingsRoute
+  '/_app/admin/talent/templates': typeof AppAdminTalentTemplatesRoute
   '/api/public/candidate/$token': typeof ApiPublicCandidateTokenRoute
   '/_app/admin/talent/': typeof AppAdminTalentIndexRoute
 }
@@ -425,6 +434,7 @@ export interface FileRouteTypes {
     | '/admin/talent/jobs'
     | '/admin/talent/kpis'
     | '/admin/talent/settings'
+    | '/admin/talent/templates'
     | '/api/public/candidate/$token'
     | '/admin/talent/'
   fileRoutesByTo: FileRoutesByTo
@@ -465,6 +475,7 @@ export interface FileRouteTypes {
     | '/admin/talent/jobs'
     | '/admin/talent/kpis'
     | '/admin/talent/settings'
+    | '/admin/talent/templates'
     | '/api/public/candidate/$token'
     | '/admin/talent'
   id:
@@ -508,6 +519,7 @@ export interface FileRouteTypes {
     | '/_app/admin/talent/jobs'
     | '/_app/admin/talent/kpis'
     | '/_app/admin/talent/settings'
+    | '/_app/admin/talent/templates'
     | '/api/public/candidate/$token'
     | '/_app/admin/talent/'
   fileRoutesById: FileRoutesById
@@ -787,6 +799,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCandidateTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/admin/talent/templates': {
+      id: '/_app/admin/talent/templates'
+      path: '/templates'
+      fullPath: '/admin/talent/templates'
+      preLoaderRoute: typeof AppAdminTalentTemplatesRouteImport
+      parentRoute: typeof AppAdminTalentRoute
+    }
     '/_app/admin/talent/settings': {
       id: '/_app/admin/talent/settings'
       path: '/settings'
@@ -842,6 +861,7 @@ interface AppAdminTalentRouteChildren {
   AppAdminTalentJobsRoute: typeof AppAdminTalentJobsRoute
   AppAdminTalentKpisRoute: typeof AppAdminTalentKpisRoute
   AppAdminTalentSettingsRoute: typeof AppAdminTalentSettingsRoute
+  AppAdminTalentTemplatesRoute: typeof AppAdminTalentTemplatesRoute
   AppAdminTalentIndexRoute: typeof AppAdminTalentIndexRoute
 }
 
@@ -849,6 +869,7 @@ const AppAdminTalentRouteChildren: AppAdminTalentRouteChildren = {
   AppAdminTalentJobsRoute: AppAdminTalentJobsRoute,
   AppAdminTalentKpisRoute: AppAdminTalentKpisRoute,
   AppAdminTalentSettingsRoute: AppAdminTalentSettingsRoute,
+  AppAdminTalentTemplatesRoute: AppAdminTalentTemplatesRoute,
   AppAdminTalentIndexRoute: AppAdminTalentIndexRoute,
 }
 
