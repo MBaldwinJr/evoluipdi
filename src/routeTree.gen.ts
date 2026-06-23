@@ -33,6 +33,7 @@ import { Route as AppPtEscalasRouteImport } from './routes/_app.pt.escalas'
 import { Route as AppPtDashboardRouteImport } from './routes/_app.pt.dashboard'
 import { Route as AppMePdiRouteImport } from './routes/_app.me.pdi'
 import { Route as AppMeFeedbacksRouteImport } from './routes/_app.me.feedbacks'
+import { Route as AppAdminTalentRouteImport } from './routes/_app.admin.talent'
 import { Route as AppAdminSettingsRouteImport } from './routes/_app.admin.settings'
 import { Route as AppAdminRolesRouteImport } from './routes/_app.admin.roles'
 import { Route as AppAdminReportsRouteImport } from './routes/_app.admin.reports'
@@ -165,6 +166,11 @@ const AppMeFeedbacksRoute = AppMeFeedbacksRouteImport.update({
   path: '/me/feedbacks',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAdminTalentRoute = AppAdminTalentRouteImport.update({
+  id: '/admin/talent',
+  path: '/admin/talent',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAdminSettingsRoute = AppAdminSettingsRouteImport.update({
   id: '/admin/settings',
   path: '/admin/settings',
@@ -251,6 +257,7 @@ export interface FileRoutesByFullPath {
   '/admin/reports': typeof AppAdminReportsRoute
   '/admin/roles': typeof AppAdminRolesRoute
   '/admin/settings': typeof AppAdminSettingsRoute
+  '/admin/talent': typeof AppAdminTalentRoute
   '/me/feedbacks': typeof AppMeFeedbacksRoute
   '/me/pdi': typeof AppMePdiRoute
   '/pt/dashboard': typeof AppPtDashboardRoute
@@ -287,6 +294,7 @@ export interface FileRoutesByTo {
   '/admin/reports': typeof AppAdminReportsRoute
   '/admin/roles': typeof AppAdminRolesRoute
   '/admin/settings': typeof AppAdminSettingsRoute
+  '/admin/talent': typeof AppAdminTalentRoute
   '/me/feedbacks': typeof AppMeFeedbacksRoute
   '/me/pdi': typeof AppMePdiRoute
   '/pt/dashboard': typeof AppPtDashboardRoute
@@ -326,6 +334,7 @@ export interface FileRoutesById {
   '/_app/admin/reports': typeof AppAdminReportsRoute
   '/_app/admin/roles': typeof AppAdminRolesRoute
   '/_app/admin/settings': typeof AppAdminSettingsRoute
+  '/_app/admin/talent': typeof AppAdminTalentRoute
   '/_app/me/feedbacks': typeof AppMeFeedbacksRoute
   '/_app/me/pdi': typeof AppMePdiRoute
   '/_app/pt/dashboard': typeof AppPtDashboardRoute
@@ -365,6 +374,7 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/roles'
     | '/admin/settings'
+    | '/admin/talent'
     | '/me/feedbacks'
     | '/me/pdi'
     | '/pt/dashboard'
@@ -401,6 +411,7 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/roles'
     | '/admin/settings'
+    | '/admin/talent'
     | '/me/feedbacks'
     | '/me/pdi'
     | '/pt/dashboard'
@@ -439,6 +450,7 @@ export interface FileRouteTypes {
     | '/_app/admin/reports'
     | '/_app/admin/roles'
     | '/_app/admin/settings'
+    | '/_app/admin/talent'
     | '/_app/me/feedbacks'
     | '/_app/me/pdi'
     | '/_app/pt/dashboard'
@@ -638,6 +650,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMeFeedbacksRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/admin/talent': {
+      id: '/_app/admin/talent'
+      path: '/admin/talent'
+      fullPath: '/admin/talent'
+      preLoaderRoute: typeof AppAdminTalentRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/admin/settings': {
       id: '/_app/admin/settings'
       path: '/admin/settings'
@@ -759,6 +778,7 @@ interface AppRouteChildren {
   AppAdminReportsRoute: typeof AppAdminReportsRoute
   AppAdminRolesRoute: typeof AppAdminRolesRoute
   AppAdminSettingsRoute: typeof AppAdminSettingsRoute
+  AppAdminTalentRoute: typeof AppAdminTalentRoute
   AppMeFeedbacksRoute: typeof AppMeFeedbacksRoute
   AppMePdiRoute: typeof AppMePdiRoute
   AppTeamIdRoute: typeof AppTeamIdRoute
@@ -781,6 +801,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAdminReportsRoute: AppAdminReportsRoute,
   AppAdminRolesRoute: AppAdminRolesRoute,
   AppAdminSettingsRoute: AppAdminSettingsRoute,
+  AppAdminTalentRoute: AppAdminTalentRoute,
   AppMeFeedbacksRoute: AppMeFeedbacksRoute,
   AppMePdiRoute: AppMePdiRoute,
   AppTeamIdRoute: AppTeamIdRoute,
