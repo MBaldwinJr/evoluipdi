@@ -1,0 +1,15 @@
+GRANT EXECUTE ON FUNCTION public.is_super_admin(uuid) TO authenticated, anon;
+GRANT EXECUTE ON FUNCTION public.is_org_member(uuid, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.has_org_role(uuid, uuid, public.org_role[]) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.has_role(uuid, public.app_role) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.org_has_module(uuid, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.current_org_id() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_manager_of(uuid, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_manager_of_emp(uuid, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_self_emp(uuid, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_rh(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.org_is_active(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.pt_is_member(uuid, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.pt_has_role(uuid, uuid, public.pt_role[]) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.pt_companies_for_user(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.orgs_for_user(uuid) TO authenticated;
