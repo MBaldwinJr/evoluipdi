@@ -93,16 +93,18 @@ export const upsertJobTemplate = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => jobTemplateSchema.parse(d))
   .handler(async ({ data, context }) => {
-    const { supabase } = context;
+    const { supabase, userId } = context;
+    const orgId = await getUserOrgId(userId);
     if (data.id) {
       const { id, ...rest } = data;
       const { error } = await supabase.from("job_templates").update(rest).eq("id", id);
       if (error) throw new Error(error.message);
       return { id };
     }
+    const { id: _ignore, ...insert } = data;
     const { data: row, error } = await supabase
       .from("job_templates")
-      .insert(data)
+      .insert({ ...insert, org_id: orgId })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
