@@ -33,6 +33,7 @@ import { Route as AppPtEscalasRouteImport } from './routes/_app.pt.escalas'
 import { Route as AppPtDashboardRouteImport } from './routes/_app.pt.dashboard'
 import { Route as AppMePdiRouteImport } from './routes/_app.me.pdi'
 import { Route as AppMeFeedbacksRouteImport } from './routes/_app.me.feedbacks'
+import { Route as AppAdminTalentRouteImport } from './routes/_app.admin.talent'
 import { Route as AppAdminSettingsRouteImport } from './routes/_app.admin.settings'
 import { Route as AppAdminRolesRouteImport } from './routes/_app.admin.roles'
 import { Route as AppAdminReportsRouteImport } from './routes/_app.admin.reports'
@@ -43,7 +44,12 @@ import { Route as AppAdminInvitesRouteImport } from './routes/_app.admin.invites
 import { Route as AppAdminInterviewsReviewRouteImport } from './routes/_app.admin.interviews-review'
 import { Route as AppAdminInterviewsRouteImport } from './routes/_app.admin.interviews'
 import { Route as AppAdminCandidatesRouteImport } from './routes/_app.admin.candidates'
+import { Route as AppAdminTalentIndexRouteImport } from './routes/_app.admin.talent.index'
 import { Route as ApiPublicCandidateTokenRouteImport } from './routes/api/public/candidate.$token'
+import { Route as AppAdminTalentTemplatesRouteImport } from './routes/_app.admin.talent.templates'
+import { Route as AppAdminTalentSettingsRouteImport } from './routes/_app.admin.talent.settings'
+import { Route as AppAdminTalentKpisRouteImport } from './routes/_app.admin.talent.kpis'
+import { Route as AppAdminTalentJobsRouteImport } from './routes/_app.admin.talent.jobs'
 import { Route as AppAdminProcessFlowProcessIdRouteImport } from './routes/_app.admin.process-flow.$processId'
 
 const SignupRoute = SignupRouteImport.update({
@@ -165,6 +171,11 @@ const AppMeFeedbacksRoute = AppMeFeedbacksRouteImport.update({
   path: '/me/feedbacks',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAdminTalentRoute = AppAdminTalentRouteImport.update({
+  id: '/admin/talent',
+  path: '/admin/talent',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAdminSettingsRoute = AppAdminSettingsRouteImport.update({
   id: '/admin/settings',
   path: '/admin/settings',
@@ -216,10 +227,35 @@ const AppAdminCandidatesRoute = AppAdminCandidatesRouteImport.update({
   path: '/admin/candidates',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAdminTalentIndexRoute = AppAdminTalentIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppAdminTalentRoute,
+} as any)
 const ApiPublicCandidateTokenRoute = ApiPublicCandidateTokenRouteImport.update({
   id: '/api/public/candidate/$token',
   path: '/api/public/candidate/$token',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppAdminTalentTemplatesRoute = AppAdminTalentTemplatesRouteImport.update({
+  id: '/templates',
+  path: '/templates',
+  getParentRoute: () => AppAdminTalentRoute,
+} as any)
+const AppAdminTalentSettingsRoute = AppAdminTalentSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppAdminTalentRoute,
+} as any)
+const AppAdminTalentKpisRoute = AppAdminTalentKpisRouteImport.update({
+  id: '/kpis',
+  path: '/kpis',
+  getParentRoute: () => AppAdminTalentRoute,
+} as any)
+const AppAdminTalentJobsRoute = AppAdminTalentJobsRouteImport.update({
+  id: '/jobs',
+  path: '/jobs',
+  getParentRoute: () => AppAdminTalentRoute,
 } as any)
 const AppAdminProcessFlowProcessIdRoute =
   AppAdminProcessFlowProcessIdRouteImport.update({
@@ -251,6 +287,7 @@ export interface FileRoutesByFullPath {
   '/admin/reports': typeof AppAdminReportsRoute
   '/admin/roles': typeof AppAdminRolesRoute
   '/admin/settings': typeof AppAdminSettingsRoute
+  '/admin/talent': typeof AppAdminTalentRouteWithChildren
   '/me/feedbacks': typeof AppMeFeedbacksRoute
   '/me/pdi': typeof AppMePdiRoute
   '/pt/dashboard': typeof AppPtDashboardRoute
@@ -263,7 +300,12 @@ export interface FileRoutesByFullPath {
   '/pt/': typeof AppPtIndexRoute
   '/team/': typeof AppTeamIndexRoute
   '/admin/process-flow/$processId': typeof AppAdminProcessFlowProcessIdRoute
+  '/admin/talent/jobs': typeof AppAdminTalentJobsRoute
+  '/admin/talent/kpis': typeof AppAdminTalentKpisRoute
+  '/admin/talent/settings': typeof AppAdminTalentSettingsRoute
+  '/admin/talent/templates': typeof AppAdminTalentTemplatesRoute
   '/api/public/candidate/$token': typeof ApiPublicCandidateTokenRoute
+  '/admin/talent/': typeof AppAdminTalentIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -299,7 +341,12 @@ export interface FileRoutesByTo {
   '/pt': typeof AppPtIndexRoute
   '/team': typeof AppTeamIndexRoute
   '/admin/process-flow/$processId': typeof AppAdminProcessFlowProcessIdRoute
+  '/admin/talent/jobs': typeof AppAdminTalentJobsRoute
+  '/admin/talent/kpis': typeof AppAdminTalentKpisRoute
+  '/admin/talent/settings': typeof AppAdminTalentSettingsRoute
+  '/admin/talent/templates': typeof AppAdminTalentTemplatesRoute
   '/api/public/candidate/$token': typeof ApiPublicCandidateTokenRoute
+  '/admin/talent': typeof AppAdminTalentIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -326,6 +373,7 @@ export interface FileRoutesById {
   '/_app/admin/reports': typeof AppAdminReportsRoute
   '/_app/admin/roles': typeof AppAdminRolesRoute
   '/_app/admin/settings': typeof AppAdminSettingsRoute
+  '/_app/admin/talent': typeof AppAdminTalentRouteWithChildren
   '/_app/me/feedbacks': typeof AppMeFeedbacksRoute
   '/_app/me/pdi': typeof AppMePdiRoute
   '/_app/pt/dashboard': typeof AppPtDashboardRoute
@@ -338,7 +386,12 @@ export interface FileRoutesById {
   '/_app/pt/': typeof AppPtIndexRoute
   '/_app/team/': typeof AppTeamIndexRoute
   '/_app/admin/process-flow/$processId': typeof AppAdminProcessFlowProcessIdRoute
+  '/_app/admin/talent/jobs': typeof AppAdminTalentJobsRoute
+  '/_app/admin/talent/kpis': typeof AppAdminTalentKpisRoute
+  '/_app/admin/talent/settings': typeof AppAdminTalentSettingsRoute
+  '/_app/admin/talent/templates': typeof AppAdminTalentTemplatesRoute
   '/api/public/candidate/$token': typeof ApiPublicCandidateTokenRoute
+  '/_app/admin/talent/': typeof AppAdminTalentIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -365,6 +418,7 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/roles'
     | '/admin/settings'
+    | '/admin/talent'
     | '/me/feedbacks'
     | '/me/pdi'
     | '/pt/dashboard'
@@ -377,7 +431,12 @@ export interface FileRouteTypes {
     | '/pt/'
     | '/team/'
     | '/admin/process-flow/$processId'
+    | '/admin/talent/jobs'
+    | '/admin/talent/kpis'
+    | '/admin/talent/settings'
+    | '/admin/talent/templates'
     | '/api/public/candidate/$token'
+    | '/admin/talent/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -413,7 +472,12 @@ export interface FileRouteTypes {
     | '/pt'
     | '/team'
     | '/admin/process-flow/$processId'
+    | '/admin/talent/jobs'
+    | '/admin/talent/kpis'
+    | '/admin/talent/settings'
+    | '/admin/talent/templates'
     | '/api/public/candidate/$token'
+    | '/admin/talent'
   id:
     | '__root__'
     | '/'
@@ -439,6 +503,7 @@ export interface FileRouteTypes {
     | '/_app/admin/reports'
     | '/_app/admin/roles'
     | '/_app/admin/settings'
+    | '/_app/admin/talent'
     | '/_app/me/feedbacks'
     | '/_app/me/pdi'
     | '/_app/pt/dashboard'
@@ -451,7 +516,12 @@ export interface FileRouteTypes {
     | '/_app/pt/'
     | '/_app/team/'
     | '/_app/admin/process-flow/$processId'
+    | '/_app/admin/talent/jobs'
+    | '/_app/admin/talent/kpis'
+    | '/_app/admin/talent/settings'
+    | '/_app/admin/talent/templates'
     | '/api/public/candidate/$token'
+    | '/_app/admin/talent/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -638,6 +708,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMeFeedbacksRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/admin/talent': {
+      id: '/_app/admin/talent'
+      path: '/admin/talent'
+      fullPath: '/admin/talent'
+      preLoaderRoute: typeof AppAdminTalentRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/admin/settings': {
       id: '/_app/admin/settings'
       path: '/admin/settings'
@@ -708,12 +785,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminCandidatesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/admin/talent/': {
+      id: '/_app/admin/talent/'
+      path: '/'
+      fullPath: '/admin/talent/'
+      preLoaderRoute: typeof AppAdminTalentIndexRouteImport
+      parentRoute: typeof AppAdminTalentRoute
+    }
     '/api/public/candidate/$token': {
       id: '/api/public/candidate/$token'
       path: '/api/public/candidate/$token'
       fullPath: '/api/public/candidate/$token'
       preLoaderRoute: typeof ApiPublicCandidateTokenRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_app/admin/talent/templates': {
+      id: '/_app/admin/talent/templates'
+      path: '/templates'
+      fullPath: '/admin/talent/templates'
+      preLoaderRoute: typeof AppAdminTalentTemplatesRouteImport
+      parentRoute: typeof AppAdminTalentRoute
+    }
+    '/_app/admin/talent/settings': {
+      id: '/_app/admin/talent/settings'
+      path: '/settings'
+      fullPath: '/admin/talent/settings'
+      preLoaderRoute: typeof AppAdminTalentSettingsRouteImport
+      parentRoute: typeof AppAdminTalentRoute
+    }
+    '/_app/admin/talent/kpis': {
+      id: '/_app/admin/talent/kpis'
+      path: '/kpis'
+      fullPath: '/admin/talent/kpis'
+      preLoaderRoute: typeof AppAdminTalentKpisRouteImport
+      parentRoute: typeof AppAdminTalentRoute
+    }
+    '/_app/admin/talent/jobs': {
+      id: '/_app/admin/talent/jobs'
+      path: '/jobs'
+      fullPath: '/admin/talent/jobs'
+      preLoaderRoute: typeof AppAdminTalentJobsRouteImport
+      parentRoute: typeof AppAdminTalentRoute
     }
     '/_app/admin/process-flow/$processId': {
       id: '/_app/admin/process-flow/$processId'
@@ -745,6 +857,26 @@ const AppPtRouteChildren: AppPtRouteChildren = {
 
 const AppPtRouteWithChildren = AppPtRoute._addFileChildren(AppPtRouteChildren)
 
+interface AppAdminTalentRouteChildren {
+  AppAdminTalentJobsRoute: typeof AppAdminTalentJobsRoute
+  AppAdminTalentKpisRoute: typeof AppAdminTalentKpisRoute
+  AppAdminTalentSettingsRoute: typeof AppAdminTalentSettingsRoute
+  AppAdminTalentTemplatesRoute: typeof AppAdminTalentTemplatesRoute
+  AppAdminTalentIndexRoute: typeof AppAdminTalentIndexRoute
+}
+
+const AppAdminTalentRouteChildren: AppAdminTalentRouteChildren = {
+  AppAdminTalentJobsRoute: AppAdminTalentJobsRoute,
+  AppAdminTalentKpisRoute: AppAdminTalentKpisRoute,
+  AppAdminTalentSettingsRoute: AppAdminTalentSettingsRoute,
+  AppAdminTalentTemplatesRoute: AppAdminTalentTemplatesRoute,
+  AppAdminTalentIndexRoute: AppAdminTalentIndexRoute,
+}
+
+const AppAdminTalentRouteWithChildren = AppAdminTalentRoute._addFileChildren(
+  AppAdminTalentRouteChildren,
+)
+
 interface AppRouteChildren {
   AppBillingRoute: typeof AppBillingRoute
   AppPlatformRoute: typeof AppPlatformRoute
@@ -759,6 +891,7 @@ interface AppRouteChildren {
   AppAdminReportsRoute: typeof AppAdminReportsRoute
   AppAdminRolesRoute: typeof AppAdminRolesRoute
   AppAdminSettingsRoute: typeof AppAdminSettingsRoute
+  AppAdminTalentRoute: typeof AppAdminTalentRouteWithChildren
   AppMeFeedbacksRoute: typeof AppMeFeedbacksRoute
   AppMePdiRoute: typeof AppMePdiRoute
   AppTeamIdRoute: typeof AppTeamIdRoute
@@ -781,6 +914,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAdminReportsRoute: AppAdminReportsRoute,
   AppAdminRolesRoute: AppAdminRolesRoute,
   AppAdminSettingsRoute: AppAdminSettingsRoute,
+  AppAdminTalentRoute: AppAdminTalentRouteWithChildren,
   AppMeFeedbacksRoute: AppMeFeedbacksRoute,
   AppMePdiRoute: AppMePdiRoute,
   AppTeamIdRoute: AppTeamIdRoute,
@@ -807,13 +941,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

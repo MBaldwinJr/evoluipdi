@@ -3,7 +3,7 @@ import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter, useSidebar,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, User, MessageSquare, Target, Users, Briefcase, ListChecks, FileText, Settings, LogOut, Sparkles, ClipboardCheck, UserPlus, BookOpen, Clock, CreditCard, Shield, Mail } from "lucide-react";
+import { LayoutDashboard, User, MessageSquare, Target, Users, Briefcase, ListChecks, FileText, Settings, LogOut, Sparkles, ClipboardCheck, UserPlus, BookOpen, Clock, CreditCard, Shield, Mail, Brain } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useOrg } from "@/lib/org-context";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,7 @@ const rhItems = [
   { title: "Candidatos / Pré-entrevistas", url: "/admin/candidates", icon: UserPlus },
   { title: "Convites de equipe", url: "/admin/invites", icon: Mail },
   { title: "Relatórios", url: "/admin/reports", icon: FileText },
+  { title: "Talent Acquisition AI", url: "/admin/talent", icon: Brain },
   { title: "Configurações", url: "/admin/settings", icon: Settings },
 ];
 

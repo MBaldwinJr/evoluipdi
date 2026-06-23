@@ -684,6 +684,151 @@ export type Database = {
           },
         ]
       }
+      job_templates: {
+        Row: {
+          created_at: string
+          department_id: string | null
+          description_template: string | null
+          id: string
+          name: string
+          org_id: string
+          requirements_template: string | null
+          responsibilities_template: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          department_id?: string | null
+          description_template?: string | null
+          id?: string
+          name: string
+          org_id: string
+          requirements_template?: string | null
+          responsibilities_template?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          department_id?: string | null
+          description_template?: string | null
+          id?: string
+          name?: string
+          org_id?: string
+          requirements_template?: string | null
+          responsibilities_template?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_templates_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_templates_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      jobs: {
+        Row: {
+          benefits: Json
+          closing_date: string | null
+          code: string | null
+          created_at: string
+          created_by: string | null
+          department_id: string | null
+          description: string | null
+          employment_type: Database["public"]["Enums"]["employment_type"]
+          id: string
+          location: string | null
+          org_id: string
+          requirements: string | null
+          responsibilities: string | null
+          role_id: string | null
+          salary_max: number | null
+          salary_min: number | null
+          status: Database["public"]["Enums"]["job_status"]
+          title: string
+          updated_at: string
+          vacancies_quantity: number
+          work_model: Database["public"]["Enums"]["work_model"]
+        }
+        Insert: {
+          benefits?: Json
+          closing_date?: string | null
+          code?: string | null
+          created_at?: string
+          created_by?: string | null
+          department_id?: string | null
+          description?: string | null
+          employment_type?: Database["public"]["Enums"]["employment_type"]
+          id?: string
+          location?: string | null
+          org_id: string
+          requirements?: string | null
+          responsibilities?: string | null
+          role_id?: string | null
+          salary_max?: number | null
+          salary_min?: number | null
+          status?: Database["public"]["Enums"]["job_status"]
+          title: string
+          updated_at?: string
+          vacancies_quantity?: number
+          work_model?: Database["public"]["Enums"]["work_model"]
+        }
+        Update: {
+          benefits?: Json
+          closing_date?: string | null
+          code?: string | null
+          created_at?: string
+          created_by?: string | null
+          department_id?: string | null
+          description?: string | null
+          employment_type?: Database["public"]["Enums"]["employment_type"]
+          id?: string
+          location?: string | null
+          org_id?: string
+          requirements?: string | null
+          responsibilities?: string | null
+          role_id?: string | null
+          salary_max?: number | null
+          salary_min?: number | null
+          status?: Database["public"]["Enums"]["job_status"]
+          title?: string
+          updated_at?: string
+          vacancies_quantity?: number
+          work_model?: Database["public"]["Enums"]["work_model"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jobs_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jobs_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jobs_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles_catalog"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           company: string | null
@@ -1116,6 +1261,81 @@ export type Database = {
             columns: ["employee_id"]
             isOneToOne: false
             referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      position_kpis: {
+        Row: {
+          benefits: Json
+          created_at: string
+          driver_license: string | null
+          education_required: string | null
+          experience_years: number | null
+          id: string
+          mandatory_certifications: Json
+          mandatory_courses: Json
+          org_id: string
+          required_skills: Json
+          role_id: string
+          salary_reference: number | null
+          soft_skills: Json
+          travel_required: boolean
+          updated_at: string
+          work_location: string | null
+          work_schedule: string | null
+        }
+        Insert: {
+          benefits?: Json
+          created_at?: string
+          driver_license?: string | null
+          education_required?: string | null
+          experience_years?: number | null
+          id?: string
+          mandatory_certifications?: Json
+          mandatory_courses?: Json
+          org_id: string
+          required_skills?: Json
+          role_id: string
+          salary_reference?: number | null
+          soft_skills?: Json
+          travel_required?: boolean
+          updated_at?: string
+          work_location?: string | null
+          work_schedule?: string | null
+        }
+        Update: {
+          benefits?: Json
+          created_at?: string
+          driver_license?: string | null
+          education_required?: string | null
+          experience_years?: number | null
+          id?: string
+          mandatory_certifications?: Json
+          mandatory_courses?: Json
+          org_id?: string
+          required_skills?: Json
+          role_id?: string
+          salary_reference?: number | null
+          soft_skills?: Json
+          travel_required?: boolean
+          updated_at?: string
+          work_location?: string | null
+          work_schedule?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "position_kpis_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "position_kpis_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles_catalog"
             referencedColumns: ["id"]
           },
         ]
@@ -1872,11 +2092,20 @@ export type Database = {
         Args: { _employee_id: string; _manager_id: string }
         Returns: undefined
       }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
       action_category: "pratica" | "troca" | "formal"
       action_status: "pendente" | "em_andamento" | "concluida" | "cancelada"
       app_role: "colaborador" | "gestor" | "rh" | "super_admin"
+      employment_type:
+        | "clt"
+        | "pj"
+        | "estagio"
+        | "temporario"
+        | "aprendiz"
+        | "terceirizado"
       feedback_kind: "informal" | "formal"
       gap_severity: "baixa" | "media" | "alta"
       interview_kind:
@@ -1887,6 +2116,7 @@ export type Database = {
         | "feedback"
         | "desligamento"
         | "carreira"
+      job_status: "draft" | "open" | "paused" | "closed" | "cancelled"
       objective_horizon: "curto" | "medio" | "longo"
       org_role:
         | "admin"
@@ -1926,6 +2156,7 @@ export type Database = {
         | "competencia_tecnica"
         | "competencia_comportamental"
         | "indicador"
+      work_model: "presencial" | "hibrido" | "remoto"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2056,6 +2287,14 @@ export const Constants = {
       action_category: ["pratica", "troca", "formal"],
       action_status: ["pendente", "em_andamento", "concluida", "cancelada"],
       app_role: ["colaborador", "gestor", "rh", "super_admin"],
+      employment_type: [
+        "clt",
+        "pj",
+        "estagio",
+        "temporario",
+        "aprendiz",
+        "terceirizado",
+      ],
       feedback_kind: ["informal", "formal"],
       gap_severity: ["baixa", "media", "alta"],
       interview_kind: [
@@ -2067,6 +2306,7 @@ export const Constants = {
         "desligamento",
         "carreira",
       ],
+      job_status: ["draft", "open", "paused", "closed", "cancelled"],
       objective_horizon: ["curto", "medio", "longo"],
       org_role: [
         "admin",
@@ -2111,6 +2351,7 @@ export const Constants = {
         "competencia_comportamental",
         "indicador",
       ],
+      work_model: ["presencial", "hibrido", "remoto"],
     },
   },
 } as const
