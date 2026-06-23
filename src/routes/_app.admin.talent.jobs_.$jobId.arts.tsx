@@ -41,7 +41,24 @@ function JobArtsPage() {
   const [template, setTemplate] = useState<ArtTemplate>("corporativo");
   const [copy, setCopy] = useState<JobArtCopy | null>(null);
   const [loadingCopy, setLoadingCopy] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
+
+  function onLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Selecione uma imagem");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Logo deve ter até 2MB");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setLogoUrl(typeof reader.result === "string" ? reader.result : null);
+    reader.readAsDataURL(file);
+  }
 
   const { data: job, isLoading } = useQuery({
     queryKey: ["talent-job-arts", jobId],
