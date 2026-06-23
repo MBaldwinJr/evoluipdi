@@ -2289,6 +2289,65 @@ export type Database = {
         Args: { _company: string; _user: string }
         Returns: boolean
       }
+      public_apply_to_job: {
+        Args: {
+          _current_position: string
+          _cv_url: string
+          _email: string
+          _full_name: string
+          _job_id: string
+          _linkedin_url: string
+          _location: string
+          _phone: string
+          _summary: string
+          _years_experience: number
+        }
+        Returns: string
+      }
+      public_get_job: {
+        Args: { _job_id: string }
+        Returns: {
+          benefits: Json
+          closing_date: string
+          company_name: string
+          created_at: string
+          department_name: string
+          description: string
+          employment_type: string
+          id: string
+          location: string
+          org_id: string
+          requirements: string
+          responsibilities: string
+          salary_max: number
+          salary_min: number
+          title: string
+          work_model: string
+        }[]
+      }
+      public_list_jobs: {
+        Args: {
+          _employment_type?: string
+          _limit?: number
+          _search?: string
+          _work_model?: string
+        }
+        Returns: {
+          benefits: Json
+          closing_date: string
+          company_name: string
+          created_at: string
+          department_name: string
+          employment_type: string
+          id: string
+          location: string
+          org_id: string
+          salary_max: number
+          salary_min: number
+          title: string
+          work_model: string
+        }[]
+      }
       set_employee_manager: {
         Args: { _employee_id: string; _manager_id: string }
         Returns: undefined
