@@ -24,7 +24,7 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
               <Link to="/login">Entrar</Link>
             </Button>
             <Button asChild size="sm">
-              <Link to="/login" search={{ signup: "1" } as never}>Começar grátis</Link>
+              <Link to="/signup">Começar grátis</Link>
             </Button>
           </div>
         </div>
