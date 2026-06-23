@@ -70,14 +70,14 @@ export const Route = createFileRoute("/api/public/apply")({
         const { data: appId, error: rpcErr } = await supabaseAdmin.rpc("public_apply_to_job", {
           _job_id: jobId,
           _full_name: fullName,
-          _email: email || null,
-          _phone: phone || null,
-          _location: location || null,
-          _linkedin_url: linkedin || null,
-          _current_position: position || null,
+          _email: email,
+          _phone: phone,
+          _location: location,
+          _linkedin_url: linkedin,
+          _current_position: position,
           _years_experience: years,
-          _summary: summary || null,
-          _cv_url: cvUrl,
+          _summary: summary,
+          _cv_url: cvUrl ?? "",
         });
         if (rpcErr) return json({ error: "apply_failed", details: rpcErr.message }, 500);
 

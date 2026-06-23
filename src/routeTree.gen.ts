@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TrabalheConoscoRouteImport } from './routes/trabalhe-conosco'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as RecursosRouteImport } from './routes/recursos'
 import { Route as PrecosRouteImport } from './routes/precos'
@@ -18,6 +19,8 @@ import { Route as ContatoRouteImport } from './routes/contato'
 import { Route as AcceptInviteRouteImport } from './routes/accept-invite'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TrabalheConoscoIndexRouteImport } from './routes/trabalhe-conosco.index'
+import { Route as TrabalheConoscoJobIdRouteImport } from './routes/trabalhe-conosco.$jobId'
 import { Route as CandidatoTokenRouteImport } from './routes/candidato.$token'
 import { Route as AppPtRouteImport } from './routes/_app.pt'
 import { Route as AppPlatformRouteImport } from './routes/_app.platform'
@@ -25,6 +28,7 @@ import { Route as AppBillingRouteImport } from './routes/_app.billing'
 import { Route as AppTeamIndexRouteImport } from './routes/_app.team.index'
 import { Route as AppPtIndexRouteImport } from './routes/_app.pt.index'
 import { Route as AppMeIndexRouteImport } from './routes/_app.me.index'
+import { Route as ApiPublicApplyRouteImport } from './routes/api/public/apply'
 import { Route as AppTeamIdRouteImport } from './routes/_app.team.$id'
 import { Route as AppPtFuncionariosRouteImport } from './routes/_app.pt.funcionarios'
 import { Route as AppPtFiliaisRouteImport } from './routes/_app.pt.filiais'
@@ -54,6 +58,11 @@ import { Route as AppAdminTalentJobsRouteImport } from './routes/_app.admin.tale
 import { Route as AppAdminProcessFlowProcessIdRouteImport } from './routes/_app.admin.process-flow.$processId'
 import { Route as AppAdminTalentJobsJobIdKanbanRouteImport } from './routes/_app.admin.talent.jobs_.$jobId.kanban'
 
+const TrabalheConoscoRoute = TrabalheConoscoRouteImport.update({
+  id: '/trabalhe-conosco',
+  path: '/trabalhe-conosco',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
@@ -98,6 +107,16 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TrabalheConoscoIndexRoute = TrabalheConoscoIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => TrabalheConoscoRoute,
+} as any)
+const TrabalheConoscoJobIdRoute = TrabalheConoscoJobIdRouteImport.update({
+  id: '/$jobId',
+  path: '/$jobId',
+  getParentRoute: () => TrabalheConoscoRoute,
+} as any)
 const CandidatoTokenRoute = CandidatoTokenRouteImport.update({
   id: '/candidato/$token',
   path: '/candidato/$token',
@@ -132,6 +151,11 @@ const AppMeIndexRoute = AppMeIndexRouteImport.update({
   id: '/me/',
   path: '/me/',
   getParentRoute: () => AppRoute,
+} as any)
+const ApiPublicApplyRoute = ApiPublicApplyRouteImport.update({
+  id: '/api/public/apply',
+  path: '/api/public/apply',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AppTeamIdRoute = AppTeamIdRouteImport.update({
   id: '/team/$id',
@@ -286,10 +310,13 @@ export interface FileRoutesByFullPath {
   '/precos': typeof PrecosRoute
   '/recursos': typeof RecursosRoute
   '/signup': typeof SignupRoute
+  '/trabalhe-conosco': typeof TrabalheConoscoRouteWithChildren
   '/billing': typeof AppBillingRoute
   '/platform': typeof AppPlatformRoute
   '/pt': typeof AppPtRouteWithChildren
   '/candidato/$token': typeof CandidatoTokenRoute
+  '/trabalhe-conosco/$jobId': typeof TrabalheConoscoJobIdRoute
+  '/trabalhe-conosco/': typeof TrabalheConoscoIndexRoute
   '/admin/candidates': typeof AppAdminCandidatesRoute
   '/admin/interviews': typeof AppAdminInterviewsRoute
   '/admin/interviews-review': typeof AppAdminInterviewsReviewRoute
@@ -309,6 +336,7 @@ export interface FileRoutesByFullPath {
   '/pt/filiais': typeof AppPtFiliaisRoute
   '/pt/funcionarios': typeof AppPtFuncionariosRoute
   '/team/$id': typeof AppTeamIdRoute
+  '/api/public/apply': typeof ApiPublicApplyRoute
   '/me/': typeof AppMeIndexRoute
   '/pt/': typeof AppPtIndexRoute
   '/team/': typeof AppTeamIndexRoute
@@ -334,6 +362,8 @@ export interface FileRoutesByTo {
   '/billing': typeof AppBillingRoute
   '/platform': typeof AppPlatformRoute
   '/candidato/$token': typeof CandidatoTokenRoute
+  '/trabalhe-conosco/$jobId': typeof TrabalheConoscoJobIdRoute
+  '/trabalhe-conosco': typeof TrabalheConoscoIndexRoute
   '/admin/candidates': typeof AppAdminCandidatesRoute
   '/admin/interviews': typeof AppAdminInterviewsRoute
   '/admin/interviews-review': typeof AppAdminInterviewsReviewRoute
@@ -352,6 +382,7 @@ export interface FileRoutesByTo {
   '/pt/filiais': typeof AppPtFiliaisRoute
   '/pt/funcionarios': typeof AppPtFuncionariosRoute
   '/team/$id': typeof AppTeamIdRoute
+  '/api/public/apply': typeof ApiPublicApplyRoute
   '/me': typeof AppMeIndexRoute
   '/pt': typeof AppPtIndexRoute
   '/team': typeof AppTeamIndexRoute
@@ -376,10 +407,13 @@ export interface FileRoutesById {
   '/precos': typeof PrecosRoute
   '/recursos': typeof RecursosRoute
   '/signup': typeof SignupRoute
+  '/trabalhe-conosco': typeof TrabalheConoscoRouteWithChildren
   '/_app/billing': typeof AppBillingRoute
   '/_app/platform': typeof AppPlatformRoute
   '/_app/pt': typeof AppPtRouteWithChildren
   '/candidato/$token': typeof CandidatoTokenRoute
+  '/trabalhe-conosco/$jobId': typeof TrabalheConoscoJobIdRoute
+  '/trabalhe-conosco/': typeof TrabalheConoscoIndexRoute
   '/_app/admin/candidates': typeof AppAdminCandidatesRoute
   '/_app/admin/interviews': typeof AppAdminInterviewsRoute
   '/_app/admin/interviews-review': typeof AppAdminInterviewsReviewRoute
@@ -399,6 +433,7 @@ export interface FileRoutesById {
   '/_app/pt/filiais': typeof AppPtFiliaisRoute
   '/_app/pt/funcionarios': typeof AppPtFuncionariosRoute
   '/_app/team/$id': typeof AppTeamIdRoute
+  '/api/public/apply': typeof ApiPublicApplyRoute
   '/_app/me/': typeof AppMeIndexRoute
   '/_app/pt/': typeof AppPtIndexRoute
   '/_app/team/': typeof AppTeamIndexRoute
@@ -423,10 +458,13 @@ export interface FileRouteTypes {
     | '/precos'
     | '/recursos'
     | '/signup'
+    | '/trabalhe-conosco'
     | '/billing'
     | '/platform'
     | '/pt'
     | '/candidato/$token'
+    | '/trabalhe-conosco/$jobId'
+    | '/trabalhe-conosco/'
     | '/admin/candidates'
     | '/admin/interviews'
     | '/admin/interviews-review'
@@ -446,6 +484,7 @@ export interface FileRouteTypes {
     | '/pt/filiais'
     | '/pt/funcionarios'
     | '/team/$id'
+    | '/api/public/apply'
     | '/me/'
     | '/pt/'
     | '/team/'
@@ -471,6 +510,8 @@ export interface FileRouteTypes {
     | '/billing'
     | '/platform'
     | '/candidato/$token'
+    | '/trabalhe-conosco/$jobId'
+    | '/trabalhe-conosco'
     | '/admin/candidates'
     | '/admin/interviews'
     | '/admin/interviews-review'
@@ -489,6 +530,7 @@ export interface FileRouteTypes {
     | '/pt/filiais'
     | '/pt/funcionarios'
     | '/team/$id'
+    | '/api/public/apply'
     | '/me'
     | '/pt'
     | '/team'
@@ -512,10 +554,13 @@ export interface FileRouteTypes {
     | '/precos'
     | '/recursos'
     | '/signup'
+    | '/trabalhe-conosco'
     | '/_app/billing'
     | '/_app/platform'
     | '/_app/pt'
     | '/candidato/$token'
+    | '/trabalhe-conosco/$jobId'
+    | '/trabalhe-conosco/'
     | '/_app/admin/candidates'
     | '/_app/admin/interviews'
     | '/_app/admin/interviews-review'
@@ -535,6 +580,7 @@ export interface FileRouteTypes {
     | '/_app/pt/filiais'
     | '/_app/pt/funcionarios'
     | '/_app/team/$id'
+    | '/api/public/apply'
     | '/_app/me/'
     | '/_app/pt/'
     | '/_app/team/'
@@ -559,12 +605,21 @@ export interface RootRouteChildren {
   PrecosRoute: typeof PrecosRoute
   RecursosRoute: typeof RecursosRoute
   SignupRoute: typeof SignupRoute
+  TrabalheConoscoRoute: typeof TrabalheConoscoRouteWithChildren
   CandidatoTokenRoute: typeof CandidatoTokenRoute
+  ApiPublicApplyRoute: typeof ApiPublicApplyRoute
   ApiPublicCandidateTokenRoute: typeof ApiPublicCandidateTokenRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/trabalhe-conosco': {
+      id: '/trabalhe-conosco'
+      path: '/trabalhe-conosco'
+      fullPath: '/trabalhe-conosco'
+      preLoaderRoute: typeof TrabalheConoscoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signup': {
       id: '/signup'
       path: '/signup'
@@ -628,6 +683,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/trabalhe-conosco/': {
+      id: '/trabalhe-conosco/'
+      path: '/'
+      fullPath: '/trabalhe-conosco/'
+      preLoaderRoute: typeof TrabalheConoscoIndexRouteImport
+      parentRoute: typeof TrabalheConoscoRoute
+    }
+    '/trabalhe-conosco/$jobId': {
+      id: '/trabalhe-conosco/$jobId'
+      path: '/$jobId'
+      fullPath: '/trabalhe-conosco/$jobId'
+      preLoaderRoute: typeof TrabalheConoscoJobIdRouteImport
+      parentRoute: typeof TrabalheConoscoRoute
+    }
     '/candidato/$token': {
       id: '/candidato/$token'
       path: '/candidato/$token'
@@ -676,6 +745,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/me/'
       preLoaderRoute: typeof AppMeIndexRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/api/public/apply': {
+      id: '/api/public/apply'
+      path: '/api/public/apply'
+      fullPath: '/api/public/apply'
+      preLoaderRoute: typeof ApiPublicApplyRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_app/team/$id': {
       id: '/_app/team/$id'
@@ -968,6 +1044,20 @@ const AppRouteChildren: AppRouteChildren = {
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
+interface TrabalheConoscoRouteChildren {
+  TrabalheConoscoJobIdRoute: typeof TrabalheConoscoJobIdRoute
+  TrabalheConoscoIndexRoute: typeof TrabalheConoscoIndexRoute
+}
+
+const TrabalheConoscoRouteChildren: TrabalheConoscoRouteChildren = {
+  TrabalheConoscoJobIdRoute: TrabalheConoscoJobIdRoute,
+  TrabalheConoscoIndexRoute: TrabalheConoscoIndexRoute,
+}
+
+const TrabalheConoscoRouteWithChildren = TrabalheConoscoRoute._addFileChildren(
+  TrabalheConoscoRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
@@ -978,7 +1068,9 @@ const rootRouteChildren: RootRouteChildren = {
   PrecosRoute: PrecosRoute,
   RecursosRoute: RecursosRoute,
   SignupRoute: SignupRoute,
+  TrabalheConoscoRoute: TrabalheConoscoRouteWithChildren,
   CandidatoTokenRoute: CandidatoTokenRoute,
+  ApiPublicApplyRoute: ApiPublicApplyRoute,
   ApiPublicCandidateTokenRoute: ApiPublicCandidateTokenRoute,
 }
 export const routeTree = rootRouteImport
