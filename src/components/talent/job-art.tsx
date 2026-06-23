@@ -33,6 +33,7 @@ type Props = {
   salary?: string | null;
   benefits?: string[];
   publicUrl: string;
+  logoUrl?: string | null;
 };
 
 function formatCurrency(min: number | null, max: number | null) {
