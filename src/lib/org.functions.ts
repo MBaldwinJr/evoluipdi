@@ -84,16 +84,45 @@ export const orgGetEntitlements = createServerFn({ method: "POST" })
     };
   });
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function fetchCnpjReceita(digits: string): Promise<any> {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`);
+    if (res.status === 404) throw new Error("CNPJ não encontrado na Receita Federal");
+    if (res.status === 429) {
+      await sleep(700 * (attempt + 1));
+      continue;
+    }
+    if (!res.ok) break;
+    return await res.json();
+  }
+  try {
+    const res = await fetch(`https://receitaws.com.br/v1/cnpj/${digits}`);
+    if (res.ok) {
+      const j = (await res.json()) as any;
+      if (j.status === "ERROR") throw new Error(j.message || "CNPJ não encontrado");
+      const atividade = Array.isArray(j.atividade_principal) ? j.atividade_principal[0] : null;
+      return {
+        razao_social: j.nome,
+        nome_fantasia: j.fantasia,
+        cnae_fiscal: atividade?.code?.replace(/\D/g, ""),
+        cnae_fiscal_descricao: atividade?.text,
+      };
+    }
+  } catch (e: any) {
+    if (e.message?.includes("CNPJ")) throw e;
+  }
+  throw new Error("Receita Federal está limitando consultas. Aguarde alguns segundos e tente novamente.");
+}
+
 export const orgLookupCnpj = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ cnpj: z.string().min(11).max(20) }).parse(d))
   .handler(async ({ data }) => {
     const digits = data.cnpj.replace(/\D/g, "");
     if (digits.length !== 14) throw new Error("CNPJ inválido (14 dígitos)");
-    const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`);
-    if (res.status === 404) throw new Error("CNPJ não encontrado na Receita");
-    if (!res.ok) throw new Error(`Falha ao consultar CNPJ (${res.status})`);
-    const j = (await res.json()) as any;
+    const j = await fetchCnpjReceita(digits);
     const code = j.cnae_fiscal ? String(j.cnae_fiscal) : "";
     const formattedCnae = code.length === 7 ? `${code.slice(0, 4)}-${code.slice(4, 5)}/${code.slice(5, 7)}` : code;
     return {
@@ -121,18 +150,8 @@ export const orgCreateFromCnpj = createServerFn({ method: "POST" })
     const digits = data.cnpj.replace(/\D/g, "");
     if (digits.length !== 14) throw new Error("CNPJ inválido (14 dígitos)");
 
-    // Validate via Receita
-    let j: any;
-    try {
-      const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`);
-      if (res.status === 404) throw new Error("CNPJ não encontrado na Receita Federal");
-      if (res.status === 429) throw new Error("Receita Federal está limitando consultas. Tente novamente em alguns segundos.");
-      if (!res.ok) throw new Error(`Receita Federal retornou erro ${res.status}. Tente novamente.`);
-      j = await res.json();
-    } catch (e: any) {
-      if (e.message?.includes("CNPJ") || e.message?.includes("Receita")) throw e;
-      throw new Error("Não foi possível conectar à Receita Federal. Verifique sua conexão e tente novamente.");
-    }
+    const j = await fetchCnpjReceita(digits);
+
     const code = j.cnae_fiscal ? String(j.cnae_fiscal) : "";
     const formattedCnae = code.length === 7 ? `${code.slice(0, 4)}-${code.slice(4, 5)}/${code.slice(5, 7)}` : code;
 
