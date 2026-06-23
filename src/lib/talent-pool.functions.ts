@@ -217,5 +217,20 @@ export const admitApplication = createServerFn({ method: "POST" })
       created_by: userId,
     });
 
+    // Seed onboarding checklist (documentos, integração, treinamentos)
+    const { DEFAULT_ONBOARDING_TEMPLATE } = await import("./onboarding.functions");
+    await supabase.from("onboarding_tasks").insert(
+      DEFAULT_ONBOARDING_TEMPLATE.map((t, idx) => ({
+        org_id: orgId,
+        employee_id: emp.id,
+        application_id: data.application_id,
+        category: t.category,
+        title: t.title,
+        description: t.description ?? null,
+        order_index: idx,
+        created_by: userId,
+      })),
+    );
+
     return { employee_id: emp.id };
   });
