@@ -123,9 +123,18 @@ export function JobArt({
         >
           Estamos contratando
         </div>
-        <div style={{ fontSize: 22, fontWeight: 600, color: t.muted, textAlign: "right", maxWidth: "50%" }}>
-          {company}
-        </div>
+        {logoUrl ? (
+          <img
+            src={logoUrl}
+            alt={company}
+            style={{ maxHeight: 90, maxWidth: 280, objectFit: "contain", display: "block" }}
+            crossOrigin="anonymous"
+          />
+        ) : (
+          <div style={{ fontSize: 22, fontWeight: 600, color: t.muted, textAlign: "right", maxWidth: "50%" }}>
+            {company}
+          </div>
+        )}
       </div>
 
       {/* Body */}
