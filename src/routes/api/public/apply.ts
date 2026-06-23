@@ -81,6 +81,13 @@ export const Route = createFileRoute("/api/public/apply")({
         });
         if (rpcErr) return json({ error: "apply_failed", details: rpcErr.message }, 500);
 
+        // Fire-and-forget AI fit score (não bloqueia a resposta ao candidato)
+        if (appId) {
+          import("@/lib/talent-pool-scoring.server")
+            .then(({ scoreApplicationById }) => scoreApplicationById(appId as string))
+            .catch(() => undefined);
+        }
+
         return json({ ok: true, application_id: appId });
       },
     },
