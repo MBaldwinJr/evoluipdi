@@ -60,7 +60,6 @@ export function TalentFormDialog({
           <div className="md:col-span-2 grid gap-2">
             <Label>Nome completo *</Label>
             <Input {...register("full_name")} />
-            {errors.full_name && <p className="text-xs text-destructive">{errors.full_name.message}</p>}
           </div>
           <div className="grid gap-2">
             <Label>E-mail</Label>
