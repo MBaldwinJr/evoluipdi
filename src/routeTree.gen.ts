@@ -46,6 +46,7 @@ import { Route as AppAdminInterviewsRouteImport } from './routes/_app.admin.inte
 import { Route as AppAdminCandidatesRouteImport } from './routes/_app.admin.candidates'
 import { Route as AppAdminTalentIndexRouteImport } from './routes/_app.admin.talent.index'
 import { Route as ApiPublicCandidateTokenRouteImport } from './routes/api/public/candidate.$token'
+import { Route as AppAdminTalentSettingsRouteImport } from './routes/_app.admin.talent.settings'
 import { Route as AppAdminProcessFlowProcessIdRouteImport } from './routes/_app.admin.process-flow.$processId'
 
 const SignupRoute = SignupRouteImport.update({
@@ -233,6 +234,11 @@ const ApiPublicCandidateTokenRoute = ApiPublicCandidateTokenRouteImport.update({
   path: '/api/public/candidate/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppAdminTalentSettingsRoute = AppAdminTalentSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppAdminTalentRoute,
+} as any)
 const AppAdminProcessFlowProcessIdRoute =
   AppAdminProcessFlowProcessIdRouteImport.update({
     id: '/admin/process-flow/$processId',
@@ -276,6 +282,7 @@ export interface FileRoutesByFullPath {
   '/pt/': typeof AppPtIndexRoute
   '/team/': typeof AppTeamIndexRoute
   '/admin/process-flow/$processId': typeof AppAdminProcessFlowProcessIdRoute
+  '/admin/talent/settings': typeof AppAdminTalentSettingsRoute
   '/api/public/candidate/$token': typeof ApiPublicCandidateTokenRoute
   '/admin/talent/': typeof AppAdminTalentIndexRoute
 }
@@ -313,6 +320,7 @@ export interface FileRoutesByTo {
   '/pt': typeof AppPtIndexRoute
   '/team': typeof AppTeamIndexRoute
   '/admin/process-flow/$processId': typeof AppAdminProcessFlowProcessIdRoute
+  '/admin/talent/settings': typeof AppAdminTalentSettingsRoute
   '/api/public/candidate/$token': typeof ApiPublicCandidateTokenRoute
   '/admin/talent': typeof AppAdminTalentIndexRoute
 }
@@ -354,6 +362,7 @@ export interface FileRoutesById {
   '/_app/pt/': typeof AppPtIndexRoute
   '/_app/team/': typeof AppTeamIndexRoute
   '/_app/admin/process-flow/$processId': typeof AppAdminProcessFlowProcessIdRoute
+  '/_app/admin/talent/settings': typeof AppAdminTalentSettingsRoute
   '/api/public/candidate/$token': typeof ApiPublicCandidateTokenRoute
   '/_app/admin/talent/': typeof AppAdminTalentIndexRoute
 }
@@ -395,6 +404,7 @@ export interface FileRouteTypes {
     | '/pt/'
     | '/team/'
     | '/admin/process-flow/$processId'
+    | '/admin/talent/settings'
     | '/api/public/candidate/$token'
     | '/admin/talent/'
   fileRoutesByTo: FileRoutesByTo
@@ -432,6 +442,7 @@ export interface FileRouteTypes {
     | '/pt'
     | '/team'
     | '/admin/process-flow/$processId'
+    | '/admin/talent/settings'
     | '/api/public/candidate/$token'
     | '/admin/talent'
   id:
@@ -472,6 +483,7 @@ export interface FileRouteTypes {
     | '/_app/pt/'
     | '/_app/team/'
     | '/_app/admin/process-flow/$processId'
+    | '/_app/admin/talent/settings'
     | '/api/public/candidate/$token'
     | '/_app/admin/talent/'
   fileRoutesById: FileRoutesById
@@ -751,6 +763,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCandidateTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/admin/talent/settings': {
+      id: '/_app/admin/talent/settings'
+      path: '/settings'
+      fullPath: '/admin/talent/settings'
+      preLoaderRoute: typeof AppAdminTalentSettingsRouteImport
+      parentRoute: typeof AppAdminTalentRoute
+    }
     '/_app/admin/process-flow/$processId': {
       id: '/_app/admin/process-flow/$processId'
       path: '/admin/process-flow/$processId'
@@ -782,10 +801,12 @@ const AppPtRouteChildren: AppPtRouteChildren = {
 const AppPtRouteWithChildren = AppPtRoute._addFileChildren(AppPtRouteChildren)
 
 interface AppAdminTalentRouteChildren {
+  AppAdminTalentSettingsRoute: typeof AppAdminTalentSettingsRoute
   AppAdminTalentIndexRoute: typeof AppAdminTalentIndexRoute
 }
 
 const AppAdminTalentRouteChildren: AppAdminTalentRouteChildren = {
+  AppAdminTalentSettingsRoute: AppAdminTalentSettingsRoute,
   AppAdminTalentIndexRoute: AppAdminTalentIndexRoute,
 }
 
