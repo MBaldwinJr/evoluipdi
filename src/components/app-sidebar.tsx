@@ -28,6 +28,7 @@ const rhItems = [
   { title: "Candidatos / Pré-entrevistas", url: "/admin/candidates", icon: UserPlus },
   { title: "Convites de equipe", url: "/admin/invites", icon: Mail },
   { title: "Relatórios", url: "/admin/reports", icon: FileText },
+  { title: "Talent Acquisition AI", url: "/admin/talent", icon: Brain },
   { title: "Configurações", url: "/admin/settings", icon: Settings },
 ];
 
