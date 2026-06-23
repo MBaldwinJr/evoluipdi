@@ -89,6 +89,7 @@ function JobsPage() {
               <Button onClick={() => setEditing(emptyJob)}><Plus className="mr-1 h-4 w-4" />Nova vaga</Button>
             </DialogTrigger>
             <JobFormDialog
+              key={editing?.id ?? "new"}
               initial={editing ?? emptyJob}
               onSaved={() => { setOpen(false); setEditing(null); qc.invalidateQueries({ queryKey: ["talent-jobs"] }); }}
             />
