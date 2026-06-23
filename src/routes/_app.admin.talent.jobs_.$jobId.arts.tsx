@@ -186,6 +186,25 @@ function JobArtsPage() {
                   </SelectContent>
                 </Select>
               </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium">Logo da empresa</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={onLogoUpload}
+                    className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-md file:border-0 file:bg-muted file:px-3 file:py-1.5 file:text-sm file:font-medium hover:file:bg-muted/70"
+                  />
+                  {logoUrl && (
+                    <Button size="sm" variant="ghost" onClick={() => setLogoUrl(null)}>
+                      Remover
+                    </Button>
+                  )}
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Substitui o nome da empresa na arte. PNG transparente recomendado (até 2MB).
+                </p>
+              </div>
               <p className="text-xs text-muted-foreground">
                 QR Code aponta para: <span className="break-all text-foreground">{publicUrl}</span>
               </p>
