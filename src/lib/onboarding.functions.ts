@@ -153,15 +153,28 @@ export const updateOnboardingTask = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { id, ...rest } = data;
-    const patch: Record<string, unknown> = { ...rest };
-    if (rest.status === "done") {
-      patch.completed_at = new Date().toISOString();
-      patch.completed_by = userId;
-    } else if (rest.status && rest.status !== "done") {
-      patch.completed_at = null;
-      patch.completed_by = null;
+    const { id, status, due_date, title, description } = data;
+    const patch: {
+      status?: OnboardingStatus;
+      due_date?: string | null;
+      title?: string;
+      description?: string | null;
+      completed_at?: string | null;
+      completed_by?: string | null;
+    } = {};
+    if (status !== undefined) {
+      patch.status = status;
+      if (status === "done") {
+        patch.completed_at = new Date().toISOString();
+        patch.completed_by = userId;
+      } else {
+        patch.completed_at = null;
+        patch.completed_by = null;
+      }
     }
+    if (due_date !== undefined) patch.due_date = due_date;
+    if (title !== undefined) patch.title = title;
+    if (description !== undefined) patch.description = description;
     const { error } = await supabase.from("onboarding_tasks").update(patch).eq("id", id);
     if (error) throw new Error(error.message);
     return { ok: true };
