@@ -15,25 +15,22 @@ export const upsertJob = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => jobSchema.parse(d))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const payload = {
-      ...data,
-      closing_date: data.closing_date || null,
-      created_by: userId,
-    };
+    const orgId = await getUserOrgId(userId);
     if (data.id) {
-      const { id, ...rest } = payload;
+      const { id, ...rest } = data;
       const { data: row, error } = await supabase
         .from("jobs")
-        .update(rest)
+        .update({ ...rest, closing_date: rest.closing_date || null })
         .eq("id", id)
         .select("id")
         .single();
       if (error) throw new Error(error.message);
       return { id: row.id };
     }
+    const { id: _ignore, ...insert } = data;
     const { data: row, error } = await supabase
       .from("jobs")
-      .insert(payload)
+      .insert({ ...insert, org_id: orgId, closing_date: insert.closing_date || null, created_by: userId })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
