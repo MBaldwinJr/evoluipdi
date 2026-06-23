@@ -14,7 +14,8 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Plus, Pencil, Trash2, Loader2, Sparkles } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Sparkles, Kanban } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { EmptyState } from "@/components/page-header";
 import { JobStatusBadge } from "@/components/talent/job-status-badge";
@@ -126,6 +127,11 @@ function JobsPage() {
                     <TableCell className="text-sm">{j.closing_date ?? "—"}</TableCell>
                     <TableCell><JobStatusBadge status={j.status} /></TableCell>
                     <TableCell className="text-right">
+                      <Button asChild variant="ghost" size="icon" title="Pipeline">
+                        <Link to="/admin/talent/jobs/$jobId/kanban" params={{ jobId: j.id }}>
+                          <Kanban className="h-4 w-4" />
+                        </Link>
+                      </Button>
                       <Button variant="ghost" size="icon" onClick={() => { setEditing({ ...j, role_id: j.role?.id ?? null, department_id: j.department?.id ?? null }); setOpen(true); }}>
                         <Pencil className="h-4 w-4" />
                       </Button>

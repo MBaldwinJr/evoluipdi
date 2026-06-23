@@ -14,6 +14,124 @@ export type Database = {
   }
   public: {
     Tables: {
+      application_events: {
+        Row: {
+          application_id: string
+          created_at: string
+          created_by: string | null
+          event_type: string
+          id: string
+          org_id: string
+          payload: Json
+        }
+        Insert: {
+          application_id: string
+          created_at?: string
+          created_by?: string | null
+          event_type: string
+          id?: string
+          org_id: string
+          payload?: Json
+        }
+        Update: {
+          application_id?: string
+          created_at?: string
+          created_by?: string | null
+          event_type?: string
+          id?: string
+          org_id?: string
+          payload?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_events_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "application_events_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      applications: {
+        Row: {
+          ai_fit_score: number | null
+          ai_fit_summary: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          job_id: string
+          notes: string | null
+          org_id: string
+          rating: number | null
+          rejection_reason: string | null
+          stage: Database["public"]["Enums"]["application_stage"]
+          stage_order: number
+          talent_id: string
+          updated_at: string
+        }
+        Insert: {
+          ai_fit_score?: number | null
+          ai_fit_summary?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          job_id: string
+          notes?: string | null
+          org_id: string
+          rating?: number | null
+          rejection_reason?: string | null
+          stage?: Database["public"]["Enums"]["application_stage"]
+          stage_order?: number
+          talent_id: string
+          updated_at?: string
+        }
+        Update: {
+          ai_fit_score?: number | null
+          ai_fit_summary?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          job_id?: string
+          notes?: string | null
+          org_id?: string
+          rating?: number | null
+          rejection_reason?: string | null
+          stage?: Database["public"]["Enums"]["application_stage"]
+          stage_order?: number
+          talent_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_talent_id_fkey"
+            columns: ["talent_id"]
+            isOneToOne: false
+            referencedRelation: "talent_pool"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidate_invites: {
         Row: {
           analysis: Json | null
@@ -1983,6 +2101,89 @@ export type Database = {
           },
         ]
       }
+      talent_pool: {
+        Row: {
+          ai_score: number | null
+          ai_summary: string | null
+          created_at: string
+          created_by: string | null
+          current_company: string | null
+          current_position: string | null
+          cv_text: string | null
+          cv_url: string | null
+          email: string | null
+          full_name: string
+          id: string
+          linkedin_url: string | null
+          location: string | null
+          org_id: string
+          phone: string | null
+          skills: string[]
+          source: Database["public"]["Enums"]["talent_source"]
+          status: Database["public"]["Enums"]["talent_status"]
+          summary: string | null
+          tags: string[]
+          updated_at: string
+          years_experience: number
+        }
+        Insert: {
+          ai_score?: number | null
+          ai_summary?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_company?: string | null
+          current_position?: string | null
+          cv_text?: string | null
+          cv_url?: string | null
+          email?: string | null
+          full_name: string
+          id?: string
+          linkedin_url?: string | null
+          location?: string | null
+          org_id: string
+          phone?: string | null
+          skills?: string[]
+          source?: Database["public"]["Enums"]["talent_source"]
+          status?: Database["public"]["Enums"]["talent_status"]
+          summary?: string | null
+          tags?: string[]
+          updated_at?: string
+          years_experience?: number
+        }
+        Update: {
+          ai_score?: number | null
+          ai_summary?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_company?: string | null
+          current_position?: string | null
+          cv_text?: string | null
+          cv_url?: string | null
+          email?: string | null
+          full_name?: string
+          id?: string
+          linkedin_url?: string | null
+          location?: string | null
+          org_id?: string
+          phone?: string | null
+          skills?: string[]
+          source?: Database["public"]["Enums"]["talent_source"]
+          status?: Database["public"]["Enums"]["talent_status"]
+          summary?: string | null
+          tags?: string[]
+          updated_at?: string
+          years_experience?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "talent_pool_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -2099,6 +2300,14 @@ export type Database = {
       action_category: "pratica" | "troca" | "formal"
       action_status: "pendente" | "em_andamento" | "concluida" | "cancelada"
       app_role: "colaborador" | "gestor" | "rh" | "super_admin"
+      application_stage:
+        | "applied"
+        | "screening"
+        | "interview"
+        | "technical"
+        | "offer"
+        | "hired"
+        | "rejected"
       employment_type:
         | "clt"
         | "pj"
@@ -2156,6 +2365,8 @@ export type Database = {
         | "competencia_tecnica"
         | "competencia_comportamental"
         | "indicador"
+      talent_source: "manual" | "import" | "application" | "referral"
+      talent_status: "active" | "archived" | "hired" | "blacklisted"
       work_model: "presencial" | "hibrido" | "remoto"
     }
     CompositeTypes: {
@@ -2287,6 +2498,15 @@ export const Constants = {
       action_category: ["pratica", "troca", "formal"],
       action_status: ["pendente", "em_andamento", "concluida", "cancelada"],
       app_role: ["colaborador", "gestor", "rh", "super_admin"],
+      application_stage: [
+        "applied",
+        "screening",
+        "interview",
+        "technical",
+        "offer",
+        "hired",
+        "rejected",
+      ],
       employment_type: [
         "clt",
         "pj",
@@ -2351,6 +2571,8 @@ export const Constants = {
         "competencia_comportamental",
         "indicador",
       ],
+      talent_source: ["manual", "import", "application", "referral"],
+      talent_status: ["active", "archived", "hired", "blacklisted"],
       work_model: ["presencial", "hibrido", "remoto"],
     },
   },
