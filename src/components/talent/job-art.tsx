@@ -48,7 +48,7 @@ export { formatCurrency };
 
 export function JobArt({
   format, template, company, headline, subhead, cta,
-  location, workModel, salary, benefits = [], publicUrl,
+  location, workModel, salary, benefits = [], publicUrl, logoUrl,
 }: Props) {
   const { w, h } = FORMATS[format];
   const t = TEMPLATES[template];
