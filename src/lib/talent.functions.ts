@@ -189,3 +189,89 @@ export const generateJobDescription = createServerFn({ method: "POST" })
 
     return result;
   });
+
+// ---------- AI: sugere KPIs do cargo ----------
+export const suggestPositionKpi = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ role_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+    const { data: role, error } = await supabase
+      .from("roles_catalog")
+      .select("title, summary, rcf_items:rcf_items(title, kind, expected_level, description)")
+      .eq("id", data.role_id)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!role) throw new Error("Cargo não encontrado");
+
+    return callAIJson<{
+      education_required: string;
+      experience_years: number;
+      mandatory_courses: string[];
+      mandatory_certifications: string[];
+      required_skills: string[];
+      soft_skills: string[];
+      benefits: string[];
+      salary_reference: number | null;
+      work_schedule: string;
+      work_location: string;
+      travel_required: boolean;
+      driver_license: string;
+    }>({
+      system: "Você é um especialista em RH brasileiro. Sugira KPIs realistas para o cargo com base no RCF. PT-BR, objetivo, sem inventar certificações inexistentes.",
+      user: `Cargo: ${(role as any).title}\nResumo: ${(role as any).summary ?? "—"}\nRCF:\n${JSON.stringify((role as any).rcf_items ?? [], null, 2)}`,
+      toolName: "suggest_position_kpi",
+      toolDescription: "Sugere KPIs do cargo",
+      parameters: {
+        type: "object",
+        properties: {
+          education_required: { type: "string" },
+          experience_years: { type: "number", minimum: 0, maximum: 40 },
+          mandatory_courses: { type: "array", items: { type: "string" } },
+          mandatory_certifications: { type: "array", items: { type: "string" } },
+          required_skills: { type: "array", items: { type: "string" } },
+          soft_skills: { type: "array", items: { type: "string" } },
+          benefits: { type: "array", items: { type: "string" } },
+          salary_reference: { type: ["number", "null"] },
+          work_schedule: { type: "string" },
+          work_location: { type: "string" },
+          travel_required: { type: "boolean" },
+          driver_license: { type: "string" },
+        },
+        required: [
+          "education_required", "experience_years", "mandatory_courses", "mandatory_certifications",
+          "required_skills", "soft_skills", "benefits", "salary_reference",
+          "work_schedule", "work_location", "travel_required", "driver_license",
+        ],
+      },
+    });
+  });
+
+// ---------- AI: sugere template de vaga ----------
+export const suggestJobTemplate = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({
+    name: z.string().min(2),
+    department_name: z.string().optional().nullable(),
+  }).parse(d))
+  .handler(async ({ data }) => {
+    return callAIJson<{
+      description_template: string;
+      requirements_template: string;
+      responsibilities_template: string;
+    }>({
+      system: "Você é um especialista em descrição de vagas em PT-BR. Crie um template reutilizável, claro e profissional.",
+      user: `Nome do template: ${data.name}\nDepartamento: ${data.department_name ?? "—"}`,
+      toolName: "suggest_job_template",
+      toolDescription: "Sugere conteúdo de template de vaga",
+      parameters: {
+        type: "object",
+        properties: {
+          description_template: { type: "string" },
+          requirements_template: { type: "string" },
+          responsibilities_template: { type: "string" },
+        },
+        required: ["description_template", "requirements_template", "responsibilities_template"],
+      },
+    });
+  });

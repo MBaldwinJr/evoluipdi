@@ -10,12 +10,12 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { Loader2, Sparkles } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { EmptyState } from "@/components/page-header";
 import { TagListEditor } from "@/components/talent/tag-list-editor";
 import { positionKpiSchema, type PositionKpiInput } from "@/lib/talent.types";
-import { upsertPositionKpi } from "@/lib/talent.functions";
+import { upsertPositionKpi, suggestPositionKpi } from "@/lib/talent.functions";
 
 export const Route = createFileRoute("/_app/admin/talent/kpis")({ component: KpisPage });
 
@@ -30,7 +30,9 @@ function KpisPage() {
   const [roleId, setRoleId] = useState<string>("");
   const [form, setForm] = useState<PositionKpiInput | null>(null);
   const [saving, setSaving] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
   const save = useServerFn(upsertPositionKpi);
+  const suggest = useServerFn(suggestPositionKpi);
 
   const { data: roles = [] } = useQuery({
     queryKey: ["talent-roles-all"],
@@ -84,6 +86,31 @@ function KpisPage() {
     finally { setSaving(false); }
   };
 
+  const autoFill = async () => {
+    if (!roleId) return;
+    setSuggesting(true);
+    try {
+      const s = await suggest({ data: { role_id: roleId } });
+      setForm((f) => ({
+        ...(f ?? empty(roleId)),
+        education_required: s.education_required,
+        experience_years: s.experience_years,
+        mandatory_courses: s.mandatory_courses,
+        mandatory_certifications: s.mandatory_certifications,
+        required_skills: s.required_skills,
+        soft_skills: s.soft_skills,
+        benefits: s.benefits,
+        salary_reference: s.salary_reference,
+        work_schedule: s.work_schedule,
+        work_location: s.work_location,
+        travel_required: s.travel_required,
+        driver_license: s.driver_license,
+      }));
+      toast.success("Sugestões preenchidas. Revise antes de salvar.");
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Erro"); }
+    finally { setSuggesting(false); }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
@@ -94,6 +121,10 @@ function KpisPage() {
             {roles.map((r) => <SelectItem key={r.id} value={r.id}>{r.title}</SelectItem>)}
           </SelectContent>
         </Select>
+        <Button variant="outline" size="sm" disabled={!roleId || suggesting} onClick={autoFill}>
+          {suggesting ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Sparkles className="mr-1 h-4 w-4" />}
+          Preencher com IA (opcional)
+        </Button>
       </div>
 
       {!form ? (

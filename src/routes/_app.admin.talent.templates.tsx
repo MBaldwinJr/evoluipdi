@@ -11,11 +11,11 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Sparkles } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { EmptyState } from "@/components/page-header";
 import { jobTemplateSchema, type JobTemplateInput } from "@/lib/talent.types";
-import { upsertJobTemplate, deleteJobTemplate } from "@/lib/talent.functions";
+import { upsertJobTemplate, deleteJobTemplate, suggestJobTemplate } from "@/lib/talent.functions";
 
 export const Route = createFileRoute("/_app/admin/talent/templates")({ component: TemplatesPage });
 
@@ -84,12 +84,26 @@ function TemplatesPage() {
 function TemplateDialog({ initial, onSaved }: { initial: JobTemplateInput; onSaved: () => void }) {
   const [form, setForm] = useState<JobTemplateInput>(initial);
   const [saving, setSaving] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
   const save = useServerFn(upsertJobTemplate);
+  const suggest = useServerFn(suggestJobTemplate);
   const { data: depts = [] } = useQuery({
     queryKey: ["talent-depts"],
     queryFn: async () => (await supabase.from("departments").select("id,name").order("name")).data ?? [],
   });
   const setField = <K extends keyof JobTemplateInput>(k: K, v: JobTemplateInput[K]) => setForm((f) => ({ ...f, [k]: v }));
+
+  const autoFill = async () => {
+    if (!form.name || form.name.length < 2) { toast.error("Informe o nome do template primeiro"); return; }
+    setSuggesting(true);
+    try {
+      const deptName = depts.find((d) => d.id === form.department_id)?.name ?? null;
+      const s = await suggest({ data: { name: form.name, department_name: deptName } });
+      setForm((f) => ({ ...f, ...s }));
+      toast.success("Template preenchido. Revise antes de salvar.");
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Erro"); }
+    finally { setSuggesting(false); }
+  };
 
   const submit = async () => {
     const parsed = jobTemplateSchema.safeParse(form);
@@ -119,7 +133,11 @@ function TemplateDialog({ initial, onSaved }: { initial: JobTemplateInput; onSav
         <div className="grid gap-2"><Label>Requisitos</Label><Textarea rows={4} value={form.requirements_template ?? ""} onChange={(e) => setField("requirements_template", e.target.value)} /></div>
         <div className="grid gap-2"><Label>Responsabilidades</Label><Textarea rows={4} value={form.responsibilities_template ?? ""} onChange={(e) => setField("responsibilities_template", e.target.value)} /></div>
       </div>
-      <DialogFooter>
+      <DialogFooter className="gap-2">
+        <Button variant="outline" type="button" onClick={autoFill} disabled={suggesting}>
+          {suggesting ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Sparkles className="mr-1 h-4 w-4" />}
+          Preencher com IA (opcional)
+        </Button>
         <Button onClick={submit} disabled={saving}>{saving && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}Salvar</Button>
       </DialogFooter>
     </DialogContent>
