@@ -12,7 +12,10 @@ import {
   qualityCreateOccurrence,
   qualityUpdateOccurrenceStatus,
   qualityStats,
+  qualityInvestigate,
+  type QualityAiInvestigation,
 } from "@/lib/quality.functions";
+// duplicated import removed below
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
