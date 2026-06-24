@@ -2261,6 +2261,432 @@ export type Database = {
           },
         ]
       }
+      quality_action_plans: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          how: string | null
+          how_much_cents: number
+          id: string
+          occurrence_id: string | null
+          org_id: string
+          status: Database["public"]["Enums"]["quality_action_status"]
+          updated_at: string
+          what: string
+          when_due: string | null
+          where_at: string | null
+          who: string | null
+          why: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          how?: string | null
+          how_much_cents?: number
+          id?: string
+          occurrence_id?: string | null
+          org_id: string
+          status?: Database["public"]["Enums"]["quality_action_status"]
+          updated_at?: string
+          what: string
+          when_due?: string | null
+          where_at?: string | null
+          who?: string | null
+          why?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          how?: string | null
+          how_much_cents?: number
+          id?: string
+          occurrence_id?: string | null
+          org_id?: string
+          status?: Database["public"]["Enums"]["quality_action_status"]
+          updated_at?: string
+          what?: string
+          when_due?: string | null
+          where_at?: string | null
+          who?: string | null
+          why?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_action_plans_occurrence_id_fkey"
+            columns: ["occurrence_id"]
+            isOneToOne: false
+            referencedRelation: "quality_occurrences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_action_plans_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quality_audit_log: {
+        Row: {
+          action: string
+          actor: string | null
+          created_at: string
+          entity: string
+          entity_id: string
+          id: string
+          new_values: Json | null
+          old_values: Json | null
+          org_id: string
+        }
+        Insert: {
+          action: string
+          actor?: string | null
+          created_at?: string
+          entity: string
+          entity_id: string
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          org_id: string
+        }
+        Update: {
+          action?: string
+          actor?: string | null
+          created_at?: string
+          entity?: string
+          entity_id?: string
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          org_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_audit_log_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quality_audits: {
+        Row: {
+          created_at: string
+          ended_at: string | null
+          findings: Json
+          id: string
+          lead_auditor: string | null
+          org_id: string
+          scope: string
+          score: number | null
+          standard: Database["public"]["Enums"]["quality_audit_standard"]
+          started_at: string | null
+          status: Database["public"]["Enums"]["quality_audit_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          ended_at?: string | null
+          findings?: Json
+          id?: string
+          lead_auditor?: string | null
+          org_id: string
+          scope: string
+          score?: number | null
+          standard: Database["public"]["Enums"]["quality_audit_standard"]
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["quality_audit_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          ended_at?: string | null
+          findings?: Json
+          id?: string
+          lead_auditor?: string | null
+          org_id?: string
+          scope?: string
+          score?: number | null
+          standard?: Database["public"]["Enums"]["quality_audit_standard"]
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["quality_audit_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_audits_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quality_capa: {
+        Row: {
+          capa_type: Database["public"]["Enums"]["quality_capa_type"]
+          created_at: string
+          description: string
+          due_date: string | null
+          effectiveness_check: string | null
+          id: string
+          occurrence_id: string
+          org_id: string
+          responsible: string | null
+          status: Database["public"]["Enums"]["quality_action_status"]
+          updated_at: string
+        }
+        Insert: {
+          capa_type: Database["public"]["Enums"]["quality_capa_type"]
+          created_at?: string
+          description: string
+          due_date?: string | null
+          effectiveness_check?: string | null
+          id?: string
+          occurrence_id: string
+          org_id: string
+          responsible?: string | null
+          status?: Database["public"]["Enums"]["quality_action_status"]
+          updated_at?: string
+        }
+        Update: {
+          capa_type?: Database["public"]["Enums"]["quality_capa_type"]
+          created_at?: string
+          description?: string
+          due_date?: string | null
+          effectiveness_check?: string | null
+          id?: string
+          occurrence_id?: string
+          org_id?: string
+          responsible?: string | null
+          status?: Database["public"]["Enums"]["quality_action_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_capa_occurrence_id_fkey"
+            columns: ["occurrence_id"]
+            isOneToOne: false
+            referencedRelation: "quality_occurrences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_capa_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quality_documents: {
+        Row: {
+          created_at: string
+          description: string | null
+          file_url: string
+          id: string
+          occurrence_id: string | null
+          org_id: string
+          title: string
+          uploaded_by: string | null
+          version: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          file_url: string
+          id?: string
+          occurrence_id?: string | null
+          org_id: string
+          title: string
+          uploaded_by?: string | null
+          version?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          file_url?: string
+          id?: string
+          occurrence_id?: string | null
+          org_id?: string
+          title?: string
+          uploaded_by?: string | null
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_documents_occurrence_id_fkey"
+            columns: ["occurrence_id"]
+            isOneToOne: false
+            referencedRelation: "quality_occurrences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_documents_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quality_five_whys: {
+        Row: {
+          answer: string | null
+          created_at: string
+          id: string
+          occurrence_id: string
+          org_id: string
+          question: string
+          step: number
+        }
+        Insert: {
+          answer?: string | null
+          created_at?: string
+          id?: string
+          occurrence_id: string
+          org_id: string
+          question: string
+          step: number
+        }
+        Update: {
+          answer?: string | null
+          created_at?: string
+          id?: string
+          occurrence_id?: string
+          org_id?: string
+          question?: string
+          step?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_five_whys_occurrence_id_fkey"
+            columns: ["occurrence_id"]
+            isOneToOne: false
+            referencedRelation: "quality_occurrences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_five_whys_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quality_ishikawa_causes: {
+        Row: {
+          cause: string
+          created_at: string
+          dimension: Database["public"]["Enums"]["quality_ishikawa_dim"]
+          id: string
+          is_root: boolean
+          occurrence_id: string
+          org_id: string
+        }
+        Insert: {
+          cause: string
+          created_at?: string
+          dimension: Database["public"]["Enums"]["quality_ishikawa_dim"]
+          id?: string
+          is_root?: boolean
+          occurrence_id: string
+          org_id: string
+        }
+        Update: {
+          cause?: string
+          created_at?: string
+          dimension?: Database["public"]["Enums"]["quality_ishikawa_dim"]
+          id?: string
+          is_root?: boolean
+          occurrence_id?: string
+          org_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_ishikawa_causes_occurrence_id_fkey"
+            columns: ["occurrence_id"]
+            isOneToOne: false
+            referencedRelation: "quality_occurrences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_ishikawa_causes_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quality_occurrences: {
+        Row: {
+          assigned_to: string | null
+          category: string | null
+          closed_at: string | null
+          code: string
+          created_at: string
+          description: string | null
+          due_date: string | null
+          evidences: Json
+          id: string
+          org_id: string
+          reported_by: string | null
+          sector: string | null
+          severity: Database["public"]["Enums"]["quality_severity"]
+          status: Database["public"]["Enums"]["quality_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          category?: string | null
+          closed_at?: string | null
+          code: string
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          evidences?: Json
+          id?: string
+          org_id: string
+          reported_by?: string | null
+          sector?: string | null
+          severity?: Database["public"]["Enums"]["quality_severity"]
+          status?: Database["public"]["Enums"]["quality_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: string | null
+          closed_at?: string | null
+          code?: string
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          evidences?: Json
+          id?: string
+          org_id?: string
+          reported_by?: string | null
+          sector?: string | null
+          severity?: Database["public"]["Enums"]["quality_severity"]
+          status?: Database["public"]["Enums"]["quality_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_occurrences_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rcf_items: {
         Row: {
           created_at: string
@@ -2709,6 +3135,39 @@ export type Database = {
         | "seis_x_um"
         | "doze_x_trinta_seis"
         | "flex"
+      quality_action_status:
+        | "planejada"
+        | "em_andamento"
+        | "concluida"
+        | "atrasada"
+        | "cancelada"
+      quality_audit_standard:
+        | "iso_9001"
+        | "iso_14001"
+        | "iso_45001"
+        | "interna"
+        | "outra"
+      quality_audit_status:
+        | "planejada"
+        | "em_andamento"
+        | "concluida"
+        | "cancelada"
+      quality_capa_type: "corretiva" | "preventiva"
+      quality_ishikawa_dim:
+        | "homem"
+        | "maquina"
+        | "metodo"
+        | "material"
+        | "meio_ambiente"
+        | "gestao"
+      quality_severity: "baixa" | "media" | "alta" | "critica"
+      quality_status:
+        | "aberta"
+        | "em_analise"
+        | "em_acao"
+        | "aguardando_aprovacao"
+        | "concluida"
+        | "cancelada"
       rcf_item_kind:
         | "responsabilidade"
         | "competencia_tecnica"
@@ -2920,6 +3379,44 @@ export const Constants = {
         "seis_x_um",
         "doze_x_trinta_seis",
         "flex",
+      ],
+      quality_action_status: [
+        "planejada",
+        "em_andamento",
+        "concluida",
+        "atrasada",
+        "cancelada",
+      ],
+      quality_audit_standard: [
+        "iso_9001",
+        "iso_14001",
+        "iso_45001",
+        "interna",
+        "outra",
+      ],
+      quality_audit_status: [
+        "planejada",
+        "em_andamento",
+        "concluida",
+        "cancelada",
+      ],
+      quality_capa_type: ["corretiva", "preventiva"],
+      quality_ishikawa_dim: [
+        "homem",
+        "maquina",
+        "metodo",
+        "material",
+        "meio_ambiente",
+        "gestao",
+      ],
+      quality_severity: ["baixa", "media", "alta", "critica"],
+      quality_status: [
+        "aberta",
+        "em_analise",
+        "em_acao",
+        "aguardando_aprovacao",
+        "concluida",
+        "cancelada",
       ],
       rcf_item_kind: [
         "responsabilidade",

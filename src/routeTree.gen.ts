@@ -41,6 +41,7 @@ import { Route as AppAdminTalentRouteImport } from './routes/_app.admin.talent'
 import { Route as AppAdminSettingsRouteImport } from './routes/_app.admin.settings'
 import { Route as AppAdminRolesRouteImport } from './routes/_app.admin.roles'
 import { Route as AppAdminReportsRouteImport } from './routes/_app.admin.reports'
+import { Route as AppAdminQualityRouteImport } from './routes/_app.admin.quality'
 import { Route as AppAdminProcessesRouteImport } from './routes/_app.admin.processes'
 import { Route as AppAdminPeopleRouteImport } from './routes/_app.admin.people'
 import { Route as AppAdminOrgChartRouteImport } from './routes/_app.admin.org-chart'
@@ -221,6 +222,11 @@ const AppAdminReportsRoute = AppAdminReportsRouteImport.update({
   path: '/admin/reports',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAdminQualityRoute = AppAdminQualityRouteImport.update({
+  id: '/admin/quality',
+  path: '/admin/quality',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAdminProcessesRoute = AppAdminProcessesRouteImport.update({
   id: '/admin/processes',
   path: '/admin/processes',
@@ -352,6 +358,7 @@ export interface FileRoutesByFullPath {
   '/admin/org-chart': typeof AppAdminOrgChartRoute
   '/admin/people': typeof AppAdminPeopleRoute
   '/admin/processes': typeof AppAdminProcessesRoute
+  '/admin/quality': typeof AppAdminQualityRoute
   '/admin/reports': typeof AppAdminReportsRoute
   '/admin/roles': typeof AppAdminRolesRoute
   '/admin/settings': typeof AppAdminSettingsRoute
@@ -403,6 +410,7 @@ export interface FileRoutesByTo {
   '/admin/org-chart': typeof AppAdminOrgChartRoute
   '/admin/people': typeof AppAdminPeopleRoute
   '/admin/processes': typeof AppAdminProcessesRoute
+  '/admin/quality': typeof AppAdminQualityRoute
   '/admin/reports': typeof AppAdminReportsRoute
   '/admin/roles': typeof AppAdminRolesRoute
   '/admin/settings': typeof AppAdminSettingsRoute
@@ -457,6 +465,7 @@ export interface FileRoutesById {
   '/_app/admin/org-chart': typeof AppAdminOrgChartRoute
   '/_app/admin/people': typeof AppAdminPeopleRoute
   '/_app/admin/processes': typeof AppAdminProcessesRoute
+  '/_app/admin/quality': typeof AppAdminQualityRoute
   '/_app/admin/reports': typeof AppAdminReportsRoute
   '/_app/admin/roles': typeof AppAdminRolesRoute
   '/_app/admin/settings': typeof AppAdminSettingsRoute
@@ -512,6 +521,7 @@ export interface FileRouteTypes {
     | '/admin/org-chart'
     | '/admin/people'
     | '/admin/processes'
+    | '/admin/quality'
     | '/admin/reports'
     | '/admin/roles'
     | '/admin/settings'
@@ -563,6 +573,7 @@ export interface FileRouteTypes {
     | '/admin/org-chart'
     | '/admin/people'
     | '/admin/processes'
+    | '/admin/quality'
     | '/admin/reports'
     | '/admin/roles'
     | '/admin/settings'
@@ -616,6 +627,7 @@ export interface FileRouteTypes {
     | '/_app/admin/org-chart'
     | '/_app/admin/people'
     | '/_app/admin/processes'
+    | '/_app/admin/quality'
     | '/_app/admin/reports'
     | '/_app/admin/roles'
     | '/_app/admin/settings'
@@ -888,6 +900,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminReportsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/admin/quality': {
+      id: '/_app/admin/quality'
+      path: '/admin/quality'
+      fullPath: '/admin/quality'
+      preLoaderRoute: typeof AppAdminQualityRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/admin/processes': {
       id: '/_app/admin/processes'
       path: '/admin/processes'
@@ -1093,6 +1112,7 @@ interface AppRouteChildren {
   AppAdminOrgChartRoute: typeof AppAdminOrgChartRoute
   AppAdminPeopleRoute: typeof AppAdminPeopleRoute
   AppAdminProcessesRoute: typeof AppAdminProcessesRoute
+  AppAdminQualityRoute: typeof AppAdminQualityRoute
   AppAdminReportsRoute: typeof AppAdminReportsRoute
   AppAdminRolesRoute: typeof AppAdminRolesRoute
   AppAdminSettingsRoute: typeof AppAdminSettingsRoute
@@ -1117,6 +1137,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAdminOrgChartRoute: AppAdminOrgChartRoute,
   AppAdminPeopleRoute: AppAdminPeopleRoute,
   AppAdminProcessesRoute: AppAdminProcessesRoute,
+  AppAdminQualityRoute: AppAdminQualityRoute,
   AppAdminReportsRoute: AppAdminReportsRoute,
   AppAdminRolesRoute: AppAdminRolesRoute,
   AppAdminSettingsRoute: AppAdminSettingsRoute,
@@ -1163,13 +1184,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
