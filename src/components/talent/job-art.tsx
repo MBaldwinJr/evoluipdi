@@ -68,9 +68,15 @@ export { formatCurrency };
 export function JobArt({
   format, template, company, headline, subhead, cta,
   location, workModel, salary, benefits = [], publicUrl, logoUrl,
+  primaryColor, secondaryColor, fontFamily,
 }: Props) {
   const { w, h } = FORMATS[format];
-  const t = TEMPLATES[template];
+  const base = TEMPLATES[template];
+  const t: TemplateTokens = {
+    ...base,
+    accent: primaryColor || base.accent,
+    muted: secondaryColor || base.muted,
+  };
   const [qrUrl, setQrUrl] = useState<string>("");
 
   useEffect(() => {
@@ -95,7 +101,9 @@ export function JobArt({
         background: t.bg,
         color: t.fg,
         position: "relative",
-        fontFamily: "Inter, system-ui, sans-serif",
+        fontFamily: fontFamily || "Inter, system-ui, sans-serif",
+        overflow: "hidden",
+      }}
         overflow: "hidden",
       }}
     >
