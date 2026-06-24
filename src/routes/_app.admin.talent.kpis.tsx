@@ -30,7 +30,9 @@ function KpisPage() {
   const [roleId, setRoleId] = useState<string>("");
   const [form, setForm] = useState<PositionKpiInput | null>(null);
   const [saving, setSaving] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
   const save = useServerFn(upsertPositionKpi);
+  const suggest = useServerFn(suggestPositionKpi);
 
   const { data: roles = [] } = useQuery({
     queryKey: ["talent-roles-all"],
