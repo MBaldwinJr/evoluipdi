@@ -126,3 +126,75 @@ export const qualityStats = createServerFn({ method: "POST" })
       concluidas: list.filter((r) => r.status === "concluida").length,
     };
   });
+
+export const qualityInvestigate = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ id: z.string().uuid(), org_id: z.string().uuid() }).parse(d),
+  )
+  .handler(async ({ data, context }): Promise<QualityAiInvestigation> => {
+    const { data: occ, error } = await context.supabase
+      .from("quality_occurrences")
+      .select("title,description,category,sector,severity,status,due_date,code")
+      .eq("id", data.id)
+      .eq("org_id", data.org_id)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!occ) throw new Error("Ocorrência não encontrada");
+
+    const severityEnum = ["baixa", "media", "alta", "critica"] as const;
+    const priorityEnum = ["baixa", "media", "alta"] as const;
+
+    return callAIJson<QualityAiInvestigation>({
+      system:
+        "Você é um especialista sênior em Gestão da Qualidade (ISO 9001), PDCA, Ishikawa (6M), 5 Porquês e CAPA. Analise a ocorrência e gere uma investigação estruturada, factual e acionável em português do Brasil. Sem clichês, sem generalidades.",
+      user: `Ocorrência ${occ.code}\nTítulo: ${occ.title}\nCategoria: ${occ.category ?? "—"}\nSetor: ${occ.sector ?? "—"}\nGravidade atual: ${occ.severity}\nStatus: ${occ.status}\nDescrição: ${occ.description ?? "—"}`,
+      toolName: "investigate_quality_occurrence",
+      toolDescription: "Gera causa raiz, 5 porquês, Ishikawa 6M e plano de ação",
+      parameters: {
+        type: "object",
+        properties: {
+          root_cause: { type: "string", description: "Hipótese de causa raiz mais provável" },
+          five_whys: {
+            type: "array",
+            items: { type: "string" },
+            description: "Exatamente 5 perguntas/respostas encadeadas (Por que? ...)",
+          },
+          ishikawa: {
+            type: "object",
+            description: "Causas potenciais classificadas pelas 6M",
+            properties: {
+              metodo: { type: "string" },
+              maquina: { type: "string" },
+              material: { type: "string" },
+              mao_de_obra: { type: "string" },
+              medida: { type: "string" },
+              meio_ambiente: { type: "string" },
+            },
+            required: ["metodo", "maquina", "material", "mao_de_obra", "medida", "meio_ambiente"],
+          },
+          action_plan: {
+            type: "array",
+            description: "3 a 6 ações corretivas no formato 5W2H reduzido",
+            items: {
+              type: "object",
+              properties: {
+                what: { type: "string", description: "O que fazer" },
+                why: { type: "string", description: "Por que essa ação resolve" },
+                how: { type: "string", description: "Como executar" },
+                priority: { type: "string", enum: [...priorityEnum] },
+              },
+              required: ["what", "why", "how", "priority"],
+            },
+          },
+          severity_assessment: {
+            type: "string",
+            enum: [...severityEnum],
+            description: "Gravidade recomendada após análise",
+          },
+          recommendation: { type: "string", description: "Recomendação geral curta para o gestor" },
+        },
+        required: ["root_cause", "five_whys", "ishikawa", "action_plan", "severity_assessment", "recommendation"],
+      },
+    });
+  });
