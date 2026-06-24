@@ -67,6 +67,27 @@ export const scheduleInterview = createServerFn({ method: "POST" })
       payload: { interview_id: row.id, scheduled_at: data.scheduled_at, mode: data.mode },
       created_by: userId,
     });
+
+    // Fire-and-forget candidate notification
+    import("./org-email-dispatch.server")
+      .then(async ({ loadApplicationEmailContext, sendOrgEmailEvent, INTERVIEW_MODE_LABEL }) => {
+        const ctx = await loadApplicationEmailContext(data.application_id);
+        if (!ctx?.to) return;
+        const when = new Date(data.scheduled_at).toLocaleString("pt-BR", {
+          dateStyle: "long", timeStyle: "short",
+        });
+        await sendOrgEmailEvent({
+          orgId: ctx.orgId, templateKey: "interview_scheduled", to: ctx.to,
+          vars: {
+            ...ctx.vars,
+            interview_when: when,
+            interview_mode: INTERVIEW_MODE_LABEL[data.mode] ?? data.mode,
+            interview_location: data.meeting_url || data.location || "—",
+          },
+        });
+      })
+      .catch(() => undefined);
+
     return { id: row.id };
   });
 
