@@ -189,17 +189,20 @@ function QualityPage() {
                       <td><Badge className={severityVariant[it.severity]}>{it.severity}</Badge></td>
                       <td>{statusLabel[it.status] ?? it.status}</td>
                       <td className="text-right">
-                        <Select
-                          value={it.status}
-                          onValueChange={(v) => changeStatus.mutate({ id: it.id, status: v })}
-                        >
-                          <SelectTrigger className="ml-auto w-44"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            {Object.entries(statusLabel).map(([k, l]) => (
-                              <SelectItem key={k} value={k}>{l}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <div className="flex items-center justify-end gap-2">
+                          <InvestigateButton occurrenceId={it.id} orgId={orgId} />
+                          <Select
+                            value={it.status}
+                            onValueChange={(v) => changeStatus.mutate({ id: it.id, status: v })}
+                          >
+                            <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {Object.entries(statusLabel).map(([k, l]) => (
+                                <SelectItem key={k} value={k}>{l}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </td>
                     </tr>
                   ))}
