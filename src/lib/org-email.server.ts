@@ -28,7 +28,7 @@ export async function sendViaSmtp(input: SmtpSendInput): Promise<void> {
     await mailer.send({
       from: { name: input.fromName, email: input.fromEmail },
       to: input.to,
-      replyTo: input.replyTo ?? undefined,
+      reply: input.replyTo ?? undefined,
       subject: input.subject,
       html: input.html,
       text: input.text,
