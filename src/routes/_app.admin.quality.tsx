@@ -15,7 +15,6 @@ import {
   qualityInvestigate,
   type QualityAiInvestigation,
 } from "@/lib/quality.functions";
-// duplicated import removed below
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -24,7 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertTriangle, Plus, ShieldCheck, ClipboardList, CheckCircle2 } from "lucide-react";
+import { AlertTriangle, Plus, ShieldCheck, ClipboardList, CheckCircle2, Sparkles, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/_app/admin/quality")({ component: QualityPage });
 
