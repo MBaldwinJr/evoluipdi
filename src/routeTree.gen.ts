@@ -47,6 +47,7 @@ import { Route as AppAdminOrgChartRouteImport } from './routes/_app.admin.org-ch
 import { Route as AppAdminInvitesRouteImport } from './routes/_app.admin.invites'
 import { Route as AppAdminInterviewsReviewRouteImport } from './routes/_app.admin.interviews-review'
 import { Route as AppAdminInterviewsRouteImport } from './routes/_app.admin.interviews'
+import { Route as AppAdminEmailRouteImport } from './routes/_app.admin.email'
 import { Route as AppAdminCandidatesRouteImport } from './routes/_app.admin.candidates'
 import { Route as AppAdminTalentIndexRouteImport } from './routes/_app.admin.talent.index'
 import { Route as ApiPublicCandidateTokenRouteImport } from './routes/api/public/candidate.$token'
@@ -251,6 +252,11 @@ const AppAdminInterviewsRoute = AppAdminInterviewsRouteImport.update({
   path: '/admin/interviews',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAdminEmailRoute = AppAdminEmailRouteImport.update({
+  id: '/admin/email',
+  path: '/admin/email',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAdminCandidatesRoute = AppAdminCandidatesRouteImport.update({
   id: '/admin/candidates',
   path: '/admin/candidates',
@@ -339,6 +345,7 @@ export interface FileRoutesByFullPath {
   '/trabalhe-conosco/$jobId': typeof TrabalheConoscoJobIdRoute
   '/trabalhe-conosco/': typeof TrabalheConoscoIndexRoute
   '/admin/candidates': typeof AppAdminCandidatesRoute
+  '/admin/email': typeof AppAdminEmailRoute
   '/admin/interviews': typeof AppAdminInterviewsRoute
   '/admin/interviews-review': typeof AppAdminInterviewsReviewRoute
   '/admin/invites': typeof AppAdminInvitesRoute
@@ -389,6 +396,7 @@ export interface FileRoutesByTo {
   '/trabalhe-conosco/$jobId': typeof TrabalheConoscoJobIdRoute
   '/trabalhe-conosco': typeof TrabalheConoscoIndexRoute
   '/admin/candidates': typeof AppAdminCandidatesRoute
+  '/admin/email': typeof AppAdminEmailRoute
   '/admin/interviews': typeof AppAdminInterviewsRoute
   '/admin/interviews-review': typeof AppAdminInterviewsReviewRoute
   '/admin/invites': typeof AppAdminInvitesRoute
@@ -442,6 +450,7 @@ export interface FileRoutesById {
   '/trabalhe-conosco/$jobId': typeof TrabalheConoscoJobIdRoute
   '/trabalhe-conosco/': typeof TrabalheConoscoIndexRoute
   '/_app/admin/candidates': typeof AppAdminCandidatesRoute
+  '/_app/admin/email': typeof AppAdminEmailRoute
   '/_app/admin/interviews': typeof AppAdminInterviewsRoute
   '/_app/admin/interviews-review': typeof AppAdminInterviewsReviewRoute
   '/_app/admin/invites': typeof AppAdminInvitesRoute
@@ -496,6 +505,7 @@ export interface FileRouteTypes {
     | '/trabalhe-conosco/$jobId'
     | '/trabalhe-conosco/'
     | '/admin/candidates'
+    | '/admin/email'
     | '/admin/interviews'
     | '/admin/interviews-review'
     | '/admin/invites'
@@ -546,6 +556,7 @@ export interface FileRouteTypes {
     | '/trabalhe-conosco/$jobId'
     | '/trabalhe-conosco'
     | '/admin/candidates'
+    | '/admin/email'
     | '/admin/interviews'
     | '/admin/interviews-review'
     | '/admin/invites'
@@ -598,6 +609,7 @@ export interface FileRouteTypes {
     | '/trabalhe-conosco/$jobId'
     | '/trabalhe-conosco/'
     | '/_app/admin/candidates'
+    | '/_app/admin/email'
     | '/_app/admin/interviews'
     | '/_app/admin/interviews-review'
     | '/_app/admin/invites'
@@ -918,6 +930,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminInterviewsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/admin/email': {
+      id: '/_app/admin/email'
+      path: '/admin/email'
+      fullPath: '/admin/email'
+      preLoaderRoute: typeof AppAdminEmailRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/admin/candidates': {
       id: '/_app/admin/candidates'
       path: '/admin/candidates'
@@ -1067,6 +1086,7 @@ interface AppRouteChildren {
   AppPlatformRoute: typeof AppPlatformRoute
   AppPtRoute: typeof AppPtRouteWithChildren
   AppAdminCandidatesRoute: typeof AppAdminCandidatesRoute
+  AppAdminEmailRoute: typeof AppAdminEmailRoute
   AppAdminInterviewsRoute: typeof AppAdminInterviewsRoute
   AppAdminInterviewsReviewRoute: typeof AppAdminInterviewsReviewRoute
   AppAdminInvitesRoute: typeof AppAdminInvitesRoute
@@ -1090,6 +1110,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppPlatformRoute: AppPlatformRoute,
   AppPtRoute: AppPtRouteWithChildren,
   AppAdminCandidatesRoute: AppAdminCandidatesRoute,
+  AppAdminEmailRoute: AppAdminEmailRoute,
   AppAdminInterviewsRoute: AppAdminInterviewsRoute,
   AppAdminInterviewsReviewRoute: AppAdminInterviewsReviewRoute,
   AppAdminInvitesRoute: AppAdminInvitesRoute,

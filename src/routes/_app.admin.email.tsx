@@ -30,7 +30,7 @@ function EmailSettingsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="E-mails" description="Configure o envio de e-mails da sua empresa" icon={Mail} />
+      <PageHeader title="E-mails" description="Configure o envio de e-mails da sua empresa" />
       <Tabs defaultValue="smtp">
         <TabsList>
           <TabsTrigger value="smtp">SMTP</TabsTrigger>
