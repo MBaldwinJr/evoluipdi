@@ -84,12 +84,26 @@ function TemplatesPage() {
 function TemplateDialog({ initial, onSaved }: { initial: JobTemplateInput; onSaved: () => void }) {
   const [form, setForm] = useState<JobTemplateInput>(initial);
   const [saving, setSaving] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
   const save = useServerFn(upsertJobTemplate);
+  const suggest = useServerFn(suggestJobTemplate);
   const { data: depts = [] } = useQuery({
     queryKey: ["talent-depts"],
     queryFn: async () => (await supabase.from("departments").select("id,name").order("name")).data ?? [],
   });
   const setField = <K extends keyof JobTemplateInput>(k: K, v: JobTemplateInput[K]) => setForm((f) => ({ ...f, [k]: v }));
+
+  const autoFill = async () => {
+    if (!form.name || form.name.length < 2) { toast.error("Informe o nome do template primeiro"); return; }
+    setSuggesting(true);
+    try {
+      const deptName = depts.find((d) => d.id === form.department_id)?.name ?? null;
+      const s = await suggest({ data: { name: form.name, department_name: deptName } });
+      setForm((f) => ({ ...f, ...s }));
+      toast.success("Template preenchido. Revise antes de salvar.");
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Erro"); }
+    finally { setSuggesting(false); }
+  };
 
   const submit = async () => {
     const parsed = jobTemplateSchema.safeParse(form);
