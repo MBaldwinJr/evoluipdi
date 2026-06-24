@@ -133,7 +133,11 @@ function TemplateDialog({ initial, onSaved }: { initial: JobTemplateInput; onSav
         <div className="grid gap-2"><Label>Requisitos</Label><Textarea rows={4} value={form.requirements_template ?? ""} onChange={(e) => setField("requirements_template", e.target.value)} /></div>
         <div className="grid gap-2"><Label>Responsabilidades</Label><Textarea rows={4} value={form.responsibilities_template ?? ""} onChange={(e) => setField("responsibilities_template", e.target.value)} /></div>
       </div>
-      <DialogFooter>
+      <DialogFooter className="gap-2">
+        <Button variant="outline" type="button" onClick={autoFill} disabled={suggesting}>
+          {suggesting ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Sparkles className="mr-1 h-4 w-4" />}
+          Preencher com IA (opcional)
+        </Button>
         <Button onClick={submit} disabled={saving}>{saving && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}Salvar</Button>
       </DialogFooter>
     </DialogContent>
