@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { Briefcase, MapPin, DollarSign, CheckCircle2 } from "lucide-react";
 
-export type ArtTemplate = "corporativo" | "moderno" | "industrial" | "neon" | "minimalista";
+export type ArtTemplate =
+  | "corporativo" | "moderno" | "industrial" | "neon" | "minimalista"
+  | "construcao" | "saude" | "logistica" | "tecnologia" | "premium";
 export type ArtFormat = "feed" | "story" | "linkedin" | "facebook" | "whatsapp";
 
 export const FORMATS: Record<ArtFormat, { w: number; h: number; label: string }> = {
@@ -13,12 +15,25 @@ export const FORMATS: Record<ArtFormat, { w: number; h: number; label: string }>
   whatsapp: { w: 1080, h: 1920, label: "WhatsApp Status (9:16)" },
 };
 
-export const TEMPLATES: Record<ArtTemplate, { name: string; bg: string; fg: string; accent: string; muted: string }> = {
+export interface TemplateTokens {
+  readonly name: string;
+  readonly bg: string;
+  readonly fg: string;
+  readonly accent: string;
+  readonly muted: string;
+}
+
+export const TEMPLATES: Record<ArtTemplate, TemplateTokens> = {
   corporativo: { name: "Corporativo", bg: "#0F172A", fg: "#FFFFFF", accent: "#3B82F6", muted: "#94A3B8" },
   moderno: { name: "Moderno", bg: "#FAFAFA", fg: "#111827", accent: "#F97316", muted: "#6B7280" },
   industrial: { name: "Industrial", bg: "#1F2937", fg: "#F9FAFB", accent: "#FBBF24", muted: "#D1D5DB" },
   neon: { name: "Neon", bg: "#0A0A23", fg: "#FFFFFF", accent: "#22D3EE", muted: "#A78BFA" },
   minimalista: { name: "Minimalista", bg: "#FFFFFF", fg: "#0A0A0A", accent: "#0A0A0A", muted: "#737373" },
+  construcao: { name: "Construção Civil", bg: "#3F2A14", fg: "#FFF7E6", accent: "#F59E0B", muted: "#D6BFA1" },
+  saude: { name: "Saúde", bg: "#F0F9FF", fg: "#0C4A6E", accent: "#0EA5E9", muted: "#7DD3FC" },
+  logistica: { name: "Logística", bg: "#0B1220", fg: "#F8FAFC", accent: "#10B981", muted: "#94A3B8" },
+  tecnologia: { name: "Tecnologia", bg: "#0A0F1F", fg: "#E2E8F0", accent: "#8B5CF6", muted: "#64748B" },
+  premium: { name: "Premium", bg: "#111111", fg: "#F5E9C9", accent: "#C9A24B", muted: "#A89368" },
 };
 
 type Props = {
@@ -34,7 +49,11 @@ type Props = {
   benefits?: string[];
   publicUrl: string;
   logoUrl?: string | null;
+  primaryColor?: string | null;
+  secondaryColor?: string | null;
+  fontFamily?: string | null;
 };
+
 
 function formatCurrency(min: number | null, max: number | null) {
   if (!min && !max) return null;
