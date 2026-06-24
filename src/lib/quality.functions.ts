@@ -1,6 +1,28 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { callAIJson } from "./ai.server";
+
+export interface QualityAiInvestigation {
+  readonly root_cause: string;
+  readonly five_whys: readonly string[];
+  readonly ishikawa: {
+    readonly metodo: string;
+    readonly maquina: string;
+    readonly material: string;
+    readonly mao_de_obra: string;
+    readonly medida: string;
+    readonly meio_ambiente: string;
+  };
+  readonly action_plan: ReadonlyArray<{
+    readonly what: string;
+    readonly why: string;
+    readonly how: string;
+    readonly priority: "baixa" | "media" | "alta";
+  }>;
+  readonly severity_assessment: "baixa" | "media" | "alta" | "critica";
+  readonly recommendation: string;
+}
 
 const OrgId = z.object({ org_id: z.string().uuid() });
 
