@@ -10,12 +10,12 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { Loader2, Sparkles } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { EmptyState } from "@/components/page-header";
 import { TagListEditor } from "@/components/talent/tag-list-editor";
 import { positionKpiSchema, type PositionKpiInput } from "@/lib/talent.types";
-import { upsertPositionKpi } from "@/lib/talent.functions";
+import { upsertPositionKpi, suggestPositionKpi } from "@/lib/talent.functions";
 
 export const Route = createFileRoute("/_app/admin/talent/kpis")({ component: KpisPage });
 
