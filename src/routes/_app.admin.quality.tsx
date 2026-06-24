@@ -230,3 +230,79 @@ function KpiCard({ icon: Icon, label, value, tone }: { icon: React.ComponentType
     </Card>
   );
 }
+
+function InvestigateButton({ occurrenceId, orgId }: { occurrenceId: string; orgId: string }) {
+  const [open, setOpen] = useState(false);
+  const investigateFn = useServerFn(qualityInvestigate);
+  const mutation = useMutation({
+    mutationFn: () => investigateFn({ data: { id: occurrenceId, org_id: orgId } }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const data: QualityAiInvestigation | undefined = mutation.data;
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o && !mutation.data && !mutation.isPending) mutation.mutate(); }}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm"><Sparkles className="mr-1 h-4 w-4" />IA</Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader><DialogTitle>Investigação por IA</DialogTitle></DialogHeader>
+        {mutation.isPending && (
+          <div className="flex items-center gap-2 py-8 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" /> Analisando ocorrência...
+          </div>
+        )}
+        {data && (
+          <div className="max-h-[60vh] space-y-4 overflow-y-auto pr-2 text-sm">
+            <section>
+              <h3 className="font-semibold">Causa raiz</h3>
+              <p className="text-muted-foreground">{data.root_cause}</p>
+            </section>
+            <section>
+              <h3 className="font-semibold">5 Porquês</h3>
+              <ol className="list-decimal space-y-1 pl-5 text-muted-foreground">
+                {data.five_whys.map((w, i) => <li key={i}>{w}</li>)}
+              </ol>
+            </section>
+            <section>
+              <h3 className="font-semibold">Ishikawa (6M)</h3>
+              <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {Object.entries(data.ishikawa).map(([k, v]) => (
+                  <li key={k} className="rounded border p-2">
+                    <p className="text-xs font-medium uppercase text-muted-foreground">{k.replace(/_/g, " ")}</p>
+                    <p>{v}</p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+            <section>
+              <h3 className="font-semibold">Plano de ação</h3>
+              <ul className="space-y-2">
+                {data.action_plan.map((a, i) => (
+                  <li key={i} className="rounded border p-2">
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium">{a.what}</p>
+                      <Badge variant="outline">{a.priority}</Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground"><strong>Por quê:</strong> {a.why}</p>
+                    <p className="text-xs text-muted-foreground"><strong>Como:</strong> {a.how}</p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+            <section className="rounded-md bg-muted p-3">
+              <p className="text-xs uppercase text-muted-foreground">Gravidade sugerida</p>
+              <p className="font-semibold">{data.severity_assessment}</p>
+              <p className="mt-2 text-muted-foreground">{data.recommendation}</p>
+            </section>
+          </div>
+        )}
+        <DialogFooter>
+          <Button variant="outline" onClick={() => mutation.mutate()} disabled={mutation.isPending}>
+            {mutation.isPending ? "Analisando..." : "Reanalisar"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
