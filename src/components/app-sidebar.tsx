@@ -29,6 +29,7 @@ const rhItems = [
   { title: "Convites de equipe", url: "/admin/invites", icon: Mail },
   { title: "Relatórios", url: "/admin/reports", icon: FileText },
   { title: "Talent Acquisition AI", url: "/admin/talent", icon: Brain },
+  { title: "E-mails", url: "/admin/email", icon: Mail },
   { title: "Configurações", url: "/admin/settings", icon: Settings },
 ];
 
