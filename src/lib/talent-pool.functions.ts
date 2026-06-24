@@ -99,6 +99,22 @@ export const moveApplication = createServerFn({ method: "POST" })
         payload: { from: prev.stage, to: data.stage },
         created_by: userId,
       });
+      // Fire-and-forget email notification
+      import("./org-email-dispatch.server")
+        .then(async ({ loadApplicationEmailContext, sendOrgEmailEvent, STAGE_LABEL_PT }) => {
+          const ctx = await loadApplicationEmailContext(data.id);
+          if (!ctx?.to) return;
+          const templateKey = data.stage === "rejected"
+            ? "application_rejected"
+            : data.stage === "hired"
+              ? "candidate_hired"
+              : "stage_changed";
+          await sendOrgEmailEvent({
+            orgId: ctx.orgId, templateKey, to: ctx.to,
+            vars: { ...ctx.vars, stage_label: STAGE_LABEL_PT[data.stage] ?? data.stage },
+          });
+        })
+        .catch(() => undefined);
     }
     return { ok: true };
   });

@@ -86,6 +86,17 @@ export const Route = createFileRoute("/api/public/apply")({
           import("@/lib/talent-pool-scoring.server")
             .then(({ scoreApplicationById }) => scoreApplicationById(appId as string))
             .catch(() => undefined);
+
+          import("@/lib/org-email-dispatch.server")
+            .then(async ({ loadApplicationEmailContext, sendOrgEmailEvent }) => {
+              const ctx = await loadApplicationEmailContext(appId as string);
+              if (!ctx?.to) return;
+              await sendOrgEmailEvent({
+                orgId: ctx.orgId, templateKey: "application_received",
+                to: ctx.to, vars: ctx.vars,
+              });
+            })
+            .catch(() => undefined);
         }
 
         return json({ ok: true, application_id: appId });
