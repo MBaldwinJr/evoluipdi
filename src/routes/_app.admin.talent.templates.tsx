@@ -11,11 +11,11 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Sparkles } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { EmptyState } from "@/components/page-header";
 import { jobTemplateSchema, type JobTemplateInput } from "@/lib/talent.types";
-import { upsertJobTemplate, deleteJobTemplate } from "@/lib/talent.functions";
+import { upsertJobTemplate, deleteJobTemplate, suggestJobTemplate } from "@/lib/talent.functions";
 
 export const Route = createFileRoute("/_app/admin/talent/templates")({ component: TemplatesPage });
 
