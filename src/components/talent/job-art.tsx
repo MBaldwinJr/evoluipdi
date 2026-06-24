@@ -104,8 +104,6 @@ export function JobArt({
         fontFamily: fontFamily || "Inter, system-ui, sans-serif",
         overflow: "hidden",
       }}
-        overflow: "hidden",
-      }}
     >
       {/* Decorative accent */}
       <div
