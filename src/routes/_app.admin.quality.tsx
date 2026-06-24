@@ -50,8 +50,8 @@ const statusLabel: Record<string, string> = {
 };
 
 function QualityPage() {
-  const { activeOrg } = useOrg();
-  const orgId = activeOrg?.id;
+  const { current } = useOrg();
+  const orgId = current?.id;
   const qc = useQueryClient();
   const listFn = useServerFn(qualityListOccurrences);
   const statsFn = useServerFn(qualityStats);

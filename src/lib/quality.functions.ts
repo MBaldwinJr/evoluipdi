@@ -54,7 +54,7 @@ export const qualityCreateOccurrence = createServerFn({ method: "POST" })
       entity_id: row.id,
       action: "create",
       actor: context.userId,
-      new_values: data as unknown as Record<string, unknown>,
+      new_values: data as never,
     });
     return row;
   });
@@ -69,8 +69,7 @@ export const qualityUpdateOccurrenceStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => UpdateStatus.parse(d))
   .handler(async ({ data, context }) => {
-    const patch: Record<string, unknown> = { status: data.status };
-    if (data.status === "concluida") patch.closed_at = new Date().toISOString();
+    const patch = { status: data.status, closed_at: data.status === "concluida" ? new Date().toISOString() : null };
     const { error } = await context.supabase
       .from("quality_occurrences")
       .update(patch)
