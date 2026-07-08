@@ -98,7 +98,20 @@ function ProcessesPage() {
 
   return (
     <>
-      <style>{`@media print { .no-print { display: none !important; } body { background: white; } }`}</style>
+      <style>{`
+        @media print {
+          @page { size: A4; margin: 16mm; }
+          body { background: white !important; }
+          .no-print, header, nav, aside, [data-sidebar] { display: none !important; }
+          .print-only { display: block !important; }
+          .print-process { page-break-inside: avoid; break-inside: avoid; margin-bottom: 18px; }
+          .print-step { page-break-inside: avoid; break-inside: avoid; }
+          h1, h2, h3 { color: #000 !important; }
+          * { box-shadow: none !important; }
+        }
+        .print-only { display: none; }
+      `}</style>
+
       <PageHeader
         title="Processos por cargo"
         description="Manuais passo a passo (POPs) gerados a partir do CNAE da empresa e do RCF de cada cargo"
