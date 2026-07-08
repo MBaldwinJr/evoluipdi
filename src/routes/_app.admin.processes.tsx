@@ -176,7 +176,7 @@ function ProcessesPage() {
         </Card>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
+      <div className="grid gap-4 lg:grid-cols-[320px_1fr] no-print">
         <Card className="no-print h-fit">
           <CardHeader><CardTitle className="text-base">Cargos</CardTitle></CardHeader>
           <CardContent className="space-y-2">
