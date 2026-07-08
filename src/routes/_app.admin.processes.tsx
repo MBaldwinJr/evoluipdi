@@ -240,7 +240,53 @@ function ProcessesPage() {
                     <p className="text-xs text-muted-foreground">{processes.length} processos</p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <Button variant="outline" size="sm" onClick={() => window.print()}><Printer className="mr-2 h-4 w-4" />Imprimir / PDF</Button>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm"><Printer className="mr-2 h-4 w-4" />Imprimir / PDF</Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+                        <DialogHeader>
+                          <DialogTitle>Pré-visualização — {selectedRole?.title}</DialogTitle>
+                        </DialogHeader>
+                        <div className="flex-1 overflow-auto rounded border bg-white p-6 text-black">
+                          <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>
+                            Manual de Processos — {selectedRole?.title}
+                          </h1>
+                          <p style={{ fontSize: 12, color: "#444", marginBottom: 16 }}>
+                            {selectedRole?.department?.name ?? "Sem setor"} · {processes.length} processos ·{" "}
+                            {company?.trade_name ?? company?.legal_name ?? ""}
+                          </p>
+                          {processes.map((p: any, idx: number) => (
+                            <article key={p.id} style={{ marginBottom: 18 }}>
+                              <h2 style={{ fontSize: 16, fontWeight: 700, marginTop: 12, marginBottom: 6 }}>
+                                {idx + 1}. {p.title}
+                              </h2>
+                              {p.objective && <p style={{ fontSize: 12, margin: "4px 0" }}><strong>Objetivo:</strong> {p.objective}</p>}
+                              {p.tools && <p style={{ fontSize: 12, margin: "4px 0" }}><strong>Ferramentas/insumos:</strong> {p.tools}</p>}
+                              <ol style={{ paddingLeft: 18, margin: "6px 0" }}>
+                                {(p.steps as Step[] ?? []).map((s, i) => (
+                                  <li key={i} style={{ marginBottom: 6, fontSize: 12 }}>
+                                    <strong>{s.title}</strong>
+                                    <div style={{ whiteSpace: "pre-wrap", color: "#333" }}>{s.how}</div>
+                                  </li>
+                                ))}
+                              </ol>
+                              {p.success_criteria && (
+                                <p style={{ fontSize: 12, margin: "4px 0" }}><strong>Critério de sucesso:</strong> {p.success_criteria}</p>
+                              )}
+                            </article>
+                          ))}
+                          {processes.length === 0 && (
+                            <p className="text-sm text-muted-foreground">Nenhum processo cadastrado para este cargo.</p>
+                          )}
+                        </div>
+                        <DialogFooter>
+                          <Button onClick={() => window.print()} disabled={processes.length === 0}>
+                            <Printer className="mr-2 h-4 w-4" />Imprimir / Salvar PDF
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
                     <ProcessEditor roleId={selRole} onSaved={() => { qc.invalidateQueries({ queryKey: ["role-processes"] }); qc.invalidateQueries({ queryKey: ["roles-with-counts"] }); }}>
                       <Button variant="outline" size="sm"><Plus className="mr-2 h-4 w-4" />Novo processo</Button>
                     </ProcessEditor>
