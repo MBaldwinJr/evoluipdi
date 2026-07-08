@@ -98,7 +98,20 @@ function ProcessesPage() {
 
   return (
     <>
-      <style>{`@media print { .no-print { display: none !important; } body { background: white; } }`}</style>
+      <style>{`
+        @media print {
+          @page { size: A4; margin: 16mm; }
+          body { background: white !important; }
+          .no-print, header, nav, aside, [data-sidebar] { display: none !important; }
+          .print-only { display: block !important; }
+          .print-process { page-break-inside: avoid; break-inside: avoid; margin-bottom: 18px; }
+          .print-step { page-break-inside: avoid; break-inside: avoid; }
+          h1, h2, h3 { color: #000 !important; }
+          * { box-shadow: none !important; }
+        }
+        .print-only { display: none; }
+      `}</style>
+
       <PageHeader
         title="Processos por cargo"
         description="Manuais passo a passo (POPs) gerados a partir do CNAE da empresa e do RCF de cada cargo"
@@ -121,6 +134,39 @@ function ProcessesPage() {
         }
       />
 
+      {selRole && (
+        <section className="print-only">
+          <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>
+            Manual de Processos — {selectedRole?.title}
+          </h1>
+          <p style={{ fontSize: 12, color: "#444", marginBottom: 16 }}>
+            {selectedRole?.department?.name ?? "Sem setor"} · {processes.length} processos ·{" "}
+            {company?.trade_name ?? company?.legal_name ?? ""}
+          </p>
+          {processes.map((p: any, idx: number) => (
+            <article key={p.id} className="print-process">
+              <h2 style={{ fontSize: 16, fontWeight: 700, marginTop: 12, marginBottom: 6 }}>
+                {idx + 1}. {p.title}
+              </h2>
+              {p.objective && <p style={{ fontSize: 12, margin: "4px 0" }}><strong>Objetivo:</strong> {p.objective}</p>}
+              {p.tools && <p style={{ fontSize: 12, margin: "4px 0" }}><strong>Ferramentas/insumos:</strong> {p.tools}</p>}
+              <ol style={{ paddingLeft: 18, margin: "6px 0" }}>
+                {(p.steps as Step[] ?? []).map((s, i) => (
+                  <li key={i} className="print-step" style={{ marginBottom: 6, fontSize: 12 }}>
+                    <strong>{s.title}</strong>
+                    <div style={{ whiteSpace: "pre-wrap", color: "#333" }}>{s.how}</div>
+                  </li>
+                ))}
+              </ol>
+              {p.success_criteria && (
+                <p style={{ fontSize: 12, margin: "4px 0" }}><strong>Critério de sucesso:</strong> {p.success_criteria}</p>
+              )}
+            </article>
+          ))}
+        </section>
+      )}
+
+
       {!company?.cnae_code && (
         <Card className="mb-4 border-amber-300 bg-amber-50 dark:bg-amber-950/20 no-print">
           <CardContent className="pt-4 text-sm">
@@ -130,7 +176,7 @@ function ProcessesPage() {
         </Card>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
+      <div className="grid gap-4 lg:grid-cols-[320px_1fr] no-print">
         <Card className="no-print h-fit">
           <CardHeader><CardTitle className="text-base">Cargos</CardTitle></CardHeader>
           <CardContent className="space-y-2">
