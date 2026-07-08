@@ -184,7 +184,8 @@
   @page { size: A4; margin: 14mm; }
   html, body { background: #fff !important; color: #000 !important; background-image: none !important; }
   body * { visibility: hidden !important; }
-  #interview-print-area, #interview-print-area * { visibility: visible !important; }
+  #interview-print-area, #interview-print-area *,
+  .print-only, .print-only * { visibility: visible !important; }
   #interview-print-area,
   #interview-print-area * { box-shadow: none !important; }
   [data-radix-popper-content-wrapper],
