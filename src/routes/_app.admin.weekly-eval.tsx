@@ -123,7 +123,6 @@ function WeeklyEvalPage() {
       <PageHeader
         title="Avaliação Semanal de Desempenho"
         description="Avalie o colaborador em cada processo do cargo, semana a semana."
-        icon={ClipboardCheck}
       />
 
       <Card className="mb-4">
