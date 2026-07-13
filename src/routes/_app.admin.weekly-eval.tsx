@@ -140,7 +140,7 @@ function WeeklyEvalPage() {
       />
 
       <Card className="mb-4">
-        <CardContent className="grid gap-4 pt-6 md:grid-cols-[1fr_1fr_auto]">
+        <CardContent className="grid gap-4 pt-6 md:grid-cols-2">
           <div className="space-y-2">
             <Label>Colaborador</Label>
             <Input
@@ -159,6 +159,36 @@ function WeeklyEvalPage() {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Cargo avaliado</Label>
+            <Select
+              value={roleOverride || (emp?.role_id ?? "")}
+              onValueChange={(v) => setRoleOverride(v === (emp?.role_id ?? "") ? "" : v)}
+              disabled={!empId || !(weeklyQ.data?.roles?.length)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={empId ? "Selecione o cargo" : "Escolha o colaborador"} />
+              </SelectTrigger>
+              <SelectContent>
+                {(weeklyQ.data?.roles ?? []).map((r: any) => (
+                  <SelectItem key={r.id} value={r.id}>
+                    {r.title}
+                    {r.id === emp?.role_id ? " (designado)" : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {emp && (
+              <p className="text-xs text-muted-foreground">
+                {roleOverride && roleOverride !== emp.role_id
+                  ? "Avaliando por um cargo diferente do designado."
+                  : emp.role_id
+                    ? "Trazido automaticamente do cadastro do colaborador."
+                    : "Sem cargo designado — escolha um manualmente."}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -183,6 +213,7 @@ function WeeklyEvalPage() {
           </div>
         </CardContent>
       </Card>
+
 
       {!empId && (
         <EmptyState title="Selecione um colaborador" description="Escolha quem você deseja avaliar nesta semana." />
