@@ -47,6 +47,7 @@ function WeeklyEvalPage() {
   const save = useServerFn(saveWeeklyEvalFn);
 
   const [empId, setEmpId] = useState<string>("");
+  const [roleOverride, setRoleOverride] = useState<string>(""); // "" = usar cargo do colaborador
   const [weekStart, setWeekStart] = useState<Date>(() => getMonday(new Date()));
   const [items, setItems] = useState<Record<string, ItemState>>({});
   const [saving, setSaving] = useState(false);
@@ -57,10 +58,22 @@ function WeeklyEvalPage() {
     queryFn: () => listEmployees(),
   });
 
+  // Ao trocar de colaborador, resetar override para usar o cargo designado
+  useEffect(() => {
+    setRoleOverride("");
+  }, [empId]);
+
   const weekISO = toISO(weekStart);
   const weeklyQ = useQuery({
-    queryKey: ["weekly-eval", "data", empId, weekISO],
-    queryFn: () => getWeekly({ data: { employeeId: empId, weekStart: weekISO } }),
+    queryKey: ["weekly-eval", "data", empId, weekISO, roleOverride],
+    queryFn: () =>
+      getWeekly({
+        data: {
+          employeeId: empId,
+          weekStart: weekISO,
+          roleIdOverride: roleOverride || null,
+        },
+      }),
     enabled: !!empId,
   });
 
@@ -73,6 +86,7 @@ function WeeklyEvalPage() {
     }
     setItems(map);
   }, [weeklyQ.data]);
+
 
   const filteredEmployees = useMemo(() => {
     const list = employeesQ.data ?? [];
@@ -126,7 +140,7 @@ function WeeklyEvalPage() {
       />
 
       <Card className="mb-4">
-        <CardContent className="grid gap-4 pt-6 md:grid-cols-[1fr_1fr_auto]">
+        <CardContent className="grid gap-4 pt-6 md:grid-cols-2">
           <div className="space-y-2">
             <Label>Colaborador</Label>
             <Input
@@ -145,6 +159,36 @@ function WeeklyEvalPage() {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Cargo avaliado</Label>
+            <Select
+              value={roleOverride || (emp?.role_id ?? "")}
+              onValueChange={(v) => setRoleOverride(v === (emp?.role_id ?? "") ? "" : v)}
+              disabled={!empId || !(weeklyQ.data?.roles?.length)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={empId ? "Selecione o cargo" : "Escolha o colaborador"} />
+              </SelectTrigger>
+              <SelectContent>
+                {(weeklyQ.data?.roles ?? []).map((r: any) => (
+                  <SelectItem key={r.id} value={r.id}>
+                    {r.title}
+                    {r.id === emp?.role_id ? " (designado)" : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {emp && (
+              <p className="text-xs text-muted-foreground">
+                {roleOverride && roleOverride !== emp.role_id
+                  ? "Avaliando por um cargo diferente do designado."
+                  : emp.role_id
+                    ? "Trazido automaticamente do cadastro do colaborador."
+                    : "Sem cargo designado — escolha um manualmente."}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -169,6 +213,7 @@ function WeeklyEvalPage() {
           </div>
         </CardContent>
       </Card>
+
 
       {!empId && (
         <EmptyState title="Selecione um colaborador" description="Escolha quem você deseja avaliar nesta semana." />
