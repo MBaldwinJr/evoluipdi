@@ -24,9 +24,11 @@ export const getWeeklyEvalFn = createServerFn({ method: "POST" })
     z.object({
       employeeId: z.string().uuid(),
       weekStart: z.string(), // yyyy-mm-dd (segunda-feira)
+      roleIdOverride: z.string().uuid().nullable().optional(),
     }).parse(d),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ context, data }) => {
+    const orgId = await getUserOrgId(context.userId);
     const { data: emp, error: eErr } = await supabaseAdmin
       .from("employees")
       .select("id, full_name, role_id, role:roles_catalog(id, title)")
@@ -34,12 +36,20 @@ export const getWeeklyEvalFn = createServerFn({ method: "POST" })
       .maybeSingle();
     if (eErr) throw new Error(eErr.message);
     if (!emp) throw new Error("Colaborador não encontrado");
-    if (!emp.role_id) return { employee: emp, processes: [], evaluations: [] };
+
+    const { data: roles } = await supabaseAdmin
+      .from("roles_catalog")
+      .select("id, title")
+      .eq("org_id", orgId)
+      .order("title");
+
+    const effectiveRoleId = data.roleIdOverride ?? emp.role_id;
+    if (!effectiveRoleId) return { employee: emp, roles: roles ?? [], processes: [], evaluations: [] };
 
     const { data: processes, error: pErr } = await supabaseAdmin
       .from("role_processes")
       .select("id, title, objective, success_criteria, sort_order")
-      .eq("role_id", emp.role_id)
+      .eq("role_id", effectiveRoleId)
       .order("sort_order");
     if (pErr) throw new Error(pErr.message);
 
@@ -50,8 +60,9 @@ export const getWeeklyEvalFn = createServerFn({ method: "POST" })
       .eq("week_start", data.weekStart);
     if (vErr) throw new Error(vErr.message);
 
-    return { employee: emp, processes: processes ?? [], evaluations: evals ?? [] };
+    return { employee: emp, roles: roles ?? [], processes: processes ?? [], evaluations: evals ?? [] };
   });
+
 
 export const saveWeeklyEvalFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
