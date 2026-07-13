@@ -37,6 +37,7 @@ import { Route as AppPtEscalasRouteImport } from './routes/_app.pt.escalas'
 import { Route as AppPtDashboardRouteImport } from './routes/_app.pt.dashboard'
 import { Route as AppMePdiRouteImport } from './routes/_app.me.pdi'
 import { Route as AppMeFeedbacksRouteImport } from './routes/_app.me.feedbacks'
+import { Route as AppAdminWeeklyEvalRouteImport } from './routes/_app.admin.weekly-eval'
 import { Route as AppAdminTalentRouteImport } from './routes/_app.admin.talent'
 import { Route as AppAdminSettingsRouteImport } from './routes/_app.admin.settings'
 import { Route as AppAdminRolesRouteImport } from './routes/_app.admin.roles'
@@ -202,6 +203,11 @@ const AppMeFeedbacksRoute = AppMeFeedbacksRouteImport.update({
   path: '/me/feedbacks',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAdminWeeklyEvalRoute = AppAdminWeeklyEvalRouteImport.update({
+  id: '/admin/weekly-eval',
+  path: '/admin/weekly-eval',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAdminTalentRoute = AppAdminTalentRouteImport.update({
   id: '/admin/talent',
   path: '/admin/talent',
@@ -363,6 +369,7 @@ export interface FileRoutesByFullPath {
   '/admin/roles': typeof AppAdminRolesRoute
   '/admin/settings': typeof AppAdminSettingsRoute
   '/admin/talent': typeof AppAdminTalentRouteWithChildren
+  '/admin/weekly-eval': typeof AppAdminWeeklyEvalRoute
   '/me/feedbacks': typeof AppMeFeedbacksRoute
   '/me/pdi': typeof AppMePdiRoute
   '/pt/dashboard': typeof AppPtDashboardRoute
@@ -414,6 +421,7 @@ export interface FileRoutesByTo {
   '/admin/reports': typeof AppAdminReportsRoute
   '/admin/roles': typeof AppAdminRolesRoute
   '/admin/settings': typeof AppAdminSettingsRoute
+  '/admin/weekly-eval': typeof AppAdminWeeklyEvalRoute
   '/me/feedbacks': typeof AppMeFeedbacksRoute
   '/me/pdi': typeof AppMePdiRoute
   '/pt/dashboard': typeof AppPtDashboardRoute
@@ -470,6 +478,7 @@ export interface FileRoutesById {
   '/_app/admin/roles': typeof AppAdminRolesRoute
   '/_app/admin/settings': typeof AppAdminSettingsRoute
   '/_app/admin/talent': typeof AppAdminTalentRouteWithChildren
+  '/_app/admin/weekly-eval': typeof AppAdminWeeklyEvalRoute
   '/_app/me/feedbacks': typeof AppMeFeedbacksRoute
   '/_app/me/pdi': typeof AppMePdiRoute
   '/_app/pt/dashboard': typeof AppPtDashboardRoute
@@ -526,6 +535,7 @@ export interface FileRouteTypes {
     | '/admin/roles'
     | '/admin/settings'
     | '/admin/talent'
+    | '/admin/weekly-eval'
     | '/me/feedbacks'
     | '/me/pdi'
     | '/pt/dashboard'
@@ -577,6 +587,7 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/roles'
     | '/admin/settings'
+    | '/admin/weekly-eval'
     | '/me/feedbacks'
     | '/me/pdi'
     | '/pt/dashboard'
@@ -632,6 +643,7 @@ export interface FileRouteTypes {
     | '/_app/admin/roles'
     | '/_app/admin/settings'
     | '/_app/admin/talent'
+    | '/_app/admin/weekly-eval'
     | '/_app/me/feedbacks'
     | '/_app/me/pdi'
     | '/_app/pt/dashboard'
@@ -870,6 +882,13 @@ declare module '@tanstack/react-router' {
       path: '/me/feedbacks'
       fullPath: '/me/feedbacks'
       preLoaderRoute: typeof AppMeFeedbacksRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/weekly-eval': {
+      id: '/_app/admin/weekly-eval'
+      path: '/admin/weekly-eval'
+      fullPath: '/admin/weekly-eval'
+      preLoaderRoute: typeof AppAdminWeeklyEvalRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/admin/talent': {
@@ -1117,6 +1136,7 @@ interface AppRouteChildren {
   AppAdminRolesRoute: typeof AppAdminRolesRoute
   AppAdminSettingsRoute: typeof AppAdminSettingsRoute
   AppAdminTalentRoute: typeof AppAdminTalentRouteWithChildren
+  AppAdminWeeklyEvalRoute: typeof AppAdminWeeklyEvalRoute
   AppMeFeedbacksRoute: typeof AppMeFeedbacksRoute
   AppMePdiRoute: typeof AppMePdiRoute
   AppTeamIdRoute: typeof AppTeamIdRoute
@@ -1142,6 +1162,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAdminRolesRoute: AppAdminRolesRoute,
   AppAdminSettingsRoute: AppAdminSettingsRoute,
   AppAdminTalentRoute: AppAdminTalentRouteWithChildren,
+  AppAdminWeeklyEvalRoute: AppAdminWeeklyEvalRoute,
   AppMeFeedbacksRoute: AppMeFeedbacksRoute,
   AppMePdiRoute: AppMePdiRoute,
   AppTeamIdRoute: AppTeamIdRoute,

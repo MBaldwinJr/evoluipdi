@@ -1742,6 +1742,60 @@ export type Database = {
           },
         ]
       }
+      process_weekly_evaluations: {
+        Row: {
+          created_at: string
+          employee_id: string
+          evaluator_id: string
+          id: string
+          notes: string | null
+          org_id: string
+          role_process_id: string
+          score: number
+          updated_at: string
+          week_start: string
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          evaluator_id: string
+          id?: string
+          notes?: string | null
+          org_id: string
+          role_process_id: string
+          score: number
+          updated_at?: string
+          week_start: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          evaluator_id?: string
+          id?: string
+          notes?: string | null
+          org_id?: string
+          role_process_id?: string
+          score?: number
+          updated_at?: string
+          week_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "process_weekly_evaluations_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "process_weekly_evaluations_role_process_id_fkey"
+            columns: ["role_process_id"]
+            isOneToOne: false
+            referencedRelation: "role_processes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null

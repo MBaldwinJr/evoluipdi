@@ -25,6 +25,7 @@ const rhItems = [
   { title: "Processos por cargo", url: "/admin/processes", icon: BookOpen },
   { title: "Roteiros de entrevista", url: "/admin/interviews", icon: ListChecks },
   { title: "Entrevistas aplicadas", url: "/admin/interviews-review", icon: ClipboardCheck },
+  { title: "Avaliação semanal", url: "/admin/weekly-eval", icon: Target },
   { title: "Convites de equipe", url: "/admin/invites", icon: Mail },
   { title: "Relatórios", url: "/admin/reports", icon: FileText },
   { title: "Talent Acquisition AI", url: "/admin/talent", icon: Brain },
