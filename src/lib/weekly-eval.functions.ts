@@ -10,7 +10,7 @@ export const listEmployeesForEvalFn = createServerFn({ method: "GET" })
     const orgId = await getUserOrgId(context.userId);
     const { data, error } = await supabaseAdmin
       .from("employees")
-      .select("id, full_name, user_id, role_id, role:roles_catalog(id, title), profile:profiles!employees_user_id_fkey(full_name)")
+      .select("id, full_name, user_id, role_id, role:roles_catalog(id, title), profile:profiles!employees_user_id_profiles_fkey(full_name)")
       .eq("org_id", orgId)
       .eq("active", true);
     if (error) throw new Error(error.message);
