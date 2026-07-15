@@ -13,10 +13,10 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Sparkles, Loader2, Pencil, Trash2, Plus, Printer, Building2, Search } from "lucide-react";
+import { Sparkles, Loader2, Pencil, Trash2, Plus, Printer, Building2, Search, ClipboardPaste, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
-import { generateProcessesFn, generateAllMissingProcessesFn, upsertProcessFn, deleteProcessFn, saveCompanySettingsFn } from "@/lib/processes.functions";
+import { generateProcessesFn, generateAllMissingProcessesFn, upsertProcessFn, deleteProcessFn, saveCompanySettingsFn, structureProcessFromTextFn } from "@/lib/processes.functions";
 import { lookupCnpjFn } from "@/lib/cnpj.functions";
 import { useAuth } from "@/lib/auth";
 
@@ -290,6 +290,7 @@ function ProcessesPage() {
                     <ProcessEditor roleId={selRole} onSaved={() => { qc.invalidateQueries({ queryKey: ["role-processes"] }); qc.invalidateQueries({ queryKey: ["roles-with-counts"] }); }}>
                       <Button variant="outline" size="sm"><Plus className="mr-2 h-4 w-4" />Novo processo</Button>
                     </ProcessEditor>
+                    <PasteProcessDialog roleId={selRole} onSaved={() => { qc.invalidateQueries({ queryKey: ["role-processes"] }); qc.invalidateQueries({ queryKey: ["roles-with-counts"] }); }} />
                     <Button onClick={() => handleGenerate(false)} disabled={genBusy} size="sm" variant="outline">
                       {genBusy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
                       Gerar com IA
@@ -475,6 +476,87 @@ function ProcessEditor({ roleId, existing, onSaved, children }: { roleId: string
           </div>
         </div>
         <DialogFooter><Button onClick={save}>Salvar</Button></DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function PasteProcessDialog({ roleId, onSaved }: { roleId: string; onSaved: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [draft, setDraft] = useState<{ title: string; objective: string; tools: string; success_criteria: string; steps: Step[] } | null>(null);
+  const structure = useServerFn(structureProcessFromTextFn);
+  const upsert = useServerFn(upsertProcessFn);
+
+  const reset = () => { setText(""); setDraft(null); setBusy(false); };
+
+  const doStructure = async () => {
+    if (text.trim().length < 10) return toast.error("Cole o texto do processo");
+    setBusy(true);
+    try {
+      const r = await structure({ data: { text } });
+      setDraft({ title: r.title, objective: r.objective, tools: r.tools, success_criteria: r.success_criteria, steps: r.steps });
+      toast.success("Texto estruturado — revise e salve");
+    } catch (e: any) { toast.error(e.message); } finally { setBusy(false); }
+  };
+
+  const save = async () => {
+    if (!draft) return;
+    if (!draft.title.trim()) return toast.error("Informe o título");
+    try {
+      await upsert({ data: { roleId, title: draft.title, objective: draft.objective, tools: draft.tools, success_criteria: draft.success_criteria, steps: draft.steps.filter(s => s.title.trim() || s.how.trim()) } });
+      toast.success("Processo salvo");
+      onSaved();
+      setOpen(false);
+      reset();
+    } catch (e: any) { toast.error(e.message); }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm"><ClipboardPaste className="mr-2 h-4 w-4" />Colar texto (IA estrutura)</Button>
+      </DialogTrigger>
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+        <DialogHeader><DialogTitle>Estruturar processo a partir de texto</DialogTitle></DialogHeader>
+        {!draft ? (
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">Cole abaixo o texto do processo (modelo, POP, procedimento). A IA vai organizar em título, objetivo, ferramentas, etapas e critério de sucesso para você revisar.</p>
+            <Textarea rows={14} value={text} onChange={(e) => setText(e.target.value)} placeholder="Cole aqui o texto completo do processo..." />
+            <DialogFooter>
+              <Button onClick={doStructure} disabled={busy}>
+                {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                Estruturar com IA
+              </Button>
+            </DialogFooter>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="space-y-1"><Label>Título</Label><Input value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} /></div>
+            <div className="space-y-1"><Label>Objetivo</Label><Textarea rows={2} value={draft.objective} onChange={(e) => setDraft({ ...draft, objective: e.target.value })} /></div>
+            <div className="space-y-1"><Label>Ferramentas / insumos</Label><Textarea rows={2} value={draft.tools} onChange={(e) => setDraft({ ...draft, tools: e.target.value })} /></div>
+            <div className="space-y-1"><Label>Critério de sucesso</Label><Textarea rows={2} value={draft.success_criteria} onChange={(e) => setDraft({ ...draft, success_criteria: e.target.value })} /></div>
+            <div className="space-y-2">
+              <Label>Etapas</Label>
+              {draft.steps.map((s, i) => (
+                <div key={i} className="space-y-2 rounded-md border p-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-muted-foreground">Etapa {i + 1}</span>
+                    <Button variant="ghost" size="sm" onClick={() => setDraft({ ...draft, steps: draft.steps.filter((_, j) => j !== i) })}><Trash2 className="h-3 w-3" /></Button>
+                  </div>
+                  <Input value={s.title} onChange={(e) => setDraft({ ...draft, steps: draft.steps.map((x, j) => j === i ? { ...x, title: e.target.value } : x) })} />
+                  <Textarea rows={3} value={s.how} onChange={(e) => setDraft({ ...draft, steps: draft.steps.map((x, j) => j === i ? { ...x, how: e.target.value } : x) })} />
+                </div>
+              ))}
+              <Button variant="outline" size="sm" onClick={() => setDraft({ ...draft, steps: [...draft.steps, { title: "", how: "" }] })}><Plus className="mr-2 h-4 w-4" />Adicionar etapa</Button>
+            </div>
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={() => setDraft(null)}>Voltar</Button>
+              <Button onClick={save}>Salvar processo</Button>
+            </DialogFooter>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
