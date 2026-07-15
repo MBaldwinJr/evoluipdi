@@ -479,9 +479,6 @@ function ProcessEditor({ roleId, existing, onSaved, children }: { roleId: string
       </DialogContent>
     </Dialog>
   );
-      </DialogContent>
-    </Dialog>
-  );
 }
 
 function PasteProcessDialog({ roleId, onSaved }: { roleId: string; onSaved: () => void }) {
