@@ -290,6 +290,7 @@ function ProcessesPage() {
                     <ProcessEditor roleId={selRole} onSaved={() => { qc.invalidateQueries({ queryKey: ["role-processes"] }); qc.invalidateQueries({ queryKey: ["roles-with-counts"] }); }}>
                       <Button variant="outline" size="sm"><Plus className="mr-2 h-4 w-4" />Novo processo</Button>
                     </ProcessEditor>
+                    <PasteProcessDialog roleId={selRole} onSaved={() => { qc.invalidateQueries({ queryKey: ["role-processes"] }); qc.invalidateQueries({ queryKey: ["roles-with-counts"] }); }} />
                     <Button onClick={() => handleGenerate(false)} disabled={genBusy} size="sm" variant="outline">
                       {genBusy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
                       Gerar com IA
