@@ -5,6 +5,46 @@ import { assertRH } from "./admin.server";
 import { getUserOrgId } from "./org.server";
 import { generateProcessesForRole, generateProcessesForAllMissing } from "./processes.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { callAIJson } from "./ai.server";
+
+export const structureProcessFromTextFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ text: z.string().min(10).max(20000) }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertRH(context.userId);
+    const result = await callAIJson<{
+      title: string; objective: string; tools: string; success_criteria: string;
+      steps: Array<{ title: string; how: string }>;
+    }>({
+      system: "Você é especialista em manuais operacionais (POPs). Recebe um texto livre descrevendo um processo e o estrutura em: título, objetivo (1-2 frases), ferramentas/insumos, critério de sucesso e etapas (cada uma com título curto e 'como fazer' detalhado e acionável). Preserve o conteúdo original — organize, não invente. Português do Brasil.",
+      user: data.text,
+      toolName: "structure_process",
+      toolDescription: "Processo estruturado a partir de texto livre",
+      parameters: {
+        type: "object",
+        properties: {
+          title: { type: "string" },
+          objective: { type: "string" },
+          tools: { type: "string" },
+          success_criteria: { type: "string" },
+          steps: {
+            type: "array",
+            minItems: 2,
+            maxItems: 30,
+            items: {
+              type: "object",
+              properties: { title: { type: "string" }, how: { type: "string" } },
+              required: ["title", "how"],
+            },
+          },
+        },
+        required: ["title", "objective", "tools", "success_criteria", "steps"],
+      },
+    });
+    return result;
+  });
 
 
 export const generateProcessesFn = createServerFn({ method: "POST" })
