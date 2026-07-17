@@ -4,6 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { ptAssertMember, ptAssertRole, ptAuditLog, ptListUserCompanies, haversineMeters } from "./pt-auth.server";
 import { computeDay, type DayPunch, type Schedule } from "./pt-engine.server";
+import { assertCanAddEmployee, assertCanAddBranch } from "./plan-limits.server";
 
 const RH_ROLES = ["admin", "rh"] as const;
 const MGR_ROLES = ["admin", "rh", "gestor", "supervisor", "auditor"] as const;
@@ -93,6 +94,7 @@ export const ptUpsertBranch = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await ptAssertRole(context.userId, data.company_id, [...RH_ROLES]);
     const { id, ...rest } = data;
+    if (!id) await assertCanAddBranch(data.company_id);
     const q = id
       ? supabaseAdmin.from("pt_branches").update(rest).eq("id", id).select("*").single()
       : supabaseAdmin.from("pt_branches").insert(rest).select("*").single();
@@ -214,6 +216,7 @@ export const ptUpsertEmployee = createServerFn({ method: "POST" })
     await ptAssertRole(context.userId, data.company_id, [...RH_ROLES]);
     const { id, company_id, role_title: _ignored, ...rest } = data;
     const payload = { ...rest, org_id: company_id };
+    if (!id) await assertCanAddEmployee(company_id);
     const q = id
       ? supabaseAdmin.from("employees").update(payload).eq("id", id).select("*").single()
       : supabaseAdmin.from("employees").insert(payload).select("*").single();

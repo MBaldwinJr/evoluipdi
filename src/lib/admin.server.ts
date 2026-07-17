@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { getUserOrgId } from "./org.server";
+import { assertCanAddEmployee } from "./plan-limits.server";
 
 export async function assertRH(userId: string) {
   const { data } = await supabaseAdmin.from("user_roles").select("role").eq("user_id", userId).eq("role", "rh").maybeSingle();
@@ -26,6 +27,7 @@ export async function createEmployeeUser(data: {
   const newUid = created.user!.id;
   await supabaseAdmin.from("profiles").upsert({ id: newUid, email: data.email, full_name: data.fullName });
   const orgId = data.orgId ?? (await getUserOrgId(data.createdByUserId));
+  await assertCanAddEmployee(orgId);
   const { error: e2 } = await supabaseAdmin.from("employees").insert({
     user_id: newUid, role_id: data.roleId ?? null, department_id: data.departmentId ?? null, manager_id: data.managerId ?? null,
     org_id: orgId,
