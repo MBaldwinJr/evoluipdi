@@ -74,8 +74,9 @@ function AppLayout() {
             <header className="flex h-14 items-center gap-2 border-b bg-card px-4">
               <SidebarTrigger />
               <OrgHeaderSwitcher orgs={orgList} activeId={activeId!} />
-              <div className="ml-auto text-xs text-muted-foreground">
-                Plano: <span className="font-medium text-foreground">{ent?.plan_code ?? "free"}</span>
+              <div className="ml-auto flex items-center gap-2 text-xs text-muted-foreground">
+                <span>Plano: <span className="font-medium text-foreground">{ent?.plan_code ?? "free"}</span></span>
+                <TrialBadge orgId={activeId!} />
               </div>
             </header>
             <TrialBanner orgId={activeId!} />
@@ -125,6 +126,29 @@ function TrialBanner({ orgId }: { orgId: string }) {
         </Button>
       </div>
     );
+  }
+  return null;
+}
+
+function TrialBadge({ orgId }: { orgId: string }) {
+  const statusFn = useServerFn(billingGetStatus);
+  const { data } = useQuery({
+    queryKey: ["billing", "badge", orgId],
+    queryFn: () => statusFn({ data: { org_id: orgId } }),
+    enabled: !!orgId,
+    staleTime: 5 * 60 * 1000,
+  });
+  if (!data) return null;
+  if (data.is_in_trial) {
+    const urgent = data.trial_days_left <= 3;
+    return (
+      <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${urgent ? "bg-amber-500/15 text-amber-700 dark:text-amber-400" : "bg-primary/10 text-primary"}`}>
+        <Sparkles className="h-3 w-3" /> Trial • {data.trial_days_left}d
+      </span>
+    );
+  }
+  if (data.is_expired) {
+    return <span className="inline-flex items-center gap-1 rounded-full bg-destructive/15 px-2 py-0.5 text-[11px] font-medium text-destructive"><AlertTriangle className="h-3 w-3" /> Expirado</span>;
   }
   return null;
 }
