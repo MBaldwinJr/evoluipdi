@@ -124,9 +124,9 @@ export const ptRequestVacation = createServerFn({ method: "POST" })
     z.object({
       company_id: z.string().uuid(),
       employee_id: z.string().uuid(),
-      acquisition_start: z.string(),
-      acquisition_end: z.string(),
-      concessive_deadline: z.string(),
+      acquisition_start: z.string().optional().nullable(),
+      acquisition_end: z.string().optional().nullable(),
+      concessive_deadline: z.string().optional().nullable(),
       start_date: z.string(),
       end_date: z.string(),
       abono_days: z.number().int().min(0).max(10).default(0),
