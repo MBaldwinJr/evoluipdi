@@ -55,7 +55,27 @@ export const ptListVacations = createServerFn({ method: "GET" })
     }
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
-    return rows ?? [];
+    const list = (rows ?? []) as any[];
+    // Enrich with department (setor) via pt_employees.user_id -> employees.department
+    const ptIds = Array.from(new Set(list.map((r) => r.employee?.id).filter(Boolean)));
+    if (ptIds.length) {
+      const { data: pts } = await supabaseAdmin
+        .from("pt_employees").select("id, user_id").in("id", ptIds);
+      const ptToUser = new Map<string, string>();
+      (pts ?? []).forEach((p: any) => { if (p.user_id) ptToUser.set(p.id, p.user_id); });
+      const uids = Array.from(new Set(Array.from(ptToUser.values())));
+      const userToDept = new Map<string, { id: string; name: string } | null>();
+      if (uids.length) {
+        const { data: emps } = await supabaseAdmin
+          .from("employees").select("user_id, department:departments(id, name)").in("user_id", uids);
+        (emps ?? []).forEach((e: any) => { if (e.user_id) userToDept.set(e.user_id, e.department ?? null); });
+      }
+      for (const r of list) {
+        const uid = ptToUser.get(r.employee?.id);
+        r.department = uid ? userToDept.get(uid) ?? null : null;
+      }
+    }
+    return list;
   });
 
 // -------- Balance --------

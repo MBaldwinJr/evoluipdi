@@ -141,14 +141,21 @@ function VacationsPage() {
         </CardContent>
       </Card>
 
+      <OverlapAlerts rows={rows as any[]} />
+
       <Tabs defaultValue="timeline">
         <TabsList>
           <TabsTrigger value="timeline">Timeline anual</TabsTrigger>
+          <TabsTrigger value="mensal">Timeline mensal</TabsTrigger>
           <TabsTrigger value="lista">Lista</TabsTrigger>
         </TabsList>
 
         <TabsContent value="timeline" className="space-y-3">
           <VacationTimeline rows={rows as any[]} year={year} />
+        </TabsContent>
+
+        <TabsContent value="mensal" className="space-y-3">
+          <MonthlyTimeline rows={rows as any[]} year={year} />
         </TabsContent>
 
         <TabsContent value="lista">
@@ -158,6 +165,7 @@ function VacationsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Colaborador</TableHead>
+                    <TableHead>Setor</TableHead>
                     <TableHead>Período de gozo</TableHead>
                     <TableHead>Dias</TableHead>
                     <TableHead>Abono</TableHead>
@@ -169,7 +177,7 @@ function VacationsPage() {
                 </TableHeader>
                 <TableBody>
                   {rows.length === 0 && (
-                    <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhuma solicitação encontrada</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Nenhuma solicitação encontrada</TableCell></TableRow>
                   )}
                   {(rows as any[]).map((r) => {
                     const meta = STATUS_META[r.status] ?? STATUS_META.solicitada;
@@ -178,6 +186,7 @@ function VacationsPage() {
                     return (
                       <TableRow key={r.id}>
                         <TableCell className="font-medium">{r.employee?.full_name ?? "—"}</TableCell>
+                        <TableCell className="text-muted-foreground">{r.department?.name ?? "—"}</TableCell>
                         <TableCell className="whitespace-nowrap">{fmtDate(r.start_date)} → {fmtDate(r.end_date)}</TableCell>
                         <TableCell>{r.days_total}</TableCell>
                         <TableCell>{r.abono_days > 0 ? `${r.abono_days}d` : "—"}</TableCell>
@@ -318,6 +327,149 @@ function VacationTimeline({ rows, year }: { rows: any[]; year: number }) {
               })}
             </div>
           ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// -------- Overlap detection (same department) --------
+function computeOverlaps(rows: any[]) {
+  const active = rows.filter((r) => !["rejeitada", "cancelada"].includes(r.status));
+  const conflicts: Array<{ dept: string; a: any; b: any; from: string; to: string }> = [];
+  for (let i = 0; i < active.length; i++) {
+    for (let j = i + 1; j < active.length; j++) {
+      const a = active[i], b = active[j];
+      const deptA = a.department?.id, deptB = b.department?.id;
+      if (!deptA || deptA !== deptB) continue;
+      if (a.employee?.id === b.employee?.id) continue;
+      const from = a.start_date > b.start_date ? a.start_date : b.start_date;
+      const to = a.end_date < b.end_date ? a.end_date : b.end_date;
+      if (from <= to) conflicts.push({ dept: a.department?.name ?? "—", a, b, from, to });
+    }
+  }
+  return conflicts;
+}
+
+function OverlapAlerts({ rows }: { rows: any[] }) {
+  const conflicts = useMemo(() => computeOverlaps(rows), [rows]);
+  if (conflicts.length === 0) return null;
+  return (
+    <Card className="border-amber-300 bg-amber-50/60 dark:bg-amber-950/20">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm flex items-center gap-2 text-amber-800 dark:text-amber-300">
+          <AlertTriangle className="h-4 w-4" />
+          {conflicts.length} sobreposição{conflicts.length > 1 ? "ões" : ""} de férias no mesmo setor
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-1.5 text-sm">
+        {conflicts.slice(0, 8).map((c, i) => (
+          <div key={i} className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <Badge variant="outline" className="bg-amber-500/15 text-amber-800 border-amber-300">{c.dept}</Badge>
+            <span className="font-medium">{c.a.employee?.full_name}</span>
+            <span className="text-muted-foreground">×</span>
+            <span className="font-medium">{c.b.employee?.full_name}</span>
+            <span className="text-muted-foreground">— {fmtDate(c.from)} → {fmtDate(c.to)}</span>
+          </div>
+        ))}
+        {conflicts.length > 8 && (
+          <div className="text-xs text-muted-foreground pt-1">+ {conflicts.length - 8} outras…</div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// -------- Monthly timeline (day-level) --------
+function MonthlyTimeline({ rows, year }: { rows: any[]; year: number }) {
+  const [month, setMonth] = useState(() => new Date().getMonth());
+  const monthStart = new Date(Date.UTC(year, month, 1));
+  const monthEnd = new Date(Date.UTC(year, month + 1, 0));
+  const daysInMonth = monthEnd.getUTCDate();
+
+  const conflicts = useMemo(() => computeOverlaps(rows), [rows]);
+  const conflictKey = (empId: string) => conflicts.some((c) => c.a.employee?.id === empId || c.b.employee?.id === empId);
+
+  const grouped = useMemo(() => {
+    const map = new Map<string, { name: string; dept: string; items: any[] }>();
+    for (const r of rows) {
+      const s = new Date(r.start_date + "T00:00:00Z");
+      const e = new Date(r.end_date + "T00:00:00Z");
+      if (e < monthStart || s > monthEnd) continue;
+      const id = r.employee?.id ?? r.employee_id;
+      const name = r.employee?.full_name ?? "—";
+      const dept = r.department?.name ?? "Sem setor";
+      if (!map.has(id)) map.set(id, { name, dept, items: [] });
+      map.get(id)!.items.push(r);
+    }
+    return Array.from(map.entries()).sort((a, b) => a[1].dept.localeCompare(b[1].dept) || a[1].name.localeCompare(b[1].name));
+  }, [rows, year, month]);
+
+  return (
+    <Card>
+      <CardContent className="pt-6 space-y-3">
+        <div className="flex items-center gap-2">
+          <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
+            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {MONTHS.map((m, i) => <SelectItem key={m} value={String(i)}>{m} / {year}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <div className="text-xs text-muted-foreground">Setores em conflito ficam destacados em âmbar.</div>
+        </div>
+        <div className="overflow-x-auto">
+          <div className="min-w-[900px]">
+            <div className="grid gap-px text-[10px] font-medium text-muted-foreground border-b pb-1"
+                 style={{ gridTemplateColumns: `240px repeat(${daysInMonth}, 1fr)` }}>
+              <div>Colaborador · Setor</div>
+              {Array.from({ length: daysInMonth }, (_, i) => (
+                <div key={i} className="text-center">{i + 1}</div>
+              ))}
+            </div>
+            {grouped.length === 0 && (
+              <div className="py-10 text-center text-muted-foreground text-sm">Nenhuma férias em {MONTHS[month]}/{year}.</div>
+            )}
+            {grouped.map(([id, { name, dept, items }]) => {
+              const hasConflict = conflictKey(id);
+              return (
+                <div key={id}
+                     className={cn("grid gap-px items-center py-1.5 border-b", hasConflict && "bg-amber-50/60 dark:bg-amber-950/20")}
+                     style={{ gridTemplateColumns: `240px repeat(${daysInMonth}, 1fr)` }}>
+                  <div className="pr-2 text-sm truncate">
+                    <div className="font-medium truncate flex items-center gap-1">
+                      {hasConflict && <AlertTriangle className="h-3 w-3 text-amber-600 shrink-0" />}
+                      {name}
+                    </div>
+                    <div className="text-[11px] text-muted-foreground truncate">{dept}</div>
+                  </div>
+                  <div className="relative col-span-full h-6" style={{ gridColumn: `2 / span ${daysInMonth}` }}>
+                    <div className="absolute inset-0 grid gap-px" style={{ gridTemplateColumns: `repeat(${daysInMonth}, 1fr)` }}>
+                      {Array.from({ length: daysInMonth }, (_, i) => (
+                        <div key={i} className="bg-muted/40 rounded-[2px]" />
+                      ))}
+                    </div>
+                    {items.map((r) => {
+                      const s = new Date(r.start_date + "T00:00:00Z");
+                      const e = new Date(r.end_date + "T00:00:00Z");
+                      const startDay = s < monthStart ? 1 : s.getUTCDate();
+                      const endDay = e > monthEnd ? daysInMonth : e.getUTCDate();
+                      const left = ((startDay - 1) / daysInMonth) * 100;
+                      const width = ((endDay - startDay + 1) / daysInMonth) * 100;
+                      const meta = STATUS_META[r.status] ?? STATUS_META.solicitada;
+                      return (
+                        <div key={r.id}
+                             title={`${fmtDate(r.start_date)} → ${fmtDate(r.end_date)} — ${meta.label}`}
+                             className={cn("absolute top-0 h-full rounded-sm border text-[10px] font-medium px-1 flex items-center overflow-hidden", meta.className)}
+                             style={{ left: `${left}%`, width: `${width}%` }}>
+                          {r.days_total}d
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </CardContent>
     </Card>
