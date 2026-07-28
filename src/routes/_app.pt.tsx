@@ -44,6 +44,7 @@ function PtLayout() {
 const NAV = [
   { to: "/pt", label: "Bater ponto", exact: true },
   { to: "/pt/espelho", label: "Espelho" },
+  { to: "/pt/ferias", label: "Férias" },
   { to: "/pt/funcionarios", label: "Funcionários", role: ["admin", "rh"] },
   { to: "/pt/filiais", label: "Filiais", role: ["admin", "rh"] },
   { to: "/pt/escalas", label: "Escalas", role: ["admin", "rh"] },
