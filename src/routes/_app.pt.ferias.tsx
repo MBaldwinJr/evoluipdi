@@ -356,8 +356,8 @@ function NewVacationDialog({
   const days = startDate && endDate ? daysBetween(startDate, endDate) : 0;
 
   const submit = async () => {
-    if (!employeeId || !selectedPeriod || !startDate || !endDate) {
-      toast.error("Preencha todos os campos"); return;
+    if (!employeeId || !startDate || !endDate) {
+      toast.error("Preencha colaborador e datas"); return;
     }
     if (days + abono > 30) { toast.error("Gozo + abono deve ser até 30 dias"); return; }
     if (days < 5 && abono === 0) { toast.error("Cada período de gozo deve ter no mínimo 5 dias (CLT)"); return; }
@@ -366,9 +366,9 @@ function NewVacationDialog({
       await requestFn({ data: {
         company_id: companyId,
         employee_id: employeeId,
-        acquisition_start: selectedPeriod.acquisition_start,
-        acquisition_end: selectedPeriod.acquisition_end,
-        concessive_deadline: selectedPeriod.concessive_deadline,
+        acquisition_start: selectedPeriod?.acquisition_start ?? null,
+        acquisition_end: selectedPeriod?.acquisition_end ?? null,
+        concessive_deadline: selectedPeriod?.concessive_deadline ?? null,
         start_date: startDate,
         end_date: endDate,
         abono_days: abono,
