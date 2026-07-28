@@ -289,7 +289,6 @@ export const ptListVacationEmployees = createServerFn({ method: "GET" })
       .from("pt_employees")
       .select("id, full_name, role_title, hire_date, branch_id, active")
       .eq("company_id", data.company_id)
-      .eq("active", true)
       .order("full_name");
     return rows ?? [];
   });
