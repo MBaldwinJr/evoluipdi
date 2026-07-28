@@ -420,6 +420,22 @@ export const ptGetMirror = createServerFn({ method: "GET" })
       .lt("date", end.toISOString().slice(0, 10));
     const holidaySet = new Set((holidays ?? []).map((h: any) => h.date));
 
+    const { data: vacs } = await supabaseAdmin
+      .from("pt_vacations").select("start_date, end_date, status")
+      .eq("employee_id", employee_id)
+      .in("status", ["aprovada_rh", "agendada", "em_curso", "concluida"] as any)
+      .lte("start_date", end.toISOString().slice(0, 10))
+      .gte("end_date", start.toISOString().slice(0, 10));
+    const vacationSet = new Set<string>();
+    for (const v of vacs ?? []) {
+      let cur = v.start_date as string;
+      while (cur <= (v.end_date as string)) {
+        vacationSet.add(cur);
+        const d = new Date(cur + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() + 1);
+        cur = d.toISOString().slice(0, 10);
+      }
+    }
+
     const schedule: Schedule | null = emp.schedule
       ? {
           kind: (emp.schedule as any).kind,
@@ -439,7 +455,14 @@ export const ptGetMirror = createServerFn({ method: "GET" })
       const dayPunches: DayPunch[] = (punches ?? [])
         .filter((p: any) => p.ts.startsWith(dateStr))
         .map((p: any) => ({ ts: p.ts, kind: p.kind }));
-      days.push(computeDay({ date: dateStr, punches: dayPunches, schedule, isHoliday: holidaySet.has(dateStr) }));
+      const computed = computeDay({ date: dateStr, punches: dayPunches, schedule, isHoliday: holidaySet.has(dateStr) });
+      if (vacationSet.has(dateStr)) {
+        computed.expected_min = 0;
+        computed.late_min = 0;
+        computed.balance_min = computed.worked_min;
+        computed.warnings = [...computed.warnings.filter((w) => !w.includes("saída")), "férias"];
+      }
+      days.push(computed);
     }
 
     const totals = days.reduce(
