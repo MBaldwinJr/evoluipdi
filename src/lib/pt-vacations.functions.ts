@@ -155,9 +155,9 @@ export const ptRequestVacation = createServerFn({ method: "POST" })
       .insert({
         company_id: data.company_id,
         employee_id: data.employee_id,
-        acquisition_start: data.acquisition_start ?? null,
-        acquisition_end: data.acquisition_end ?? null,
-        concessive_deadline: data.concessive_deadline ?? null,
+        acquisition_start: data.acquisition_start || addDaysISO(data.start_date, -365),
+        acquisition_end: data.acquisition_end || addDaysISO(data.start_date, -1),
+        concessive_deadline: data.concessive_deadline || addDaysISO(data.start_date, 365),
         start_date: data.start_date,
         end_date: data.end_date,
         days_total,
