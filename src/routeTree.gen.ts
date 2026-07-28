@@ -32,6 +32,7 @@ import { Route as ApiPublicApplyRouteImport } from './routes/api/public/apply'
 import { Route as AppTeamIdRouteImport } from './routes/_app.team.$id'
 import { Route as AppPtFuncionariosRouteImport } from './routes/_app.pt.funcionarios'
 import { Route as AppPtFiliaisRouteImport } from './routes/_app.pt.filiais'
+import { Route as AppPtFeriasRouteImport } from './routes/_app.pt.ferias'
 import { Route as AppPtEspelhoRouteImport } from './routes/_app.pt.espelho'
 import { Route as AppPtEscalasRouteImport } from './routes/_app.pt.escalas'
 import { Route as AppPtDashboardRouteImport } from './routes/_app.pt.dashboard'
@@ -176,6 +177,11 @@ const AppPtFuncionariosRoute = AppPtFuncionariosRouteImport.update({
 const AppPtFiliaisRoute = AppPtFiliaisRouteImport.update({
   id: '/filiais',
   path: '/filiais',
+  getParentRoute: () => AppPtRoute,
+} as any)
+const AppPtFeriasRoute = AppPtFeriasRouteImport.update({
+  id: '/ferias',
+  path: '/ferias',
   getParentRoute: () => AppPtRoute,
 } as any)
 const AppPtEspelhoRoute = AppPtEspelhoRouteImport.update({
@@ -375,6 +381,7 @@ export interface FileRoutesByFullPath {
   '/pt/dashboard': typeof AppPtDashboardRoute
   '/pt/escalas': typeof AppPtEscalasRoute
   '/pt/espelho': typeof AppPtEspelhoRoute
+  '/pt/ferias': typeof AppPtFeriasRoute
   '/pt/filiais': typeof AppPtFiliaisRoute
   '/pt/funcionarios': typeof AppPtFuncionariosRoute
   '/team/$id': typeof AppTeamIdRoute
@@ -427,6 +434,7 @@ export interface FileRoutesByTo {
   '/pt/dashboard': typeof AppPtDashboardRoute
   '/pt/escalas': typeof AppPtEscalasRoute
   '/pt/espelho': typeof AppPtEspelhoRoute
+  '/pt/ferias': typeof AppPtFeriasRoute
   '/pt/filiais': typeof AppPtFiliaisRoute
   '/pt/funcionarios': typeof AppPtFuncionariosRoute
   '/team/$id': typeof AppTeamIdRoute
@@ -484,6 +492,7 @@ export interface FileRoutesById {
   '/_app/pt/dashboard': typeof AppPtDashboardRoute
   '/_app/pt/escalas': typeof AppPtEscalasRoute
   '/_app/pt/espelho': typeof AppPtEspelhoRoute
+  '/_app/pt/ferias': typeof AppPtFeriasRoute
   '/_app/pt/filiais': typeof AppPtFiliaisRoute
   '/_app/pt/funcionarios': typeof AppPtFuncionariosRoute
   '/_app/team/$id': typeof AppTeamIdRoute
@@ -541,6 +550,7 @@ export interface FileRouteTypes {
     | '/pt/dashboard'
     | '/pt/escalas'
     | '/pt/espelho'
+    | '/pt/ferias'
     | '/pt/filiais'
     | '/pt/funcionarios'
     | '/team/$id'
@@ -593,6 +603,7 @@ export interface FileRouteTypes {
     | '/pt/dashboard'
     | '/pt/escalas'
     | '/pt/espelho'
+    | '/pt/ferias'
     | '/pt/filiais'
     | '/pt/funcionarios'
     | '/team/$id'
@@ -649,6 +660,7 @@ export interface FileRouteTypes {
     | '/_app/pt/dashboard'
     | '/_app/pt/escalas'
     | '/_app/pt/espelho'
+    | '/_app/pt/ferias'
     | '/_app/pt/filiais'
     | '/_app/pt/funcionarios'
     | '/_app/team/$id'
@@ -847,6 +859,13 @@ declare module '@tanstack/react-router' {
       path: '/filiais'
       fullPath: '/pt/filiais'
       preLoaderRoute: typeof AppPtFiliaisRouteImport
+      parentRoute: typeof AppPtRoute
+    }
+    '/_app/pt/ferias': {
+      id: '/_app/pt/ferias'
+      path: '/ferias'
+      fullPath: '/pt/ferias'
+      preLoaderRoute: typeof AppPtFeriasRouteImport
       parentRoute: typeof AppPtRoute
     }
     '/_app/pt/espelho': {
@@ -1073,6 +1092,7 @@ interface AppPtRouteChildren {
   AppPtDashboardRoute: typeof AppPtDashboardRoute
   AppPtEscalasRoute: typeof AppPtEscalasRoute
   AppPtEspelhoRoute: typeof AppPtEspelhoRoute
+  AppPtFeriasRoute: typeof AppPtFeriasRoute
   AppPtFiliaisRoute: typeof AppPtFiliaisRoute
   AppPtFuncionariosRoute: typeof AppPtFuncionariosRoute
   AppPtIndexRoute: typeof AppPtIndexRoute
@@ -1082,6 +1102,7 @@ const AppPtRouteChildren: AppPtRouteChildren = {
   AppPtDashboardRoute: AppPtDashboardRoute,
   AppPtEscalasRoute: AppPtEscalasRoute,
   AppPtEspelhoRoute: AppPtEspelhoRoute,
+  AppPtFeriasRoute: AppPtFeriasRoute,
   AppPtFiliaisRoute: AppPtFiliaisRoute,
   AppPtFuncionariosRoute: AppPtFuncionariosRoute,
   AppPtIndexRoute: AppPtIndexRoute,
