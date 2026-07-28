@@ -2315,6 +2315,143 @@ export type Database = {
           },
         ]
       }
+      pt_vacation_events: {
+        Row: {
+          actor_id: string | null
+          company_id: string
+          created_at: string
+          event_type: string
+          from_status: Database["public"]["Enums"]["pt_vacation_status"] | null
+          id: string
+          notes: string | null
+          to_status: Database["public"]["Enums"]["pt_vacation_status"] | null
+          vacation_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          company_id: string
+          created_at?: string
+          event_type: string
+          from_status?: Database["public"]["Enums"]["pt_vacation_status"] | null
+          id?: string
+          notes?: string | null
+          to_status?: Database["public"]["Enums"]["pt_vacation_status"] | null
+          vacation_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          company_id?: string
+          created_at?: string
+          event_type?: string
+          from_status?: Database["public"]["Enums"]["pt_vacation_status"] | null
+          id?: string
+          notes?: string | null
+          to_status?: Database["public"]["Enums"]["pt_vacation_status"] | null
+          vacation_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pt_vacation_events_vacation_id_fkey"
+            columns: ["vacation_id"]
+            isOneToOne: false
+            referencedRelation: "pt_vacations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pt_vacations: {
+        Row: {
+          abono_days: number
+          acquisition_end: string
+          acquisition_start: string
+          advance_13: boolean
+          approved_by_manager: string | null
+          approved_by_manager_at: string | null
+          approved_by_rh: string | null
+          approved_by_rh_at: string | null
+          company_id: string
+          concessive_deadline: string
+          created_at: string
+          days_total: number
+          employee_id: string
+          end_date: string
+          id: string
+          notes: string | null
+          rejected_at: string | null
+          rejected_by: string | null
+          rejection_reason: string | null
+          requested_by: string
+          start_date: string
+          status: Database["public"]["Enums"]["pt_vacation_status"]
+          updated_at: string
+        }
+        Insert: {
+          abono_days?: number
+          acquisition_end: string
+          acquisition_start: string
+          advance_13?: boolean
+          approved_by_manager?: string | null
+          approved_by_manager_at?: string | null
+          approved_by_rh?: string | null
+          approved_by_rh_at?: string | null
+          company_id: string
+          concessive_deadline: string
+          created_at?: string
+          days_total: number
+          employee_id: string
+          end_date: string
+          id?: string
+          notes?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          requested_by: string
+          start_date: string
+          status?: Database["public"]["Enums"]["pt_vacation_status"]
+          updated_at?: string
+        }
+        Update: {
+          abono_days?: number
+          acquisition_end?: string
+          acquisition_start?: string
+          advance_13?: boolean
+          approved_by_manager?: string | null
+          approved_by_manager_at?: string | null
+          approved_by_rh?: string | null
+          approved_by_rh_at?: string | null
+          company_id?: string
+          concessive_deadline?: string
+          created_at?: string
+          days_total?: number
+          employee_id?: string
+          end_date?: string
+          id?: string
+          notes?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          requested_by?: string
+          start_date?: string
+          status?: Database["public"]["Enums"]["pt_vacation_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pt_vacations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "pt_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pt_vacations_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "pt_employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quality_action_plans: {
         Row: {
           completed_at: string | null
@@ -3189,6 +3326,15 @@ export type Database = {
         | "seis_x_um"
         | "doze_x_trinta_seis"
         | "flex"
+      pt_vacation_status:
+        | "solicitada"
+        | "aprovada_gestor"
+        | "aprovada_rh"
+        | "agendada"
+        | "em_curso"
+        | "concluida"
+        | "rejeitada"
+        | "cancelada"
       quality_action_status:
         | "planejada"
         | "em_andamento"
@@ -3433,6 +3579,16 @@ export const Constants = {
         "seis_x_um",
         "doze_x_trinta_seis",
         "flex",
+      ],
+      pt_vacation_status: [
+        "solicitada",
+        "aprovada_gestor",
+        "aprovada_rh",
+        "agendada",
+        "em_curso",
+        "concluida",
+        "rejeitada",
+        "cancelada",
       ],
       quality_action_status: [
         "planejada",
