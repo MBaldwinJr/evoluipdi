@@ -238,7 +238,7 @@ export const ptTransitionVacation = createServerFn({ method: "POST" })
         break;
     }
 
-    const { error } = await supabaseAdmin.from("pt_vacations").update(patch).eq("id", data.id);
+    const { error } = await supabaseAdmin.from("pt_vacations").update(patch as never).eq("id", data.id);
     if (error) throw new Error(error.message);
 
     await supabaseAdmin.from("pt_vacation_events").insert({
