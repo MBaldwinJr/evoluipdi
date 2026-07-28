@@ -141,14 +141,21 @@ function VacationsPage() {
         </CardContent>
       </Card>
 
+      <OverlapAlerts rows={rows as any[]} />
+
       <Tabs defaultValue="timeline">
         <TabsList>
           <TabsTrigger value="timeline">Timeline anual</TabsTrigger>
+          <TabsTrigger value="mensal">Timeline mensal</TabsTrigger>
           <TabsTrigger value="lista">Lista</TabsTrigger>
         </TabsList>
 
         <TabsContent value="timeline" className="space-y-3">
           <VacationTimeline rows={rows as any[]} year={year} />
+        </TabsContent>
+
+        <TabsContent value="mensal" className="space-y-3">
+          <MonthlyTimeline rows={rows as any[]} year={year} />
         </TabsContent>
 
         <TabsContent value="lista">
@@ -158,6 +165,7 @@ function VacationsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Colaborador</TableHead>
+                    <TableHead>Setor</TableHead>
                     <TableHead>Período de gozo</TableHead>
                     <TableHead>Dias</TableHead>
                     <TableHead>Abono</TableHead>
@@ -169,7 +177,7 @@ function VacationsPage() {
                 </TableHeader>
                 <TableBody>
                   {rows.length === 0 && (
-                    <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhuma solicitação encontrada</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Nenhuma solicitação encontrada</TableCell></TableRow>
                   )}
                   {(rows as any[]).map((r) => {
                     const meta = STATUS_META[r.status] ?? STATUS_META.solicitada;
@@ -178,6 +186,7 @@ function VacationsPage() {
                     return (
                       <TableRow key={r.id}>
                         <TableCell className="font-medium">{r.employee?.full_name ?? "—"}</TableCell>
+                        <TableCell className="text-muted-foreground">{r.department?.name ?? "—"}</TableCell>
                         <TableCell className="whitespace-nowrap">{fmtDate(r.start_date)} → {fmtDate(r.end_date)}</TableCell>
                         <TableCell>{r.days_total}</TableCell>
                         <TableCell>{r.abono_days > 0 ? `${r.abono_days}d` : "—"}</TableCell>
