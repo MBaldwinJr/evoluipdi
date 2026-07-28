@@ -356,8 +356,8 @@ function NewVacationDialog({
   const days = startDate && endDate ? daysBetween(startDate, endDate) : 0;
 
   const submit = async () => {
-    if (!employeeId || !selectedPeriod || !startDate || !endDate) {
-      toast.error("Preencha todos os campos"); return;
+    if (!employeeId || !startDate || !endDate) {
+      toast.error("Preencha colaborador e datas"); return;
     }
     if (days + abono > 30) { toast.error("Gozo + abono deve ser até 30 dias"); return; }
     if (days < 5 && abono === 0) { toast.error("Cada período de gozo deve ter no mínimo 5 dias (CLT)"); return; }
@@ -366,9 +366,9 @@ function NewVacationDialog({
       await requestFn({ data: {
         company_id: companyId,
         employee_id: employeeId,
-        acquisition_start: selectedPeriod.acquisition_start,
-        acquisition_end: selectedPeriod.acquisition_end,
-        concessive_deadline: selectedPeriod.concessive_deadline,
+        acquisition_start: selectedPeriod?.acquisition_start ?? null,
+        acquisition_end: selectedPeriod?.acquisition_end ?? null,
+        concessive_deadline: selectedPeriod?.concessive_deadline ?? null,
         start_date: startDate,
         end_date: endDate,
         abono_days: abono,
@@ -403,18 +403,14 @@ function NewVacationDialog({
             </Select>
           </div>
 
-          {employeeId && (
+          {employeeId && periods.length > 0 && (
             <div>
-              <Label>Período aquisitivo</Label>
-              {balQ.isLoading && <div className="text-sm text-muted-foreground">Calculando…</div>}
-              {periods.length === 0 && !balQ.isLoading && (
-                <div className="text-sm text-destructive">Sem períodos disponíveis (verifique data de admissão)</div>
-              )}
+              <Label>Período aquisitivo <span className="text-xs text-muted-foreground">(opcional)</span></Label>
               <Select value={periodIdx} onValueChange={setPeriodIdx}>
-                <SelectTrigger><SelectValue placeholder="Selecione o período" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Não vincular" /></SelectTrigger>
                 <SelectContent>
                   {periods.map((p: any, i: number) => (
-                    <SelectItem key={i} value={String(i)} disabled={p.days_available === 0}>
+                    <SelectItem key={i} value={String(i)}>
                       {fmtDate(p.acquisition_start)} a {fmtDate(p.acquisition_end)} • disp {p.days_available}d • vence {fmtDate(p.concessive_deadline)}
                       {p.status === "vencido" ? " ⚠️" : ""}
                     </SelectItem>
@@ -425,6 +421,11 @@ function NewVacationDialog({
                 <p className="text-xs text-destructive mt-1">Período concessivo vencido — pagamento em dobro (art. 137 CLT)</p>
               )}
             </div>
+          )}
+          {employeeId && periods.length === 0 && !balQ.isLoading && (
+            <p className="text-xs text-muted-foreground">
+              Sem data de admissão cadastrada — período aquisitivo será calculado automaticamente a partir do início do gozo.
+            </p>
           )}
 
           <div className="grid grid-cols-2 gap-3">

@@ -124,9 +124,9 @@ export const ptRequestVacation = createServerFn({ method: "POST" })
     z.object({
       company_id: z.string().uuid(),
       employee_id: z.string().uuid(),
-      acquisition_start: z.string(),
-      acquisition_end: z.string(),
-      concessive_deadline: z.string(),
+      acquisition_start: z.string().optional().nullable(),
+      acquisition_end: z.string().optional().nullable(),
+      concessive_deadline: z.string().optional().nullable(),
       start_date: z.string(),
       end_date: z.string(),
       abono_days: z.number().int().min(0).max(10).default(0),
@@ -155,9 +155,9 @@ export const ptRequestVacation = createServerFn({ method: "POST" })
       .insert({
         company_id: data.company_id,
         employee_id: data.employee_id,
-        acquisition_start: data.acquisition_start,
-        acquisition_end: data.acquisition_end,
-        concessive_deadline: data.concessive_deadline,
+        acquisition_start: data.acquisition_start || addDaysISO(data.start_date, -365),
+        acquisition_end: data.acquisition_end || addDaysISO(data.start_date, -1),
+        concessive_deadline: data.concessive_deadline || addDaysISO(data.start_date, 365),
         start_date: data.start_date,
         end_date: data.end_date,
         days_total,
@@ -289,7 +289,6 @@ export const ptListVacationEmployees = createServerFn({ method: "GET" })
       .from("pt_employees")
       .select("id, full_name, role_title, hire_date, branch_id, active")
       .eq("company_id", data.company_id)
-      .eq("active", true)
       .order("full_name");
     return rows ?? [];
   });
