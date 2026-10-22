@@ -1,6 +1,19 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireOrgAccess } from "./security-access";
+
+export const getEmployeeOrgRoles = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ userId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { getUserOrgId } = await import("./org.server");
+    const orgId = await getUserOrgId(context.userId);
+    await requireOrgAccess(context.supabase, context.userId, orgId, ["admin", "rh"]);
+    const { data: roles, error } = await context.supabase.from("org_members").select("role").eq("org_id", orgId).eq("user_id", data.userId);
+    if (error) throw new Error("Não foi possível consultar papéis da empresa");
+    return roles ?? [];
+  });
 export const setEmployeeManagerFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>

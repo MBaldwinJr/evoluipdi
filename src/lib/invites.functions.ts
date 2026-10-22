@@ -59,12 +59,12 @@ export const inviteRevoke = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { data: inv } = await context.supabase
+    const { data: inv, error: lookupError } = await context.supabase
       .from("org_invites")
       .select("org_id")
       .eq("id", data.id)
       .maybeSingle();
-    if (!inv) throw new Error("Convite não encontrado");
+    if (lookupError || !inv) throw new Error("Convite não encontrado ou acesso negado");
     await requireInvitePermission(context.supabase, context.userId, inv.org_id);
     const { error } = await context.supabase.from("org_invites").delete().eq("id", data.id);
     if (error) throw new Error(error.message);

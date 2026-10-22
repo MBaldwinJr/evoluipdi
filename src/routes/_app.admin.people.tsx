@@ -16,9 +16,19 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { Plus, ListChecks, Pencil, Trash2 } from "lucide-react";
-import { createUserAndEmployee, setEmployeeRole, updateEmployeeFn, deleteEmployeeFn } from "@/lib/admin.functions";
+import { createUserAndEmployee, setEmployeeRole, updateEmployeeFn, deleteEmployeeFn, getEmployeeOrgRoles } from "@/lib/admin.functions";
 
-export const Route = createFileRoute("/_app/admin/people")({ component: AdminPeople });
+export const Route = createFileRoute("/_app/admin/people")({
+  head: () => ({ meta: [
+    { title: "Colaboradores | EvoluiPDI" },
+    { name: "description", content: "Gestão de colaboradores, cargos e vínculos da empresa no EvoluiPDI." },
+    { property: "og:title", content: "Colaboradores | EvoluiPDI" },
+    { property: "og:description", content: "Gestão de colaboradores, cargos e vínculos da empresa no EvoluiPDI." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
+  component: AdminPeople,
+});
 
 async function getErrorMessage(e: unknown, fallback: string) {
   if (e instanceof Response) return (await e.text()) || fallback;
@@ -191,7 +201,7 @@ function DeletePersonButton({ employeeId, name, onDeleted }: { employeeId: strin
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Excluir {name}?</AlertDialogTitle>
-          <AlertDialogDescription>Esta ação remove o usuário e seu vínculo de colaborador. Não pode ser desfeita.</AlertDialogDescription>
+          <AlertDialogDescription>Esta ação remove o registro de colaborador nesta empresa, sem excluir a conta de acesso. Não pode ser desfeita.</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={busy}>Cancelar</AlertDialogCancel>
@@ -207,13 +217,15 @@ function DeletePersonButton({ employeeId, name, onDeleted }: { employeeId: strin
 function RoleSwitcher({ userId }: { userId: string }) {
   const qc = useQueryClient();
   const setEmployeeRoleFn = useServerFn(setEmployeeRole);
+  const getRolesFn = useServerFn(getEmployeeOrgRoles);
   const { data: roles = [] } = useQuery({
     queryKey: ["uroles", userId],
-    queryFn: async () => (await supabase.from("user_roles").select("role").eq("user_id", userId)).data ?? [],
+    queryFn: () => getRolesFn({ data: { userId } }),
   });
-  const current = (roles[0] as any)?.role ?? "colaborador";
+  const current = roles.find((row) => ["colaborador", "gestor", "rh"].includes(row.role))?.role ?? "colaborador";
   const set = async (r: string) => {
-    try { await ensureServerFnOk(await setEmployeeRoleFn({ data: { userId, role: r as any } }), "Erro ao atualizar papel"); toast.success("Papel atualizado"); qc.invalidateQueries({ queryKey: ["uroles", userId] }); }
+    if (r !== "colaborador" && r !== "gestor" && r !== "rh") return;
+    try { await ensureServerFnOk(await setEmployeeRoleFn({ data: { userId, role: r } }), "Erro ao atualizar papel"); toast.success("Papel atualizado"); qc.invalidateQueries({ queryKey: ["uroles", userId] }); }
     catch (e) { toast.error(await getErrorMessage(e, "Erro ao atualizar papel")); }
   };
   return (
