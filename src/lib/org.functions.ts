@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { requireOrgAccess, requireSuperAdmin } from "./security-access";
+import { orgCreateInputSchema } from "./org-create-input";
 
 const ALL_MODULES = [
   "rh",
@@ -177,28 +178,7 @@ export const orgLookupCnpj = createServerFn({ method: "POST" })
 
 export const orgCreateFromCnpj = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) =>
-    z
-      .object({
-        cnpj: z.string().min(11).max(20),
-        // Legacy caller fields are accepted but never grant entitlements or verified data.
-        plan_code: z.enum(["free", "starter", "pro", "enterprise"]).optional(),
-        timezone: z
-          .string()
-          .max(100)
-          .default("America/Sao_Paulo")
-          .refine((value) => {
-            try {
-              new Intl.DateTimeFormat("pt-BR", { timeZone: value });
-              return true;
-            } catch {
-              return false;
-            }
-          }, "Fuso horário inválido"),
-        payload: z.unknown().optional(),
-      })
-      .parse(d),
-  )
+  .inputValidator((d: unknown) => orgCreateInputSchema.parse(d))
   .handler(async ({ data, context }) => {
     const digits = data.cnpj.replace(/\D/g, "");
     if (digits.length !== 14) throw new Error("CNPJ inválido (14 dígitos)");
