@@ -10,9 +10,9 @@ ROOT = Path(__file__).resolve().parents[2]
 TEMP = Path(tempfile.mkdtemp(prefix="evolui-security-", dir="/tmp"))
 ENV = {k: v for k, v in os.environ.items() if not k.startswith("PG")}
 ENV.update({"PGHOST": str(TEMP), "PGPORT": "55439", "PGUSER": "postgres", "PGDATABASE": "postgres"})
-PREFIX = ["runuser", "-u", "nobody", "--"] if os.geteuid() == 0 else []
+PREFIX = ["runuser", "-u", "lovable", "--"] if os.geteuid() == 0 else []
 if PREFIX:
-    os.chown(TEMP, 65534, 65534)
+    os.chown(TEMP, 1000, 1000)
 
 def local(command):
     return subprocess.run(PREFIX + command, env=ENV, check=True, capture_output=True, text=True)
