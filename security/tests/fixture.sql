@@ -1,0 +1,27 @@
+-- Minimal isolated schema matches the inspected column/role/unique contracts.
+CREATE ROLE anon;
+CREATE ROLE authenticated;
+CREATE ROLE service_role;
+CREATE SCHEMA auth;
+CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT nullif(current_setting('test.uid',true),'')::uuid $$;
+CREATE TYPE public.app_role AS ENUM('colaborador','gestor','rh','super_admin');
+CREATE TYPE public.org_role AS ENUM('admin','rh','gestor','supervisor','colaborador','auditor');
+CREATE TYPE public.plan_code AS ENUM('free','starter','pro','enterprise','custom');
+CREATE TABLE profiles(id uuid PRIMARY KEY);
+CREATE TABLE orgs(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),legal_name text NOT NULL,trade_name text,cnpj text UNIQUE,cnae_code text,cnae_description text,segment text,timezone text,status text,receita_validated_at timestamptz,receita_payload jsonb,created_by uuid,trial_ends_at timestamptz DEFAULT now()+interval '14 days');
+CREATE TABLE org_members(id uuid DEFAULT gen_random_uuid(),org_id uuid REFERENCES orgs ON DELETE CASCADE,user_id uuid,role org_role,UNIQUE(org_id,user_id,role));
+CREATE TABLE user_roles(id uuid DEFAULT gen_random_uuid(),user_id uuid,role app_role,UNIQUE(user_id,role));
+CREATE TABLE org_plans(id uuid DEFAULT gen_random_uuid(),org_id uuid REFERENCES orgs ON DELETE CASCADE,plan_code plan_code,modules text[],active boolean);
+CREATE TABLE org_invites(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),org_id uuid REFERENCES orgs,token text UNIQUE,email text,role org_role,invited_by uuid,accepted_at timestamptz,accepted_by uuid,expires_at timestamptz DEFAULT now()+interval '7 days');
+CREATE TABLE employees(id uuid PRIMARY KEY,org_id uuid,user_id uuid,manager_id uuid);
+CREATE TABLE role_processes(id uuid PRIMARY KEY,org_id uuid);
+CREATE TABLE process_weekly_evaluations(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),org_id uuid,employee_id uuid REFERENCES employees,evaluator_id uuid,role_process_id uuid REFERENCES role_processes,week_start date,score integer,notes text);
+CREATE FUNCTION is_super_admin(u uuid) RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER AS $$ SELECT EXISTS(SELECT 1 FROM user_roles WHERE user_id=u AND role='super_admin') $$;
+CREATE FUNCTION is_org_member(u uuid,o uuid) RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER AS $$ SELECT is_super_admin(u) OR EXISTS(SELECT 1 FROM org_members WHERE user_id=u AND org_id=o) $$;
+CREATE FUNCTION has_org_role(u uuid,o uuid,r org_role[]) RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER AS $$ SELECT is_super_admin(u) OR EXISTS(SELECT 1 FROM org_members WHERE user_id=u AND org_id=o AND role=ANY(r)) $$;
+CREATE FUNCTION is_manager_of_emp(u uuid,e uuid) RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER AS $$ SELECT EXISTS(SELECT 1 FROM employees target JOIN employees manager ON manager.id=target.manager_id WHERE target.id=e AND manager.user_id=u AND manager.org_id=target.org_id) $$;
+GRANT USAGE ON SCHEMA public,auth TO authenticated,service_role,anon;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;
+GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public TO authenticated;
+ALTER TABLE process_weekly_evaluations ENABLE ROW LEVEL SECURITY;
+CREATE POLICY pwe_read ON process_weekly_evaluations FOR SELECT TO authenticated USING(is_org_member(auth.uid(),org_id));

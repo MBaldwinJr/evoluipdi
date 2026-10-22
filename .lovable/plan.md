@@ -1,3 +1,16 @@
+## Security hardening — current request
+
+- Inspect every caller of the targeted server functions and read current schema/policies without modifying data.
+- Enforce organization-scoped permissions, safe initial plans, verified invite identity, and employee cleanup on failures.
+- Add only versioned migrations for atomic operations and demonstrably unsafe weekly-evaluation policies; do not apply them.
+- Add automated regression tests using existing tooling, run tests/lint, and inspect automatic build results.
+- Document migration dependencies and any unverified flows. No production deployment or database writes.
+
+### Technical details
+- Keep caller contracts compatible where safe; deny unsafe actions until required migrations are reviewed/applied separately.
+- Use authenticated clients for authorization before privileged reads/writes.
+- The previous plan below is historical context, not part of this implementation.
+
 ## Objetivo
 Transformar o sistema em um SaaS comercializável: landing pública, pricing, checkout Stripe recorrente, trial de 14 dias com expiração, controle de limites por plano e gestão de assinatura self-service.
 

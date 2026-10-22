@@ -7,18 +7,65 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { Plus, ListChecks, Pencil, Trash2 } from "lucide-react";
-import { createUserAndEmployee, setEmployeeRole, updateEmployeeFn, deleteEmployeeFn } from "@/lib/admin.functions";
+import {
+  createUserAndEmployee,
+  setEmployeeRole,
+  updateEmployeeFn,
+  deleteEmployeeFn,
+  getEmployeeOrgRoles,
+} from "@/lib/admin.functions";
 
-export const Route = createFileRoute("/_app/admin/people")({ component: AdminPeople });
+export const Route = createFileRoute("/_app/admin/people")({
+  head: () => ({
+    meta: [
+      { title: "Colaboradores | EvoluiPDI" },
+      {
+        name: "description",
+        content: "Gestão de colaboradores, cargos e vínculos da empresa no EvoluiPDI.",
+      },
+      { property: "og:title", content: "Colaboradores | EvoluiPDI" },
+      {
+        property: "og:description",
+        content: "Gestão de colaboradores, cargos e vínculos da empresa no EvoluiPDI.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
+  component: AdminPeople,
+});
 
 async function getErrorMessage(e: unknown, fallback: string) {
   if (e instanceof Response) return (await e.text()) || fallback;
@@ -39,29 +86,55 @@ function AdminPeople() {
   const [roleFilter, setRoleFilter] = useState("all");
   const [deptFilter, setDeptFilter] = useState("all");
   const { data: people = [] } = useQuery({
-    queryKey: ["admin-people"], enabled: isRH,
-    queryFn: async () => (await supabase.from("employees").select("id, user_id, hire_date, role_id, department_id, profile:profiles!employees_user_id_profiles_fkey(full_name, email), role:roles_catalog(id, title), department:departments(id, name)")).data ?? [],
+    queryKey: ["admin-people"],
+    enabled: isRH,
+    queryFn: async () =>
+      (
+        await supabase
+          .from("employees")
+          .select(
+            "id, user_id, hire_date, role_id, department_id, profile:profiles!employees_user_id_profiles_fkey(full_name, email), role:roles_catalog(id, title), department:departments(id, name)",
+          )
+      ).data ?? [],
   });
-  const { data: roles = [] } = useQuery({ queryKey: ["roles-cat"], queryFn: async () => (await supabase.from("roles_catalog").select("id, title")).data ?? [] });
-  const { data: depts = [] } = useQuery({ queryKey: ["depts"], queryFn: async () => (await supabase.from("departments").select("id, name")).data ?? [] });
+  const { data: roles = [] } = useQuery({
+    queryKey: ["roles-cat"],
+    queryFn: async () => (await supabase.from("roles_catalog").select("id, title")).data ?? [],
+  });
+  const { data: depts = [] } = useQuery({
+    queryKey: ["depts"],
+    queryFn: async () => (await supabase.from("departments").select("id, name")).data ?? [],
+  });
   const { data: managers = [] } = useQuery({
     queryKey: ["managers-only"],
     queryFn: async () => {
-      const { data: gestoresRoles } = await supabase.from("user_roles").select("user_id").in("role", ["gestor", "rh"]);
+      const { data: gestoresRoles } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .in("role", ["gestor", "rh"]);
       const ids = (gestoresRoles ?? []).map((r: any) => r.user_id);
       if (ids.length === 0) return [];
-      return (await supabase.from("employees").select("id, profile:profiles!employees_user_id_profiles_fkey(full_name, email)").in("user_id", ids)).data ?? [];
+      return (
+        (
+          await supabase
+            .from("employees")
+            .select("id, profile:profiles!employees_user_id_profiles_fkey(full_name, email)")
+            .in("user_id", ids)
+        ).data ?? []
+      );
     },
   });
 
-  if (!isRH) return <EmptyState title="Acesso restrito" description="Apenas o RH pode acessar esta área." />;
+  if (!isRH)
+    return <EmptyState title="Acesso restrito" description="Apenas o RH pode acessar esta área." />;
 
   const q = search.trim().toLowerCase();
   const filteredPeople = people.filter((p: any) => {
     if (roleFilter === "_none" && p.role_id) return false;
     if (roleFilter !== "all" && roleFilter !== "_none" && p.role_id !== roleFilter) return false;
     if (deptFilter === "_none" && p.department_id) return false;
-    if (deptFilter !== "all" && deptFilter !== "_none" && p.department_id !== deptFilter) return false;
+    if (deptFilter !== "all" && deptFilter !== "_none" && p.department_id !== deptFilter)
+      return false;
     if (q) {
       const hay = `${p.profile?.full_name ?? ""} ${p.profile?.email ?? ""}`.toLowerCase();
       if (!hay.includes(q)) return false;
@@ -71,53 +144,111 @@ function AdminPeople() {
 
   return (
     <>
-      <PageHeader title="Colaboradores" description="Cadastre, vincule a cargos e gestores" action={
-        <div className="flex gap-2">
-          <Button asChild variant="outline">
-            <Link to="/admin/org-chart">Organograma</Link>
-          </Button>
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild><Button><Plus className="mr-2 h-4 w-4" />Novo colaborador</Button></DialogTrigger>
-            <NewPersonDialog roles={roles} depts={depts} managers={managers as any} onCreated={() => { setOpen(false); qc.invalidateQueries(); }} />
-          </Dialog>
-        </div>
-      } />
+      <PageHeader
+        title="Colaboradores"
+        description="Cadastre, vincule a cargos e gestores"
+        action={
+          <div className="flex gap-2">
+            <Button asChild variant="outline">
+              <Link to="/admin/org-chart">Organograma</Link>
+            </Button>
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Novo colaborador
+                </Button>
+              </DialogTrigger>
+              <NewPersonDialog
+                roles={roles}
+                depts={depts}
+                managers={managers as any}
+                onCreated={() => {
+                  setOpen(false);
+                  qc.invalidateQueries();
+                }}
+              />
+            </Dialog>
+          </div>
+        }
+      />
       <div className="mb-4 flex flex-wrap gap-2">
-        <Input placeholder="Buscar por nome ou e-mail…" value={search} onChange={(e) => setSearch(e.target.value)} className="w-64" />
+        <Input
+          placeholder="Buscar por nome ou e-mail…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-64"
+        />
         <Select value={roleFilter} onValueChange={setRoleFilter}>
-          <SelectTrigger className="w-52"><SelectValue placeholder="Cargo" /></SelectTrigger>
+          <SelectTrigger className="w-52">
+            <SelectValue placeholder="Cargo" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos os cargos</SelectItem>
             <SelectItem value="_none">Sem cargo</SelectItem>
-            {roles.map((r: any) => <SelectItem key={r.id} value={r.id}>{r.title}</SelectItem>)}
+            {roles.map((r: any) => (
+              <SelectItem key={r.id} value={r.id}>
+                {r.title}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Select value={deptFilter} onValueChange={setDeptFilter}>
-          <SelectTrigger className="w-52"><SelectValue placeholder="Setor" /></SelectTrigger>
+          <SelectTrigger className="w-52">
+            <SelectValue placeholder="Setor" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos os setores</SelectItem>
             <SelectItem value="_none">Sem setor</SelectItem>
-            {depts.map((d: any) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
+            {depts.map((d: any) => (
+              <SelectItem key={d.id} value={d.id}>
+                {d.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
-        <p className="ml-auto self-center text-xs text-muted-foreground">{filteredPeople.length} de {people.length}</p>
+        <p className="ml-auto self-center text-xs text-muted-foreground">
+          {filteredPeople.length} de {people.length}
+        </p>
       </div>
-      {filteredPeople.length === 0 ? <EmptyState title="Nenhum colaborador" description="Ajuste os filtros ou cadastre um novo colaborador." /> : (
+      {filteredPeople.length === 0 ? (
+        <EmptyState
+          title="Nenhum colaborador"
+          description="Ajuste os filtros ou cadastre um novo colaborador."
+        />
+      ) : (
         <div className="grid gap-3 md:grid-cols-2">
           {filteredPeople.map((p: any) => (
-            <Card key={p.id}><CardContent className="pt-6 space-y-2">
-              <div className="flex justify-between"><p className="font-medium">{p.profile?.full_name || p.profile?.email}</p>
-                <Badge variant="secondary">{p.role?.title ?? "Sem cargo"}</Badge></div>
-              <p className="text-sm text-muted-foreground">{p.department?.name ?? "Sem setor"}</p>
-              <RoleSwitcher userId={p.user_id} />
-              <div className="flex gap-2">
-                <Link to="/team/$id" params={{ id: p.id }} className="flex-1">
-                  <Button size="sm" variant="outline" className="w-full"><ListChecks className="mr-2 h-4 w-4" />Abrir</Button>
-                </Link>
-                <EditPersonButton person={p} roles={roles} depts={depts} managers={managers as any} onSaved={() => qc.invalidateQueries({ queryKey: ["admin-people"] })} />
-                <DeletePersonButton employeeId={p.id} name={p.profile?.full_name || p.profile?.email} onDeleted={() => qc.invalidateQueries({ queryKey: ["admin-people"] })} />
-              </div>
-            </CardContent></Card>
+            <Card key={p.id}>
+              <CardContent className="pt-6 space-y-2">
+                <div className="flex justify-between">
+                  <p className="font-medium">{p.profile?.full_name || p.profile?.email}</p>
+                  <Badge variant="secondary">{p.role?.title ?? "Sem cargo"}</Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">{p.department?.name ?? "Sem setor"}</p>
+                <RoleSwitcher userId={p.user_id} />
+                <div className="flex gap-2">
+                  <Link to="/team/$id" params={{ id: p.id }} className="flex-1">
+                    <Button size="sm" variant="outline" className="w-full">
+                      <ListChecks className="mr-2 h-4 w-4" />
+                      Abrir
+                    </Button>
+                  </Link>
+                  <EditPersonButton
+                    person={p}
+                    roles={roles}
+                    depts={depts}
+                    managers={managers as any}
+                    onSaved={() => qc.invalidateQueries({ queryKey: ["admin-people"] })}
+                  />
+                  <DeletePersonButton
+                    employeeId={p.id}
+                    name={p.profile?.full_name || p.profile?.email}
+                    onDeleted={() => qc.invalidateQueries({ queryKey: ["admin-people"] })}
+                  />
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       )}
@@ -136,44 +267,108 @@ function EditPersonButton({ person, roles, depts, managers, onSaved }: any) {
   const save = async () => {
     setBusy(true);
     try {
-      await ensureServerFnOk(await updateFn({ data: {
-        employeeId: person.id,
-        fullName: name,
-        roleId: roleId || null,
-        departmentId: deptId || null,
-        managerId: managerId || null,
-      } }), "Erro ao atualizar");
+      await ensureServerFnOk(
+        await updateFn({
+          data: {
+            employeeId: person.id,
+            fullName: name,
+            roleId: roleId || null,
+            departmentId: deptId || null,
+            managerId: managerId || null,
+          },
+        }),
+        "Erro ao atualizar",
+      );
       toast.success("Atualizado");
       setOpen(false);
       onSaved();
-    } catch (e) { toast.error(await getErrorMessage(e, "Erro ao atualizar")); }
-    finally { setBusy(false); }
+    } catch (e) {
+      toast.error(await getErrorMessage(e, "Erro ao atualizar"));
+    } finally {
+      setBusy(false);
+    }
   };
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><Button size="sm" variant="ghost"><Pencil className="h-4 w-4" /></Button></DialogTrigger>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="ghost">
+          <Pencil className="h-4 w-4" />
+        </Button>
+      </DialogTrigger>
       <DialogContent>
-        <DialogHeader><DialogTitle>Editar colaborador</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>Editar colaborador</DialogTitle>
+        </DialogHeader>
         <div className="space-y-3">
-          <div className="space-y-1"><Label>Nome completo</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
-          <div className="space-y-1"><Label>Cargo</Label>
-            <Select value={roleId} onValueChange={setRoleId}><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-              <SelectContent>{roles.map((r: any) => <SelectItem key={r.id} value={r.id}>{r.title}</SelectItem>)}</SelectContent></Select></div>
-          <div className="space-y-1"><Label>Setor</Label>
-            <Select value={deptId} onValueChange={setDeptId}><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-              <SelectContent>{depts.map((d: any) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent></Select></div>
-          <div className="space-y-1"><Label>Gestor direto (opcional)</Label>
+          <div className="space-y-1">
+            <Label>Nome completo</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
+          <div className="space-y-1">
+            <Label>Cargo</Label>
+            <Select value={roleId} onValueChange={setRoleId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione" />
+              </SelectTrigger>
+              <SelectContent>
+                {roles.map((r: any) => (
+                  <SelectItem key={r.id} value={r.id}>
+                    {r.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label>Setor</Label>
+            <Select value={deptId} onValueChange={setDeptId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione" />
+              </SelectTrigger>
+              <SelectContent>
+                {depts.map((d: any) => (
+                  <SelectItem key={d.id} value={d.id}>
+                    {d.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label>Gestor direto (opcional)</Label>
             <Select value={managerId} onValueChange={setManagerId}>
-              <SelectTrigger><SelectValue placeholder="Manter atual / sem alteração" /></SelectTrigger>
-              <SelectContent>{managers.map((m: any) => <SelectItem key={m.id} value={m.id}>{m.profile?.full_name || m.profile?.email}</SelectItem>)}</SelectContent></Select></div>
+              <SelectTrigger>
+                <SelectValue placeholder="Manter atual / sem alteração" />
+              </SelectTrigger>
+              <SelectContent>
+                {managers.map((m: any) => (
+                  <SelectItem key={m.id} value={m.id}>
+                    {m.profile?.full_name || m.profile?.email}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <DialogFooter><Button onClick={save} disabled={busy}>{busy ? "Salvando..." : "Salvar"}</Button></DialogFooter>
+        <DialogFooter>
+          <Button onClick={save} disabled={busy}>
+            {busy ? "Salvando..." : "Salvar"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
 
-function DeletePersonButton({ employeeId, name, onDeleted }: { employeeId: string; name: string; onDeleted: () => void }) {
+function DeletePersonButton({
+  employeeId,
+  name,
+  onDeleted,
+}: {
+  employeeId: string;
+  name: string;
+  onDeleted: () => void;
+}) {
   const [busy, setBusy] = useState(false);
   const deleteFn = useServerFn(deleteEmployeeFn);
   const remove = async () => {
@@ -182,20 +377,34 @@ function DeletePersonButton({ employeeId, name, onDeleted }: { employeeId: strin
       await ensureServerFnOk(await deleteFn({ data: { employeeId } }), "Erro ao excluir");
       toast.success("Colaborador excluído");
       onDeleted();
-    } catch (e) { toast.error(await getErrorMessage(e, "Erro ao excluir")); }
-    finally { setBusy(false); }
+    } catch (e) {
+      toast.error(await getErrorMessage(e, "Erro ao excluir"));
+    } finally {
+      setBusy(false);
+    }
   };
   return (
     <AlertDialog>
-      <AlertDialogTrigger asChild><Button size="sm" variant="ghost" className="text-destructive"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
+      <AlertDialogTrigger asChild>
+        <Button size="sm" variant="ghost" className="text-destructive">
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Excluir {name}?</AlertDialogTitle>
-          <AlertDialogDescription>Esta ação remove o usuário e seu vínculo de colaborador. Não pode ser desfeita.</AlertDialogDescription>
+          <AlertDialogDescription>
+            Esta ação remove o registro de colaborador nesta empresa, sem excluir a conta de acesso.
+            Não pode ser desfeita.
+          </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={busy}>Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={remove} disabled={busy} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+          <AlertDialogAction
+            onClick={remove}
+            disabled={busy}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
             {busy ? "Excluindo..." : "Excluir"}
           </AlertDialogAction>
         </AlertDialogFooter>
@@ -207,20 +416,38 @@ function DeletePersonButton({ employeeId, name, onDeleted }: { employeeId: strin
 function RoleSwitcher({ userId }: { userId: string }) {
   const qc = useQueryClient();
   const setEmployeeRoleFn = useServerFn(setEmployeeRole);
+  const getRolesFn = useServerFn(getEmployeeOrgRoles);
   const { data: roles = [] } = useQuery({
     queryKey: ["uroles", userId],
-    queryFn: async () => (await supabase.from("user_roles").select("role").eq("user_id", userId)).data ?? [],
+    queryFn: () => getRolesFn({ data: { userId } }),
   });
-  const current = (roles[0] as any)?.role ?? "colaborador";
+  const current =
+    roles.find((row) => ["colaborador", "gestor", "rh"].includes(row.role))?.role ?? "colaborador";
   const set = async (r: string) => {
-    try { await ensureServerFnOk(await setEmployeeRoleFn({ data: { userId, role: r as any } }), "Erro ao atualizar papel"); toast.success("Papel atualizado"); qc.invalidateQueries({ queryKey: ["uroles", userId] }); }
-    catch (e) { toast.error(await getErrorMessage(e, "Erro ao atualizar papel")); }
+    if (r !== "colaborador" && r !== "gestor" && r !== "rh") return;
+    try {
+      await ensureServerFnOk(
+        await setEmployeeRoleFn({ data: { userId, role: r } }),
+        "Erro ao atualizar papel",
+      );
+      toast.success("Papel atualizado");
+      qc.invalidateQueries({ queryKey: ["uroles", userId] });
+    } catch (e) {
+      toast.error(await getErrorMessage(e, "Erro ao atualizar papel"));
+    }
   };
   return (
-    <div className="flex items-center gap-2"><Label className="text-xs">Papel:</Label>
+    <div className="flex items-center gap-2">
+      <Label className="text-xs">Papel:</Label>
       <Select value={current} onValueChange={set}>
-        <SelectTrigger className="h-8 w-40"><SelectValue/></SelectTrigger>
-        <SelectContent><SelectItem value="colaborador">Colaborador</SelectItem><SelectItem value="gestor">Gestor</SelectItem><SelectItem value="rh">RH/Admin</SelectItem></SelectContent>
+        <SelectTrigger className="h-8 w-40">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="colaborador">Colaborador</SelectItem>
+          <SelectItem value="gestor">Gestor</SelectItem>
+          <SelectItem value="rh">RH/Admin</SelectItem>
+        </SelectContent>
       </Select>
     </div>
   );
@@ -229,8 +456,12 @@ function RoleSwitcher({ userId }: { userId: string }) {
 function NewPersonDialog({ roles, depts, managers, onCreated }: any) {
   const createUserAndEmployeeFn = useServerFn(createUserAndEmployee);
   const setEmployeeRoleFn = useServerFn(setEmployeeRole);
-  const [email, setEmail] = useState(""); const [name, setName] = useState(""); const [pwd, setPwd] = useState("");
-  const [roleId, setRoleId] = useState(""); const [deptId, setDeptId] = useState(""); const [managerId, setManagerId] = useState("");
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [pwd, setPwd] = useState("");
+  const [roleId, setRoleId] = useState("");
+  const [deptId, setDeptId] = useState("");
+  const [managerId, setManagerId] = useState("");
   const [asManager, setAsManager] = useState(false);
   const [busy, setBusy] = useState(false);
   const submittingRef = useRef(false);
@@ -241,9 +472,24 @@ function NewPersonDialog({ roles, depts, managers, onCreated }: any) {
     submittingRef.current = true;
     setBusy(true);
     try {
-      const res = await ensureServerFnOk(await createUserAndEmployeeFn({ data: { email, password: pwd, fullName: name, roleId: roleId || null, departmentId: deptId || null, managerId: managerId || null } }), "Erro ao criar");
+      const res = await ensureServerFnOk(
+        await createUserAndEmployeeFn({
+          data: {
+            email,
+            password: pwd,
+            fullName: name,
+            roleId: roleId || null,
+            departmentId: deptId || null,
+            managerId: managerId || null,
+          },
+        }),
+        "Erro ao criar",
+      );
       if (asManager && res?.userId) {
-        await ensureServerFnOk(await setEmployeeRoleFn({ data: { userId: res.userId, role: "gestor" } }), "Erro ao definir gestor");
+        await ensureServerFnOk(
+          await setEmployeeRoleFn({ data: { userId: res.userId, role: "gestor" } }),
+          "Erro ao definir gestor",
+        );
       }
       toast.success(asManager ? "Gestor criado" : "Colaborador criado");
       onCreated();
@@ -256,32 +502,94 @@ function NewPersonDialog({ roles, depts, managers, onCreated }: any) {
   };
   return (
     <DialogContent>
-      <DialogHeader><DialogTitle>{asManager ? "Novo gestor" : "Novo colaborador"}</DialogTitle></DialogHeader>
+      <DialogHeader>
+        <DialogTitle>{asManager ? "Novo gestor" : "Novo colaborador"}</DialogTitle>
+      </DialogHeader>
       <div className="space-y-3">
         <label className="flex items-center gap-2 rounded-md border p-3 cursor-pointer">
-          <Checkbox checked={asManager} onCheckedChange={(v)=>setAsManager(!!v)} />
-          <div className="text-sm"><p className="font-medium">Cadastrar como Gestor</p>
-            <p className="text-xs text-muted-foreground">Permite que ele apareça como opção de gestor para outros colaboradores e acesse a aba Equipe.</p></div>
+          <Checkbox checked={asManager} onCheckedChange={(v) => setAsManager(!!v)} />
+          <div className="text-sm">
+            <p className="font-medium">Cadastrar como Gestor</p>
+            <p className="text-xs text-muted-foreground">
+              Permite que ele apareça como opção de gestor para outros colaboradores e acesse a aba
+              Equipe.
+            </p>
+          </div>
         </label>
-        <div className="space-y-1"><Label>Nome completo</Label><Input value={name} onChange={(e)=>setName(e.target.value)} /></div>
-        <div className="space-y-1"><Label>E-mail</Label><Input type="email" value={email} onChange={(e)=>setEmail(e.target.value)} /></div>
-        <div className="space-y-1"><Label>Senha provisória</Label><Input type="text" value={pwd} onChange={(e)=>setPwd(e.target.value)} /></div>
-        <div className="space-y-1"><Label>Cargo</Label>
-          <Select value={roleId} onValueChange={setRoleId}><SelectTrigger><SelectValue placeholder="Selecione"/></SelectTrigger>
-            <SelectContent>{roles.map((r: any)=><SelectItem key={r.id} value={r.id}>{r.title}</SelectItem>)}</SelectContent></Select></div>
-        <div className="space-y-1"><Label>Setor</Label>
-          <Select value={deptId} onValueChange={setDeptId}><SelectTrigger><SelectValue placeholder="Selecione"/></SelectTrigger>
-            <SelectContent>{depts.map((d: any)=><SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent></Select></div>
+        <div className="space-y-1">
+          <Label>Nome completo</Label>
+          <Input value={name} onChange={(e) => setName(e.target.value)} />
+        </div>
+        <div className="space-y-1">
+          <Label>E-mail</Label>
+          <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        </div>
+        <div className="space-y-1">
+          <Label>Senha provisória</Label>
+          <Input type="text" value={pwd} onChange={(e) => setPwd(e.target.value)} />
+        </div>
+        <div className="space-y-1">
+          <Label>Cargo</Label>
+          <Select value={roleId} onValueChange={setRoleId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione" />
+            </SelectTrigger>
+            <SelectContent>
+              {roles.map((r: any) => (
+                <SelectItem key={r.id} value={r.id}>
+                  {r.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
+          <Label>Setor</Label>
+          <Select value={deptId} onValueChange={setDeptId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione" />
+            </SelectTrigger>
+            <SelectContent>
+              {depts.map((d: any) => (
+                <SelectItem key={d.id} value={d.id}>
+                  {d.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         {!asManager && (
-          <div className="space-y-1"><Label>Gestor direto</Label>
+          <div className="space-y-1">
+            <Label>Gestor direto</Label>
             <Select value={managerId} onValueChange={setManagerId}>
-              <SelectTrigger><SelectValue placeholder={managers.length === 0 ? "Nenhum gestor cadastrado ainda" : "Sem gestor"}/></SelectTrigger>
-              <SelectContent>{managers.map((m: any)=><SelectItem key={m.id} value={m.id}>{m.profile?.full_name || m.profile?.email}</SelectItem>)}</SelectContent></Select>
-            {managers.length === 0 && <p className="text-xs text-muted-foreground">Cadastre primeiro um Gestor (marque o checkbox acima).</p>}
+              <SelectTrigger>
+                <SelectValue
+                  placeholder={
+                    managers.length === 0 ? "Nenhum gestor cadastrado ainda" : "Sem gestor"
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {managers.map((m: any) => (
+                  <SelectItem key={m.id} value={m.id}>
+                    {m.profile?.full_name || m.profile?.email}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {managers.length === 0 && (
+              <p className="text-xs text-muted-foreground">
+                Cadastre primeiro um Gestor (marque o checkbox acima).
+              </p>
+            )}
           </div>
         )}
       </div>
-      <DialogFooter><Button onClick={submit} disabled={busy}>{busy?"Criando...":"Criar"}</Button></DialogFooter>
+      <DialogFooter>
+        <Button onClick={submit} disabled={busy}>
+          {busy ? "Criando..." : "Criar"}
+        </Button>
+      </DialogFooter>
     </DialogContent>
   );
 }
