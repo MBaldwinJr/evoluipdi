@@ -55,6 +55,12 @@ try:
     print("PASS client cannot call service-only RPC")
 
     sql(f"INSERT INTO org_members(org_id,user_id,role) VALUES('{org}','{outsider}','rh'); INSERT INTO org_invites(org_id,token,email,role,invited_by) VALUES('{org}','bad-admin','guest@example.com','admin','{outsider}');")
+    # Regression tests for direct Data API writes: RPC checks alone do not protect table policies.
+    must_fail(f"SET ROLE authenticated; SET test.uid='{outsider}'; INSERT INTO user_roles(user_id,role) VALUES('{outsider}','super_admin');")
+    must_fail(f"SET ROLE authenticated; SET test.uid='{actor}'; INSERT INTO org_plans(org_id,plan_code,modules,active) VALUES('{org}','enterprise',ARRAY['rh'],true);")
+    must_fail(f"SET ROLE authenticated; SET test.uid='{outsider}'; INSERT INTO org_invites(org_id,token,email,role,invited_by) VALUES('{org}','direct-admin','guest@example.com','admin','{outsider}');")
+    must_fail(f"SET ROLE authenticated; SET test.uid='{outsider}'; INSERT INTO org_members(org_id,user_id,role) VALUES('{org}','{guest}','admin');")
+    print("PASS RLS blocks global role escalation, tenant plan writes, and RH admin grants")
     must_fail(f"SET ROLE service_role; SELECT hardening_accept_invite('{guest}','bad-admin','guest@example.com');")
     assert sql("SELECT accepted_at IS NULL FROM org_invites WHERE token='bad-admin'") == "t"
     print("PASS RH-issued admin invitation denied atomically")
