@@ -106,7 +106,7 @@ try:
     assert sql("SELECT score FROM process_weekly_evaluations") == "4"
     must_fail(f"SET ROLE authenticated; SET test.uid='{actor}'; INSERT INTO process_weekly_evaluations(org_id,employee_id,evaluator_id,role_process_id,week_start,score) VALUES('{other_org}','{employee}','{actor}','{process}','2026-10-26',5);")
     print("PASS pwe_update membership, final identity, and insert relationships")
-    print("SQL suite: 10 groups passed; disposable database only")
+    print("SQL suite passed; disposable database only (no production connection)")
 except subprocess.CalledProcessError as error:
     print(error.stderr)
     raise
