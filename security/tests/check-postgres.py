@@ -10,12 +10,20 @@ ROOT = Path(__file__).resolve().parents[2]
 TEMP = Path(tempfile.mkdtemp(prefix="evolui-security-", dir="/tmp"))
 ENV = {k: v for k, v in os.environ.items() if not k.startswith("PG")}
 ENV.update({"PGHOST": str(TEMP), "PGPORT": "55439", "PGUSER": "postgres", "PGDATABASE": "postgres"})
-PREFIX = ["runuser", "-u", "lovable", "--"] if os.geteuid() == 0 else []
-if PREFIX:
+IS_ROOT = os.geteuid() == 0
+if IS_ROOT:
     os.chown(TEMP, 1000, 1000)
 
+def drop_privileges():
+    os.setgroups([])
+    os.setgid(1000)
+    os.setuid(1000)
+
 def local(command):
-    return subprocess.run(PREFIX + command, env=ENV, check=True, capture_output=True, text=True)
+    result = subprocess.run(command, env=ENV, capture_output=True, text=True, preexec_fn=drop_privileges if IS_ROOT else None)
+    if result.returncode:
+        raise subprocess.CalledProcessError(result.returncode, command, output=result.stdout, stderr=result.stderr)
+    return result
 
 def sql(statement):
     return local(["psql", "-X", "-v", "ON_ERROR_STOP=1", "-At", "-c", statement]).stdout.strip()
@@ -93,6 +101,9 @@ try:
     must_fail(f"SET ROLE authenticated; SET test.uid='{actor}'; INSERT INTO process_weekly_evaluations(org_id,employee_id,evaluator_id,role_process_id,week_start,score) VALUES('{other_org}','{employee}','{actor}','{process}','2026-10-26',5);")
     print("PASS pwe_update membership, final identity, and insert relationships")
     print("SQL suite: 10 groups passed; disposable database only")
+except subprocess.CalledProcessError as error:
+    print(error.stderr)
+    raise
 finally:
     if (TEMP / "data/postmaster.pid").exists():
         local(["pg_ctl", "-D", str(TEMP / "data"), "-m", "immediate", "-w", "stop"])
