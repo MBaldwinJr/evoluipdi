@@ -1,7 +1,7 @@
 -- Minimal isolated schema matches the inspected column/role/unique contracts.
 CREATE ROLE anon;
 CREATE ROLE authenticated;
-CREATE ROLE service_role;
+CREATE ROLE service_role BYPASSRLS;
 CREATE SCHEMA auth;
 CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT nullif(current_setting('test.uid',true),'')::uuid $$;
 CREATE TYPE public.app_role AS ENUM('colaborador','gestor','rh','super_admin');
@@ -25,3 +25,8 @@ GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;
 GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public TO authenticated;
 ALTER TABLE process_weekly_evaluations ENABLE ROW LEVEL SECURITY;
 CREATE POLICY pwe_read ON process_weekly_evaluations FOR SELECT TO authenticated USING(is_org_member(auth.uid(),org_id));
+-- Exercise the policies as an authenticated tenant user, not as the fixture owner.
+ALTER TABLE user_roles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE org_plans ENABLE ROW LEVEL SECURITY;
+ALTER TABLE org_invites ENABLE ROW LEVEL SECURITY;
+ALTER TABLE org_members ENABLE ROW LEVEL SECURITY;
