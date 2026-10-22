@@ -92,7 +92,7 @@ const receitaSchema = z.object({
   razao_social: z.string().min(1), nome_fantasia: z.string().optional().nullable(),
   cnae_fiscal: z.union([z.string(), z.number()]).optional().nullable(),
   cnae_fiscal_descricao: z.string().optional().nullable(),
-}).passthrough();
+});
 
 async function fetchCnpjReceita(digits: string): Promise<z.infer<typeof receitaSchema>> {
   for (let attempt = 0; attempt < 3; attempt++) {

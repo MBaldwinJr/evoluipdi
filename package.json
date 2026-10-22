@@ -9,6 +9,8 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
+    "test:security": "bun test security/tests",
+    "test:security:sql": "python3 security/tests/check-postgres.py",
     "format": "prettier --write ."
   },
   "dependencies": {

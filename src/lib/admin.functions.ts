@@ -14,10 +14,7 @@ export const setEmployeeManagerFn = createServerFn({ method: "POST" })
     const actor = { client: context.supabase, userId: context.userId };
     const employee = await requireEmployeeAccess(actor, data.employeeId);
     await requireEmployeeReferences(employee.org_id, { managerId: data.managerId });
-    const { error } = await context.supabase.rpc("set_employee_manager", {
-      _employee_id: data.employeeId,
-      _manager_id: data.managerId,
-    });
+    const { error } = await context.supabase.from("employees").update({ manager_id: data.managerId }).eq("id", data.employeeId).eq("org_id", employee.org_id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
