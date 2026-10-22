@@ -1,9 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { assertRH, createEmployeeUser, replaceEmployeeRole, updateEmployee, deleteEmployee } from "./admin.server";
-
 export const setEmployeeManagerFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
@@ -13,10 +10,13 @@ export const setEmployeeManagerFn = createServerFn({ method: "POST" })
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
-    await assertRH(context.userId);
-    const { error } = await supabaseAdmin.rpc("set_employee_manager", {
+    const { requireEmployeeAccess, requireEmployeeReferences } = await import("./employee-access.server");
+    const actor = { client: context.supabase, userId: context.userId };
+    const employee = await requireEmployeeAccess(actor, data.employeeId);
+    await requireEmployeeReferences(employee.org_id, { managerId: data.managerId });
+    const { error } = await context.supabase.rpc("set_employee_manager", {
       _employee_id: data.employeeId,
-      _manager_id: data.managerId as any,
+      _manager_id: data.managerId,
     });
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -25,17 +25,23 @@ export const setEmployeeManagerFn = createServerFn({ method: "POST" })
 export const listOrgChartFn = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await assertRH(context.userId);
-    // pick first org of user
-    const { data: m } = await supabaseAdmin
+    const { getUserOrgId } = await import("./org.server");
+    const { requireOrgAccess } = await import("./security-access");
+    const orgId = await getUserOrgId(context.userId);
+    await requireOrgAccess(context.supabase, context.userId, orgId, ["admin", "rh"]);
+    const supabaseAdmin = context.supabase;
+    // Preserve the existing first-org contract.
+    const { data: m, error: memberError } = await supabaseAdmin
       .from("org_members").select("org_id").eq("user_id", context.userId).order("created_at").limit(1).maybeSingle();
+    if (memberError) throw new Error("Não foi possível carregar a empresa");
     if (!m) return [] as Array<{ id: string; full_name: string; role_title: string | null; department: string | null; avatar_url: string | null; manager_id: string | null }>;
-    const { data: emps } = await supabaseAdmin
+    const { data: emps, error: employeeError } = await supabaseAdmin
       .from("employees")
       .select("id, manager_id, full_name, role_id, department_id, user_id, profile:profiles(full_name, avatar_url), role:roles_catalog(title), dept:departments(name)")
       .eq("org_id", m.org_id)
       .eq("active", true);
-    return (emps ?? []).map((e: any) => ({
+    if (employeeError) throw new Error("Não foi possível carregar o organograma");
+    return (emps ?? []).map((e) => ({
       id: e.id,
       manager_id: e.manager_id,
       full_name: e.full_name || e.profile?.full_name || "—",
@@ -57,16 +63,18 @@ export const createUserAndEmployee = createServerFn({ method: "POST" })
     managerId: z.string().uuid().nullable().optional(),
   }).parse(d))
   .handler(async ({ data, context }) => {
-    await assertRH(context.userId);
-    return createEmployeeUser({ ...data, createdByUserId: context.userId });
+    const { createEmployeeUser } = await import("./admin.server");
+    return createEmployeeUser({ ...data, createdByUserId: context.userId }, { client: context.supabase, userId: context.userId });
   });
 
 export const setEmployeeRole = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ userId: z.string().uuid(), role: z.enum(["colaborador","gestor","rh"]) }).parse(d))
   .handler(async ({ data, context }) => {
-    await assertRH(context.userId);
-    return replaceEmployeeRole(data.userId, data.role);
+    const { replaceEmployeeRole } = await import("./admin.server");
+    const { getUserOrgId } = await import("./org.server");
+    const orgId = await getUserOrgId(context.userId);
+    return replaceEmployeeRole(data.userId, data.role, orgId, { client: context.supabase, userId: context.userId });
   });
 
 export const updateEmployeeFn = createServerFn({ method: "POST" })
@@ -79,15 +87,15 @@ export const updateEmployeeFn = createServerFn({ method: "POST" })
     managerId: z.string().uuid().nullable().optional(),
   }).parse(d))
   .handler(async ({ data, context }) => {
-    await assertRH(context.userId);
+    const { updateEmployee } = await import("./admin.server");
     const { employeeId, ...rest } = data;
-    return updateEmployee(employeeId, rest);
+    return updateEmployee(employeeId, rest, { client: context.supabase, userId: context.userId });
   });
 
 export const deleteEmployeeFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ employeeId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    await assertRH(context.userId);
-    return deleteEmployee(data.employeeId);
+    const { deleteEmployee } = await import("./admin.server");
+    return deleteEmployee(data.employeeId, { client: context.supabase, userId: context.userId });
   });
