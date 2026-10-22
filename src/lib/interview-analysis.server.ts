@@ -4,19 +4,41 @@ import { z } from "zod";
 import { callAIJson } from "./ai.server";
 
 const analysisSchema = z.object({
-  summary: z.string(), strengths: z.array(z.string()), concerns: z.array(z.string()),
-  signals: z.array(z.object({ question: z.string(), insight: z.string(), sentiment: z.enum(["positivo", "neutro", "atencao"]) })),
-  suggested_gaps: z.array(z.object({ title: z.string(), severity: z.enum(["baixa", "media", "alta"]), justification: z.string() })),
-  next_steps: z.array(z.string()), overall_level_suggestion: z.enum(["abaixo", "parcial", "atende", "supera"]),
+  summary: z.string(),
+  strengths: z.array(z.string()),
+  concerns: z.array(z.string()),
+  signals: z.array(
+    z.object({
+      question: z.string(),
+      insight: z.string(),
+      sentiment: z.enum(["positivo", "neutro", "atencao"]),
+    }),
+  ),
+  suggested_gaps: z.array(
+    z.object({
+      title: z.string(),
+      severity: z.enum(["baixa", "media", "alta"]),
+      justification: z.string(),
+    }),
+  ),
+  next_steps: z.array(z.string()),
+  overall_level_suggestion: z.enum(["abaixo", "parcial", "atende", "supera"]),
 });
 export type InterviewAnalysis = z.infer<typeof analysisSchema>;
 
 // Every caller must provide the authenticated client; authorization precedes privileged access, even for cached analysis.
-export async function analyzeInterviewById(client: AuthenticatedClient, userId: string, interviewId: string, force = false): Promise<InterviewAnalysis> {
+export async function analyzeInterviewById(
+  client: AuthenticatedClient,
+  userId: string,
+  interviewId: string,
+  force = false,
+): Promise<InterviewAnalysis> {
   const { orgId } = await requireInterviewAccess(client, userId, interviewId);
   const { data: itv, error } = await supabaseAdmin
     .from("interviews")
-    .select("id, kind, notes, occurred_at, analysis, employee:employees(id, role:roles_catalog(title, rcf_items:rcf_items(title, kind, expected_level)))")
+    .select(
+      "id, kind, notes, occurred_at, analysis, employee:employees(id, role:roles_catalog(title, rcf_items:rcf_items(title, kind, expected_level)))",
+    )
     .eq("id", interviewId)
     .eq("org_id", orgId)
     .maybeSingle();
@@ -57,7 +79,8 @@ export async function analyzeInterviewById(client: AuthenticatedClient, userId: 
         strengths: { type: "array", items: { type: "string" }, minItems: 1, maxItems: 6 },
         concerns: { type: "array", items: { type: "string" }, minItems: 0, maxItems: 6 },
         signals: {
-          type: "array", minItems: 1,
+          type: "array",
+          minItems: 1,
           items: {
             type: "object",
             properties: {
@@ -69,7 +92,9 @@ export async function analyzeInterviewById(client: AuthenticatedClient, userId: 
           },
         },
         suggested_gaps: {
-          type: "array", minItems: 0, maxItems: 5,
+          type: "array",
+          minItems: 0,
+          maxItems: 5,
           items: {
             type: "object",
             properties: {
@@ -81,9 +106,20 @@ export async function analyzeInterviewById(client: AuthenticatedClient, userId: 
           },
         },
         next_steps: { type: "array", items: { type: "string" }, minItems: 1, maxItems: 6 },
-        overall_level_suggestion: { type: "string", enum: ["abaixo", "parcial", "atende", "supera"] },
+        overall_level_suggestion: {
+          type: "string",
+          enum: ["abaixo", "parcial", "atende", "supera"],
+        },
       },
-      required: ["summary", "strengths", "concerns", "signals", "suggested_gaps", "next_steps", "overall_level_suggestion"],
+      required: [
+        "summary",
+        "strengths",
+        "concerns",
+        "signals",
+        "suggested_gaps",
+        "next_steps",
+        "overall_level_suggestion",
+      ],
     },
   });
 
@@ -91,7 +127,8 @@ export async function analyzeInterviewById(client: AuthenticatedClient, userId: 
   const { error: updateError } = await supabaseAdmin
     .from("interviews")
     .update({ analysis: validated, analyzed_at: new Date().toISOString() })
-    .eq("id", interviewId).eq("org_id", orgId);
+    .eq("id", interviewId)
+    .eq("org_id", orgId);
   if (updateError) throw new Error("Não foi possível salvar a análise");
 
   return validated;

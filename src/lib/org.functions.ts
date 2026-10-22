@@ -45,11 +45,25 @@ export const orgListMine = createServerFn({ method: "GET" })
 
     const { data: members, error } = await supabase
       .from("org_members")
-      .select("org_id, role, orgs:org_id (id, legal_name, trade_name, cnpj, status, timezone, block_outside_geofence)")
+      .select(
+        "org_id, role, orgs:org_id (id, legal_name, trade_name, cnpj, status, timezone, block_outside_geofence)",
+      )
       .eq("user_id", userId);
     if (error) throw new Error(error.message);
 
-    const byOrg = new Map<string, { id: string; legal_name: string; trade_name: string | null; cnpj: string | null; status: string; timezone: string; block_outside_geofence: boolean; roles: string[] }>();
+    const byOrg = new Map<
+      string,
+      {
+        id: string;
+        legal_name: string;
+        trade_name: string | null;
+        cnpj: string | null;
+        status: string;
+        timezone: string;
+        block_outside_geofence: boolean;
+        roles: string[];
+      }
+    >();
     for (const m of members ?? []) {
       const o = m.orgs;
       if (!o) continue;
@@ -78,7 +92,12 @@ export const orgGetEntitlements = createServerFn({ method: "POST" })
       .limit(1);
     if (error) throw new Error(error.message);
     const plan = plans?.[0];
-    if (!plan) return { plan_code: "free" as string, modules: PLAN_MODULES.free, limits: {} as Record<string, number | string | boolean> };
+    if (!plan)
+      return {
+        plan_code: "free" as string,
+        modules: PLAN_MODULES.free,
+        limits: {} as Record<string, number | string | boolean>,
+      };
     return {
       plan_code: plan.plan_code as string,
       modules: (plan.modules ?? []) as string[],
@@ -89,7 +108,8 @@ export const orgGetEntitlements = createServerFn({ method: "POST" })
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 const receitaSchema = z.object({
-  razao_social: z.string().min(1), nome_fantasia: z.string().optional().nullable(),
+  razao_social: z.string().min(1),
+  nome_fantasia: z.string().optional().nullable(),
   cnae_fiscal: z.union([z.string(), z.number()]).optional().nullable(),
   cnae_fiscal_descricao: z.string().optional().nullable(),
 });
@@ -108,7 +128,15 @@ async function fetchCnpjReceita(digits: string): Promise<z.infer<typeof receitaS
   try {
     const res = await fetch(`https://receitaws.com.br/v1/cnpj/${digits}`);
     if (res.ok) {
-      const j = z.object({ status: z.string().optional(), message: z.string().optional(), nome: z.string(), fantasia: z.string().optional(), atividade_principal: z.array(z.object({ code: z.string(), text: z.string() })).optional() }).parse(await res.json());
+      const j = z
+        .object({
+          status: z.string().optional(),
+          message: z.string().optional(),
+          nome: z.string(),
+          fantasia: z.string().optional(),
+          atividade_principal: z.array(z.object({ code: z.string(), text: z.string() })).optional(),
+        })
+        .parse(await res.json());
       if (j.status === "ERROR") throw new Error(j.message || "CNPJ não encontrado");
       const atividade = Array.isArray(j.atividade_principal) ? j.atividade_principal[0] : null;
       return {
@@ -121,7 +149,9 @@ async function fetchCnpjReceita(digits: string): Promise<z.infer<typeof receitaS
   } catch (e: unknown) {
     if (e instanceof Error && e.message.includes("CNPJ")) throw e;
   }
-  throw new Error("Receita Federal está limitando consultas. Aguarde alguns segundos e tente novamente.");
+  throw new Error(
+    "Receita Federal está limitando consultas. Aguarde alguns segundos e tente novamente.",
+  );
 }
 
 export const orgLookupCnpj = createServerFn({ method: "POST" })
@@ -132,7 +162,8 @@ export const orgLookupCnpj = createServerFn({ method: "POST" })
     if (digits.length !== 14) throw new Error("CNPJ inválido (14 dígitos)");
     const j = await fetchCnpjReceita(digits);
     const code = j.cnae_fiscal ? String(j.cnae_fiscal) : "";
-    const formattedCnae = code.length === 7 ? `${code.slice(0, 4)}-${code.slice(4, 5)}/${code.slice(5, 7)}` : code;
+    const formattedCnae =
+      code.length === 7 ? `${code.slice(0, 4)}-${code.slice(4, 5)}/${code.slice(5, 7)}` : code;
     return {
       cnpj: digits,
       legal_name: j.razao_social ?? "",
@@ -147,15 +178,26 @@ export const orgLookupCnpj = createServerFn({ method: "POST" })
 export const orgCreateFromCnpj = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({
-      cnpj: z.string().min(11).max(20),
-      // Legacy caller fields are accepted but never grant entitlements or verified data.
-      plan_code: z.enum(["free", "starter", "pro", "enterprise"]).optional(),
-      timezone: z.string().max(100).default("America/Sao_Paulo").refine((value) => {
-        try { new Intl.DateTimeFormat("pt-BR", { timeZone: value }); return true; } catch { return false; }
-      }, "Fuso horário inválido"),
-      payload: z.unknown().optional(),
-    }).parse(d),
+    z
+      .object({
+        cnpj: z.string().min(11).max(20),
+        // Legacy caller fields are accepted but never grant entitlements or verified data.
+        plan_code: z.enum(["free", "starter", "pro", "enterprise"]).optional(),
+        timezone: z
+          .string()
+          .max(100)
+          .default("America/Sao_Paulo")
+          .refine((value) => {
+            try {
+              new Intl.DateTimeFormat("pt-BR", { timeZone: value });
+              return true;
+            } catch {
+              return false;
+            }
+          }, "Fuso horário inválido"),
+        payload: z.unknown().optional(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const digits = data.cnpj.replace(/\D/g, "");
@@ -173,13 +215,22 @@ export const orgCreateFromCnpj = createServerFn({ method: "POST" })
 
 export const orgUpdatePlan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ org_id: z.string().uuid(), plan_code: z.enum(["free", "starter", "pro", "enterprise"]) }).parse(d))
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        org_id: z.string().uuid(),
+        plan_code: z.enum(["free", "starter", "pro", "enterprise"]),
+      })
+      .parse(d),
+  )
   .handler(async ({ data, context }) => {
     await requireSuperAdmin(context.supabase, context.userId);
     const { hardeningRpcClient, assertRpcSuccess } = await import("./hardening-rpc.server");
     const { error } = await hardeningRpcClient.rpc("hardening_update_plan", {
-      actor_id: context.userId, target_org: data.org_id,
-      new_plan: data.plan_code, new_modules: PLAN_MODULES[data.plan_code] ?? [],
+      actor_id: context.userId,
+      target_org: data.org_id,
+      new_plan: data.plan_code,
+      new_modules: PLAN_MODULES[data.plan_code] ?? [],
     });
     assertRpcSuccess(error);
     return { ok: true };

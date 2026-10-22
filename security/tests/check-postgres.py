@@ -83,9 +83,9 @@ try:
     other_org = "00000000-0000-0000-0000-000000000040"
     sql(f"INSERT INTO employees VALUES('{employee}','{org}','{guest}',NULL); INSERT INTO role_processes VALUES('{process}','{org}'); INSERT INTO process_weekly_evaluations(org_id,employee_id,evaluator_id,role_process_id,week_start,score) VALUES('{org}','{employee}','{actor}','{process}','2026-10-19',3);")
     # A forged evaluator without membership cannot update a visible row.
-    sql(f"UPDATE process_weekly_evaluations SET evaluator_id='{outsider}'; DELETE FROM org_members WHERE user_id='{outsider}';")
+    sql(f"ALTER TABLE process_weekly_evaluations DISABLE TRIGGER hardening_pwe_identity; UPDATE process_weekly_evaluations SET evaluator_id='{outsider}'; DELETE FROM org_members WHERE user_id='{outsider}'; ALTER TABLE process_weekly_evaluations ENABLE TRIGGER hardening_pwe_identity;")
     assert sql(f"SET ROLE authenticated; SET test.uid='{outsider}'; WITH changed AS (UPDATE process_weekly_evaluations SET score=5 RETURNING id) SELECT count(*) FROM changed;").splitlines()[-1] == "0"
-    sql(f"UPDATE process_weekly_evaluations SET evaluator_id='{actor}';")
+    sql(f"ALTER TABLE process_weekly_evaluations DISABLE TRIGGER hardening_pwe_identity; UPDATE process_weekly_evaluations SET evaluator_id='{actor}'; ALTER TABLE process_weekly_evaluations ENABLE TRIGGER hardening_pwe_identity;")
     assert sql(f"SET ROLE authenticated; SET test.uid='{actor}'; WITH changed AS (UPDATE process_weekly_evaluations SET score=4 RETURNING id) SELECT count(*) FROM changed;").splitlines()[-1] == "1"
     for assignment in [f"org_id='{other_org}'", f"employee_id='{actor}'", f"evaluator_id='{guest}'"]:
         must_fail(f"SET ROLE authenticated; SET test.uid='{actor}'; UPDATE process_weekly_evaluations SET {assignment};")

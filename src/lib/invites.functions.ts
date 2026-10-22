@@ -7,7 +7,9 @@ function randomToken() {
   // 32 bytes hex
   const arr = new Uint8Array(32);
   crypto.getRandomValues(arr);
-  return Array.from(arr).map((b) => b.toString(16).padStart(2, "0")).join("");
+  return Array.from(arr)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 export const inviteList = createServerFn({ method: "POST" })
@@ -27,11 +29,13 @@ export const inviteList = createServerFn({ method: "POST" })
 export const inviteCreate = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({
-      org_id: z.string().uuid(),
-      email: z.string().trim().email().max(255),
-      role: z.enum(["admin", "rh", "gestor", "colaborador"]),
-    }).parse(d),
+    z
+      .object({
+        org_id: z.string().uuid(),
+        email: z.string().trim().email().max(255),
+        role: z.enum(["admin", "rh", "gestor", "colaborador"]),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     await requireInvitePermission(context.supabase, context.userId, data.org_id, data.role);
@@ -56,7 +60,10 @@ export const inviteRevoke = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: inv } = await context.supabase
-      .from("org_invites").select("org_id").eq("id", data.id).maybeSingle();
+      .from("org_invites")
+      .select("org_id")
+      .eq("id", data.id)
+      .maybeSingle();
     if (!inv) throw new Error("Convite não encontrado");
     await requireInvitePermission(context.supabase, context.userId, inv.org_id);
     const { error } = await context.supabase.from("org_invites").delete().eq("id", data.id);
@@ -70,7 +77,9 @@ export const inviteValidate = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: inv, error } = await context.supabase
       .from("org_invites")
-      .select("id, email, role, org_id, accepted_at, expires_at, orgs:org_id(legal_name, trade_name)")
+      .select(
+        "id, email, role, org_id, accepted_at, expires_at, orgs:org_id(legal_name, trade_name)",
+      )
       .eq("token", data.token)
       .maybeSingle();
     if (error) throw new Error(error.message);
@@ -92,14 +101,30 @@ export const inviteAccept = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId, claims } = context;
     const { data: identity, error: identityError } = await supabase.auth.getUser();
-    if (identityError || !identity.user || identity.user.id !== userId) throw new Error("Identidade não comprovada");
-    const email = requireInviteIdentity(identity.user.email, identity.user.email_confirmed_at, claims);
-    const { data: invite, error: inviteError } = await supabase.from("org_invites").select("email").eq("token", data.token).maybeSingle();
+    if (identityError || !identity.user || identity.user.id !== userId)
+      throw new Error("Identidade não comprovada");
+    const email = requireInviteIdentity(
+      identity.user.email,
+      identity.user.email_confirmed_at,
+      claims,
+    );
+    const { data: invite, error: inviteError } = await supabase
+      .from("org_invites")
+      .select("email")
+      .eq("token", data.token)
+      .maybeSingle();
     if (inviteError || !invite) throw new Error("Convite inválido ou acesso negado");
-    requireInviteIdentity(identity.user.email, identity.user.email_confirmed_at, claims, invite.email);
+    requireInviteIdentity(
+      identity.user.email,
+      identity.user.email_confirmed_at,
+      claims,
+      invite.email,
+    );
     const { hardeningRpcClient, assertRpcSuccess } = await import("./hardening-rpc.server");
     const { data: orgId, error } = await hardeningRpcClient.rpc("hardening_accept_invite", {
-      actor_id: userId, invite_token: data.token, verified_email: email,
+      actor_id: userId,
+      invite_token: data.token,
+      verified_email: email,
     });
     assertRpcSuccess(error);
     if (!orgId) throw new Error("Não foi possível aceitar o convite");
