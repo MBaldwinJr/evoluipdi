@@ -50,31 +50,15 @@ export const listOrgChartFn = createServerFn({ method: "GET" })
     const { requireOrgAccess } = await import("./security-access");
     const orgId = await getUserOrgId(context.userId);
     await requireOrgAccess(context.supabase, context.userId, orgId, ["admin", "rh"]);
+    // Reuse the tenant that was already resolved and authorized above.
+    // A second first-membership query is redundant and can select a different scope.
     const supabaseAdmin = context.supabase;
-    // Preserve the existing first-org contract.
-    const { data: m, error: memberError } = await supabaseAdmin
-      .from("org_members")
-      .select("org_id")
-      .eq("user_id", context.userId)
-      .order("created_at")
-      .limit(1)
-      .maybeSingle();
-    if (memberError) throw new Error("Não foi possível carregar a empresa");
-    if (!m)
-      return [] as Array<{
-        id: string;
-        full_name: string;
-        role_title: string | null;
-        department: string | null;
-        avatar_url: string | null;
-        manager_id: string | null;
-      }>;
     const { data: emps, error: employeeError } = await supabaseAdmin
       .from("employees")
       .select(
         "id, manager_id, full_name, role_id, department_id, user_id, profile:profiles(full_name, avatar_url), role:roles_catalog(title), dept:departments(name)",
       )
-      .eq("org_id", m.org_id)
+      .eq("org_id", orgId)
       .eq("active", true);
     if (employeeError) throw new Error("Não foi possível carregar o organograma");
     return (emps ?? []).map((e) => ({
