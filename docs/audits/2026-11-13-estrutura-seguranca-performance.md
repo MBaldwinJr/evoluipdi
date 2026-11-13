@@ -51,3 +51,13 @@ Escopo: análise estática do código e de documentos do GitHub. Não houve aces
 - Nenhuma funcionalidade foi removida nem reescrita.
 - Nenhum teste/build foi executado nesta rodada: a inspeção foi pela API do GitHub.
 - Este relatório NÃO representa aprovação de segurança ou prontidão para produção.
+
+## Correção incremental aplicada na branch (2026-11-13)
+
+- Arquivo: `src/lib/admin.functions.ts`, handler `listOrgChartFn`.
+- Removida uma segunda consulta de `org_members` após a resolução e autorização do `orgId`.
+- Consulta a `employees` passou a usar explicitamente o mesmo `orgId` já autorizado.
+- Benefício esperado: uma requisição de banco a menos por carregamento de organograma e escopo consistente da organização.
+- Sem alteração de contratos de resposta, permissões, migrations ou dados.
+- Validação pendente: executar suíte de segurança, lint, build e teste de organograma (admin/RH em uma e múltiplas empresas). Nenhum ganho de latência foi medido nesta etapa.
+- Não sincronizar/publicar na main até passar nesses testes e revisar o preview Lovable.
